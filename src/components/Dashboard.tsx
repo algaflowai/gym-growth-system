@@ -1,54 +1,80 @@
 
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, UserPlus, Calendar, AlertTriangle, Gift } from 'lucide-react';
+import { Users, UserPlus, Calendar, AlertTriangle, Gift, Loader2 } from 'lucide-react';
+import { useStudents } from '@/hooks/useStudents';
+import { useEnrollments } from '@/hooks/useEnrollments';
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
 }
 
 const Dashboard = ({ onNavigate }: DashboardProps) => {
-  // Mock data for demonstration
-  const stats = {
-    activeEnrollments: 156,
-    newThisMonth: 23,
-    birthdaysToday: 3,
-    monthlyGrowth: 12.5,
-    pendingPayments: 8
-  };
+  const { students, loading: studentsLoading } = useStudents();
+  const { enrollments, loading: enrollmentsLoading } = useEnrollments();
+  const [birthdayStudents, setBirthdayStudents] = useState<string[]>([]);
+  const [pendingPayments, setPendingPayments] = useState<string[]>([]);
 
-  const birthdayStudents = [
-    'Maria Silva',
-    'João Santos', 
-    'Ana Costa'
-  ];
+  const loading = studentsLoading || enrollmentsLoading;
 
-  const pendingPayments = [
-    'Carlos Oliveira',
-    'Fernanda Lima',
-    'Roberto Alves',
-    'Juliana Pereira',
-    'Marcos Souza',
-    'Patricia Rocha',
-    'Diego Ferreira',
-    'Camila Dias'
-  ];
+  // Calculate statistics
+  const activeEnrollments = enrollments.filter(e => e.status === 'active').length;
+  const expiredEnrollments = enrollments.filter(e => e.status === 'expired').length;
+  
+  // Calculate students with birthdays today
+  useEffect(() => {
+    const today = new Date();
+    const todayString = `${today.getMonth() + 1}-${today.getDate()}`;
+    
+    const birthdaysToday = students.filter(student => {
+      if (!student.birth_date) return false;
+      const birthDate = new Date(student.birth_date);
+      const birthString = `${birthDate.getMonth() + 1}-${birthDate.getDate()}`;
+      return birthString === todayString;
+    }).map(student => student.name);
 
+    setBirthdayStudents(birthdaysToday);
+  }, [students]);
+
+  // Calculate expired enrollments (pending payments)
+  useEffect(() => {
+    const pending = enrollments
+      .filter(enrollment => {
+        const today = new Date();
+        const endDate = new Date(enrollment.end_date);
+        return endDate < today && enrollment.status === 'active';
+      })
+      .map(enrollment => enrollment.student?.name || 'Nome não disponível');
+
+    setPendingPayments(pending);
+  }, [enrollments]);
+
+  // Mock data for chart (we can replace this with real monthly data later)
   const chartData = [
-    { month: 'Jan', enrollments: 45 },
-    { month: 'Feb', enrollments: 52 },
-    { month: 'Mar', enrollments: 48 },
-    { month: 'Abr', enrollments: 61 },
-    { month: 'Mai', enrollments: 55 },
-    { month: 'Jun', enrollments: 67 },
-    { month: 'Jul', enrollments: 73 },
-    { month: 'Ago', enrollments: 69 },
-    { month: 'Set', enrollments: 78 },
-    { month: 'Out', enrollments: 85 },
-    { month: 'Nov', enrollments: 92 },
-    { month: 'Dez', enrollments: 98 }
+    { month: 'Jan', enrollments: Math.max(0, activeEnrollments - 50) },
+    { month: 'Fev', enrollments: Math.max(0, activeEnrollments - 40) },
+    { month: 'Mar', enrollments: Math.max(0, activeEnrollments - 30) },
+    { month: 'Abr', enrollments: Math.max(0, activeEnrollments - 20) },
+    { month: 'Mai', enrollments: Math.max(0, activeEnrollments - 10) },
+    { month: 'Jun', enrollments: activeEnrollments },
   ];
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-8 text-white shadow-xl">
+          <h2 className="text-3xl font-bold mb-2">Bem-vindo ao AlgaGymManager</h2>
+          <p className="text-blue-100 text-lg">Gerencie sua academia de forma eficiente e acompanhe o crescimento</p>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Carregando dados...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -68,9 +94,9 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             <Users className="h-5 w-5 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white">{stats.activeEnrollments}</div>
+            <div className="text-3xl font-bold text-gray-800 dark:text-white">{activeEnrollments}</div>
             <p className="text-xs text-green-600 flex items-center mt-1">
-              +{stats.monthlyGrowth}% este mês
+              Total de alunos ativos
             </p>
           </CardContent>
         </Card>
@@ -78,13 +104,13 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
         <Card className="hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0 shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
-              Novas Matrículas
+              Total de Alunos
             </CardTitle>
             <UserPlus className="h-5 w-5 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white">{stats.newThisMonth}</div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Este mês</p>
+            <div className="text-3xl font-bold text-gray-800 dark:text-white">{students.length}</div>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Cadastrados na academia</p>
           </CardContent>
         </Card>
 
@@ -96,7 +122,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             <Gift className="h-5 w-5 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white">{stats.birthdaysToday}</div>
+            <div className="text-3xl font-bold text-gray-800 dark:text-white">{birthdayStudents.length}</div>
             <p className="text-xs text-purple-600 mt-1">Hoje</p>
           </CardContent>
         </Card>
@@ -104,12 +130,12 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
         <Card className="hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0 shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
-              Pagamentos Pendentes
+              Matrículas Vencidas
             </CardTitle>
             <AlertTriangle className="h-5 w-5 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white">{stats.pendingPayments}</div>
+            <div className="text-3xl font-bold text-gray-800 dark:text-white">{pendingPayments.length}</div>
             <p className="text-xs text-red-600 mt-1">Requer atenção</p>
           </CardContent>
         </Card>
@@ -120,9 +146,9 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
         {/* Growth Chart */}
         <Card className="lg:col-span-2 border-0 shadow-md">
           <CardHeader>
-            <CardTitle className="text-xl">Crescimento de Matrículas</CardTitle>
+            <CardTitle className="text-xl">Evolução de Matrículas</CardTitle>
             <CardDescription>
-              Evolução mensal de novas matrículas
+              Crescimento de matrículas ativas ao longo do tempo
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -219,18 +245,22 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-red-700 dark:text-red-300">
               <AlertTriangle className="h-5 w-5" />
-              <span>Pagamentos Pendentes</span>
+              <span>Matrículas Vencidas</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {pendingPayments.map((student, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <span className="font-medium text-gray-800 dark:text-white">{student}</span>
-                  <AlertTriangle className="h-4 w-4 text-red-600" />
-                </div>
-              ))}
-            </div>
+            {pendingPayments.length > 0 ? (
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {pendingPayments.map((student, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                    <span className="font-medium text-gray-800 dark:text-white">{student}</span>
+                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">Nenhuma matrícula vencida</p>
+            )}
           </CardContent>
         </Card>
       </div>

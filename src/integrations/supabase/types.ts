@@ -9,7 +9,146 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      enrollments: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          plan_id: string
+          plan_name: string
+          plan_price: number
+          start_date: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          plan_id: string
+          plan_name: string
+          plan_price: number
+          start_date?: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          plan_id?: string
+          plan_name?: string
+          plan_price?: number
+          start_date?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      settings: {
+        Row: {
+          created_at: string
+          encrypted_value: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          encrypted_value?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          encrypted_value?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          city: string | null
+          cpf: string
+          created_at: string
+          deleted_at: string | null
+          email: string
+          emergency_contact: string | null
+          health_issues: string | null
+          id: string
+          main_goal: string | null
+          name: string
+          notes: string | null
+          phone: string
+          restrictions: string | null
+          rg: string | null
+          status: string
+          updated_at: string
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          city?: string | null
+          cpf: string
+          created_at?: string
+          deleted_at?: string | null
+          email: string
+          emergency_contact?: string | null
+          health_issues?: string | null
+          id?: string
+          main_goal?: string | null
+          name: string
+          notes?: string | null
+          phone: string
+          restrictions?: string | null
+          rg?: string | null
+          status?: string
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          city?: string | null
+          cpf?: string
+          created_at?: string
+          deleted_at?: string | null
+          email?: string
+          emergency_contact?: string | null
+          health_issues?: string | null
+          id?: string
+          main_goal?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string
+          restrictions?: string | null
+          rg?: string | null
+          status?: string
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
