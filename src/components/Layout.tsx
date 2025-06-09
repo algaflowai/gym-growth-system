@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { Home, UserPlus, Users, ClipboardList, CreditCard, Settings, LogOut, Menu } from 'lucide-react';
+import { Home, UserPlus, Users, ClipboardList, CreditCard, Settings, LogOut, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import RestrictedAccessModal from './RestrictedAccessModal';
 
 interface LayoutProps {
@@ -31,34 +32,43 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
   const handleRestrictedAccess = (itemId: string, password: string) => {
     // Mock password validation
     if (password === 'admin123') {
-      onNavigate(itemId);
       setRestrictedModal(null);
+      onNavigate(itemId);
     } else {
       alert('Senha incorreta!');
     }
   };
 
+  const getPageTitle = () => {
+    const allItems = [...menuItems, ...restrictedItems];
+    const currentItem = allItems.find(item => item.id === currentPage);
+    return currentItem?.label || 'Dashboard';
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* Sidebar */}
-      <div className={`bg-white shadow-lg transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-16'}`}>
-        <div className="p-4 border-b">
+      <div className={`bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-16'} border-r border-gray-200 dark:border-gray-700`}>
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             {isSidebarOpen && (
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">GYM</span>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-sm">AG</span>
                 </div>
-                <span className="font-bold text-gray-800">Academia Pro</span>
+                <div>
+                  <span className="font-bold text-gray-800 dark:text-white text-lg">AlgaGymManager</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Sistema de Gestão</p>
+                </div>
               </div>
             )}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="hover:bg-gray-100"
+              className="hover:bg-gray-100 dark:hover:bg-gray-700 p-2"
             >
-              <Menu className="h-4 w-4" />
+              {isSidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
           </div>
         </div>
@@ -70,40 +80,47 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 ${
                   currentPage === item.id
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gradient-to-r from-blue-100 to-green-100 dark:from-blue-900 dark:to-green-900 text-blue-700 dark:text-blue-300 shadow-md'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
+                title={!isSidebarOpen ? item.label : undefined}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5 flex-shrink-0" />
                 {isSidebarOpen && <span className="font-medium">{item.label}</span>}
               </button>
             );
           })}
 
-          <div className="border-t pt-2 mt-4">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
             {restrictedItems.map((item) => {
               const Icon = item.icon;
               return (
                 <button
                   key={item.id}
                   onClick={() => setRestrictedModal(item.id)}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                  className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 ${
+                    currentPage === item.id
+                      ? 'bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900 dark:to-red-900 text-orange-700 dark:text-orange-300 shadow-md'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                  title={!isSidebarOpen ? item.label : undefined}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-5 w-5 flex-shrink-0" />
                   {isSidebarOpen && <span className="font-medium">{item.label}</span>}
                 </button>
               );
             })}
           </div>
 
-          <div className="border-t pt-2 mt-4">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
             <button
               onClick={onLogout}
-              className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+              title={!isSidebarOpen ? 'Sair' : undefined}
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-5 w-5 flex-shrink-0" />
               {isSidebarOpen && <span className="font-medium">Sair</span>}
             </button>
           </div>
@@ -112,15 +129,21 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm border-b px-6 py-4">
-          <h1 className="text-2xl font-bold text-gray-800">
-            {menuItems.find(item => item.id === currentPage)?.label || 
-             restrictedItems.find(item => item.id === currentPage)?.label || 
-             'Dashboard'}
-          </h1>
+        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+              {getPageTitle()}
+            </h1>
+            <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                AlgaGymManager v2.0
+              </div>
+            </div>
+          </div>
         </header>
         
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
           {children}
         </main>
       </div>
