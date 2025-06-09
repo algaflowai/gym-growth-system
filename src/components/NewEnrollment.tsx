@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
+import { useStudents } from '@/hooks/useStudents';
+import { useEnrollments } from '@/hooks/useEnrollments';
 import { Plan } from '@/pages/Index';
 
 interface NewEnrollmentProps {
@@ -13,6 +16,10 @@ interface NewEnrollmentProps {
 }
 
 const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
+  const { createStudent } = useStudents();
+  const { createEnrollment } = useEnrollments();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [formData, setFormData] = useState({
     // Dados Pessoais
     name: '',
@@ -23,6 +30,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     address: '',
     city: '',
     zipCode: '',
+    birthDate: '',
     
     // Dados de Matrícula
     plan: '',
@@ -39,20 +47,124 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    
-    toast({
-      title: "Matrícula criada com sucesso!",
-      description: `${formData.name} foi cadastrado(a) no sistema.`,
-    });
+    setIsSubmitting(true);
 
-    // Reset form
-    setFormData({
-      name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '',
-      plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
-    });
+    try {
+      // Validação básica
+      if (!formData.name || !formData.phone || !formData.cpf || !formData.email || !formData.plan) {
+        toast({
+          title: "Erro",
+          description: "Por favor, preencha todos os campos obrigatórios.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Encontrar o plano selecionado
+      const selectedPlan = plans.find(p => p.id === formData.plan);
+      if (!selectedPlan) {
+        toast({
+          title: "Erro",
+          description: "Plano selecionado não encontrado.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log('Creating student with data:', formData);
+
+      // Criar o aluno primeiro
+      const studentData = {
+        name: formData.name,
+        phone: formData.phone,
+        cpf: formData.cpf,
+        rg: formData.rg || undefined,
+        email: formData.email,
+        address: formData.address || undefined,
+        city: formData.city || undefined,
+        zip_code: formData.zipCode || undefined,
+        birth_date: formData.birthDate || undefined,
+        emergency_contact: formData.emergencyContact || undefined,
+        health_issues: formData.healthIssues || undefined,
+        restrictions: formData.restrictions || undefined,
+        main_goal: formData.mainGoal || undefined,
+        notes: formData.notes || undefined,
+        status: 'active' as const,
+      };
+
+      const newStudent = await createStudent(studentData);
+      
+      if (!newStudent) {
+        toast({
+          title: "Erro",
+          description: "Não foi possível criar o aluno.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log('Student created successfully:', newStudent);
+
+      // Calcular data de vencimento baseada no plano
+      const startDate = new Date();
+      const endDate = new Date();
+      
+      switch (selectedPlan.duration) {
+        case 'month':
+          endDate.setMonth(endDate.getMonth() + 1);
+          break;
+        case 'quarter':
+          endDate.setMonth(endDate.getMonth() + 3);
+          break;
+        case 'year':
+          endDate.setFullYear(endDate.getFullYear() + 1);
+          break;
+        default:
+          endDate.setMonth(endDate.getMonth() + 1);
+      }
+
+      // Criar a matrícula
+      const enrollmentData = {
+        student_id: newStudent.id,
+        plan_id: selectedPlan.id,
+        plan_name: selectedPlan.name,
+        plan_price: selectedPlan.price,
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+        status: 'active' as const,
+      };
+
+      console.log('Creating enrollment with data:', enrollmentData);
+
+      const newEnrollment = await createEnrollment(enrollmentData);
+      
+      if (newEnrollment) {
+        toast({
+          title: "Sucesso!",
+          description: `Matrícula de ${formData.name} criada com sucesso!`,
+        });
+
+        // Reset form
+        setFormData({
+          name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
+          plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
+        });
+      }
+    } catch (error) {
+      console.error('Error creating enrollment:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao criar a matrícula.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -132,12 +244,33 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
             </div>
             
             <div className="space-y-2">
+              <Label htmlFor="birthDate">Data de Nascimento</Label>
+              <Input
+                id="birthDate"
+                type="date"
+                value={formData.birthDate}
+                onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                className="h-12"
+              />
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="zipCode">CEP</Label>
               <Input
                 id="zipCode"
                 value={formData.zipCode}
                 onChange={(e) => handleInputChange('zipCode', e.target.value)}
                 placeholder="00000-000"
+                className="h-12"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="city">Cidade</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => handleInputChange('city', e.target.value)}
                 className="h-12"
               />
             </div>
@@ -149,16 +282,6 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 value={formData.address}
                 onChange={(e) => handleInputChange('address', e.target.value)}
                 placeholder="Rua, número, bairro"
-                className="h-12"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="city">Cidade</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => handleInputChange('city', e.target.value)}
                 className="h-12"
               />
             </div>
@@ -273,9 +396,10 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
           </Button>
           <Button 
             type="submit"
+            disabled={isSubmitting}
             className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 h-12 px-8"
           >
-            Salvar Matrícula
+            {isSubmitting ? 'Salvando...' : 'Salvar Matrícula'}
           </Button>
         </div>
       </form>

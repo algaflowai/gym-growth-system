@@ -25,6 +25,9 @@ export interface Student {
   deleted_at?: string;
 }
 
+// Defina o tipo de status esperado para alunos
+type StudentStatus = "active" | "inactive" | "deleted";
+
 export const useStudents = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +50,13 @@ export const useStudents = () => {
         return;
       }
 
-      setStudents(data || []);
+      // Mapeia os dados convertendo explicitamente o status
+      const studentsData = (data || []).map((student: any) => ({
+        ...student,
+        status: student.status as StudentStatus,
+      }));
+
+      setStudents(studentsData);
     } catch (error) {
       console.error('Error:', error);
       toast({

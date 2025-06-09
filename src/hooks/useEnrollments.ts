@@ -18,6 +18,9 @@ export interface Enrollment {
   student?: Student;
 }
 
+// Defina o tipo de status esperado para matrículas
+type EnrollmentStatus = "active" | "inactive" | "expired";
+
 export const useEnrollments = () => {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +45,13 @@ export const useEnrollments = () => {
         return;
       }
 
-      setEnrollments(data || []);
+      // Mapeia os dados convertendo explicitamente o status
+      const enrollmentsData = (data || []).map((enrollment: any) => ({
+        ...enrollment,
+        status: enrollment.status as EnrollmentStatus,
+      }));
+
+      setEnrollments(enrollmentsData);
     } catch (error) {
       console.error('Error:', error);
       toast({
