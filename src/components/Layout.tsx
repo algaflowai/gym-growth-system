@@ -25,17 +25,18 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
   ];
 
   const restrictedItems = [
-    { id: 'financial', label: 'Financeiro', icon: CreditCard },
-    { id: 'settings', label: 'Configurações', icon: Settings },
+    { id: 'financial', label: 'Financeiro', icon: CreditCard, password: 'finance1710' },
+    { id: 'settings', label: 'Configurações', icon: Settings, password: 'config1710' },
   ];
 
   const handleRestrictedAccess = (itemId: string, password: string) => {
-    // Mock password validation
-    if (password === 'admin123') {
+    const item = restrictedItems.find(item => item.id === itemId);
+    
+    if (item && password === item.password) {
       setRestrictedModal(null);
       onNavigate(itemId);
     } else {
-      alert('Senha incorreta!');
+      alert('Senha incorreta! Tente novamente.');
     }
   };
 

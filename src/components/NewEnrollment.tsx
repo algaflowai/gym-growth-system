@@ -63,6 +63,9 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         return;
       }
 
+      console.log('Iniciando criação de matrícula...');
+      console.log('Dados do formulário:', formData);
+
       // Encontrar o plano selecionado
       const selectedPlan = plans.find(p => p.id === formData.plan);
       if (!selectedPlan) {
@@ -75,40 +78,43 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         return;
       }
 
-      console.log('Creating student with data:', formData);
+      console.log('Plano selecionado:', selectedPlan);
 
       // Criar o aluno primeiro
       const studentData = {
-        name: formData.name,
-        phone: formData.phone,
-        cpf: formData.cpf,
-        rg: formData.rg || undefined,
-        email: formData.email,
-        address: formData.address || undefined,
-        city: formData.city || undefined,
-        zip_code: formData.zipCode || undefined,
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        cpf: formData.cpf.trim(),
+        rg: formData.rg?.trim() || undefined,
+        email: formData.email.trim(),
+        address: formData.address?.trim() || undefined,
+        city: formData.city?.trim() || undefined,
+        zip_code: formData.zipCode?.trim() || undefined,
         birth_date: formData.birthDate || undefined,
-        emergency_contact: formData.emergencyContact || undefined,
-        health_issues: formData.healthIssues || undefined,
-        restrictions: formData.restrictions || undefined,
-        main_goal: formData.mainGoal || undefined,
-        notes: formData.notes || undefined,
+        emergency_contact: formData.emergencyContact?.trim() || undefined,
+        health_issues: formData.healthIssues?.trim() || undefined,
+        restrictions: formData.restrictions?.trim() || undefined,
+        main_goal: formData.mainGoal?.trim() || undefined,
+        notes: formData.notes?.trim() || undefined,
         status: 'active' as const,
       };
+
+      console.log('Dados do aluno para criar:', studentData);
 
       const newStudent = await createStudent(studentData);
       
       if (!newStudent) {
+        console.error('Falha ao criar aluno');
         toast({
           title: "Erro",
-          description: "Não foi possível criar o aluno.",
+          description: "Não foi possível criar o aluno. Verifique os dados e tente novamente.",
           variant: "destructive",
         });
         setIsSubmitting(false);
         return;
       }
 
-      console.log('Student created successfully:', newStudent);
+      console.log('Aluno criado com sucesso:', newStudent);
 
       // Calcular data de vencimento baseada no plano
       const startDate = new Date();
@@ -139,11 +145,12 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         status: 'active' as const,
       };
 
-      console.log('Creating enrollment with data:', enrollmentData);
+      console.log('Dados da matrícula para criar:', enrollmentData);
 
       const newEnrollment = await createEnrollment(enrollmentData);
       
       if (newEnrollment) {
+        console.log('Matrícula criada com sucesso:', newEnrollment);
         toast({
           title: "Sucesso!",
           description: `Matrícula de ${formData.name} criada com sucesso!`,
@@ -154,12 +161,19 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
           name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
           plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
         });
+      } else {
+        console.error('Falha ao criar matrícula');
+        toast({
+          title: "Erro",
+          description: "Aluno criado, mas falha ao criar a matrícula. Tente novamente.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error('Error creating enrollment:', error);
+      console.error('Erro completo na criação:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao criar a matrícula.",
+        description: "Erro inesperado ao criar a matrícula. Verifique sua conexão e tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -193,6 +207,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 required
                 className="h-12"
+                placeholder="Digite o nome completo"
               />
             </div>
             
@@ -240,6 +255,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 required
                 className="h-12"
+                placeholder="email@exemplo.com"
               />
             </div>
             
@@ -272,6 +288,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 value={formData.city}
                 onChange={(e) => handleInputChange('city', e.target.value)}
                 className="h-12"
+                placeholder="Nome da cidade"
               />
             </div>
             
@@ -299,7 +316,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
           </CardHeader>
           <CardContent className="space-y-6 p-6">
             <div className="space-y-4">
-              <Label className="text-base font-medium">Plano *</Label>
+              <Label className="text-base font-medium">Plano * (Selecione uma opção)</Label>
               <RadioGroup
                 value={formData.plan}
                 onValueChange={(value) => handleInputChange('plan', value)}
@@ -391,8 +408,16 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
 
         {/* Submit Button */}
         <div className="flex justify-end space-x-4 pt-6">
-          <Button type="button" variant="outline" className="h-12 px-8">
-            Cancelar
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="h-12 px-8"
+            onClick={() => setFormData({
+              name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
+              plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
+            })}
+          >
+            Limpar Formulário
           </Button>
           <Button 
             type="submit"

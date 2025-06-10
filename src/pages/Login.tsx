@@ -8,9 +8,10 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface LoginProps {
   onLogin: (email: string, password: string) => void;
+  onForgotPassword?: () => void;
 }
 
-const Login = ({ onLogin }: LoginProps) => {
+const Login = ({ onLogin, onForgotPassword }: LoginProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +25,14 @@ const Login = ({ onLogin }: LoginProps) => {
       onLogin(email, password);
       setIsLoading(false);
     }, 1000);
+  };
+
+  const handleForgotPassword = () => {
+    if (onForgotPassword) {
+      onForgotPassword();
+    } else {
+      alert('Funcionalidade de recuperação de senha em desenvolvimento. Entre em contato com o administrador.');
+    }
   };
 
   return (
@@ -72,6 +81,18 @@ const Login = ({ onLogin }: LoginProps) => {
                 className="h-12 text-base border-2 focus:border-blue-500 transition-all duration-200"
               />
             </div>
+            
+            {/* Link Esqueceu sua senha */}
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors duration-200"
+              >
+                Esqueceu sua senha?
+              </button>
+            </div>
+            
             <Button
               type="submit"
               className="w-full h-12 text-base bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"

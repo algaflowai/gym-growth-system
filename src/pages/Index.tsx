@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import Login from './Login';
+import ForgotPassword from '../components/ForgotPassword';
 import Layout from '../components/Layout';
 import Dashboard from '../components/Dashboard';
 import NewEnrollment from '../components/NewEnrollment';
@@ -22,6 +23,7 @@ export interface Plan {
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([
     { id: '1', name: 'Mensal', price: 89, duration: 'month', active: true },
     { id: '2', name: 'Trimestral', price: 240, duration: 'quarter', active: true },
@@ -33,16 +35,26 @@ const Index = () => {
     if (email && password) {
       setIsAuthenticated(true);
       setCurrentPage('dashboard');
+      setShowForgotPassword(false);
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentPage('dashboard');
+    setShowForgotPassword(false);
   };
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
+  };
+
+  const handleForgotPassword = () => {
+    setShowForgotPassword(true);
+  };
+
+  const handleBackToLogin = () => {
+    setShowForgotPassword(false);
   };
 
   const handleAddPlan = (plan: Omit<Plan, 'id'>) => {
@@ -91,7 +103,11 @@ const Index = () => {
   if (!isAuthenticated) {
     return (
       <ThemeProvider defaultTheme="light" storageKey="algagym-ui-theme">
-        <Login onLogin={handleLogin} />
+        {showForgotPassword ? (
+          <ForgotPassword onBackToLogin={handleBackToLogin} />
+        ) : (
+          <Login onLogin={handleLogin} onForgotPassword={handleForgotPassword} />
+        )}
       </ThemeProvider>
     );
   }

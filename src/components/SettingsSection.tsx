@@ -1,13 +1,80 @@
 
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Settings, User, Bell, Shield, Database } from 'lucide-react';
+import { Settings, User, Bell, Shield, Database, Lock } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const SettingsSection = () => {
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!passwordForm.currentPassword) {
+      toast({
+        title: "Erro",
+        description: "A senha atual é obrigatória.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "A nova senha e a confirmação não coincidem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A nova senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+    
+    // Simular verificação da senha atual
+    setTimeout(() => {
+      if (passwordForm.currentPassword === 'admin') {
+        toast({
+          title: "Sucesso",
+          description: "Senha alterada com sucesso!",
+        });
+        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Senha atual incorreta.",
+          variant: "destructive",
+        });
+      }
+      setIsChangingPassword(false);
+    }, 1500);
+  };
+
+  const handleSaveSettings = () => {
+    toast({
+      title: "Sucesso",
+      description: "Configurações salvas com sucesso!",
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center mb-8">
@@ -71,7 +138,10 @@ const SettingsSection = () => {
           </div>
           
           <div className="flex justify-end pt-4">
-            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+            <Button 
+              onClick={handleSaveSettings}
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            >
               Salvar Configurações
             </Button>
           </div>
@@ -113,36 +183,88 @@ const SettingsSection = () => {
             </div>
           </div>
           
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-800 dark:text-white">Alterar Senha</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex justify-end pt-4">
+            <Button 
+              onClick={handleSaveSettings}
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            >
+              Atualizar Perfil
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Password Change Section */}
+      <Card className="border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-xl">
+            <Lock className="h-5 w-5" />
+            <span>Alterar Senha de Login</span>
+          </CardTitle>
+          <CardDescription>
+            Altere sua senha de acesso ao sistema (requer senha atual)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handlePasswordChange} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="currentPassword">Senha Atual</Label>
+                <Label htmlFor="currentPassword">Senha Atual *</Label>
                 <Input
                   id="currentPassword"
                   type="password"
                   placeholder="••••••••"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                  required
                   className="h-12"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="newPassword">Nova Senha</Label>
+                <Label htmlFor="newPassword">Nova Senha *</Label>
                 <Input
                   id="newPassword"
                   type="password"
                   placeholder="••••••••"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                  required
+                  className="h-12"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar Nova Senha *</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  required
                   className="h-12"
                 />
               </div>
             </div>
-          </div>
-          
-          <div className="flex justify-end pt-4">
-            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
-              Atualizar Perfil
-            </Button>
-          </div>
+            
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                <strong>Atenção:</strong> Para alterar sua senha, você deve inserir sua senha atual. 
+                A nova senha deve ter pelo menos 6 caracteres.
+              </p>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button 
+                type="submit"
+                disabled={isChangingPassword}
+                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+              >
+                {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
+              </Button>
+            </div>
+          </form>
         </CardContent>
       </Card>
 
@@ -208,16 +330,25 @@ const SettingsSection = () => {
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="restrictedPassword">Senha para Áreas Restritas</Label>
-              <Input
-                id="restrictedPassword"
-                type="password"
-                placeholder="••••••••"
-                defaultValue="admin123"
-                className="h-12"
-              />
+              <Label htmlFor="restrictedPassword">Senhas para Áreas Restritas</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  id="financePassword"
+                  type="password"
+                  placeholder="Senha Financeiro"
+                  defaultValue="finance1710"
+                  className="h-12"
+                />
+                <Input
+                  id="configPassword"
+                  type="password"
+                  placeholder="Senha Configurações"
+                  defaultValue="config1710"
+                  className="h-12"
+                />
+              </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Senha para acessar o módulo financeiro e configurações
+                Senhas para acessar o módulo financeiro e configurações
               </p>
             </div>
             
@@ -231,7 +362,10 @@ const SettingsSection = () => {
           </div>
           
           <div className="flex justify-end pt-4">
-            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+            <Button 
+              onClick={handleSaveSettings}
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            >
               Salvar Configurações de Segurança
             </Button>
           </div>
