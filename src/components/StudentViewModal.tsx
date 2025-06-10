@@ -1,7 +1,11 @@
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { HistoryIcon } from 'lucide-react';
 import { Student } from '@/hooks/useStudents';
+import { useState } from 'react';
+import StudentEnrollmentHistory from './StudentEnrollmentHistory';
 
 interface StudentViewModalProps {
   student: Student | null;
@@ -10,6 +14,8 @@ interface StudentViewModalProps {
 }
 
 const StudentViewModal = ({ student, isOpen, onClose }: StudentViewModalProps) => {
+  const [showHistory, setShowHistory] = useState(false);
+
   if (!student) return null;
 
   const getStatusBadge = (status: string) => {
@@ -20,11 +26,48 @@ const StudentViewModal = ({ student, isOpen, onClose }: StudentViewModalProps) =
     );
   };
 
+  if (showHistory) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
+          <DialogHeader className="space-y-2 sm:space-y-3">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-lg sm:text-xl">Histórico de Matrículas</DialogTitle>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowHistory(false)}
+                className="text-sm"
+              >
+                Voltar aos Dados
+              </Button>
+            </div>
+            <DialogDescription className="text-sm">
+              Histórico completo de planos e matrículas de {student.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <StudentEnrollmentHistory studentId={student.id} student={student} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-xs sm:max-w-md lg:max-w-2xl max-h-[90vh] sm:max-h-[80vh] overflow-y-auto mx-2 sm:mx-auto">
         <DialogHeader className="space-y-2 sm:space-y-3">
-          <DialogTitle className="text-lg sm:text-xl">Dados do Aluno</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-lg sm:text-xl">Dados do Aluno</DialogTitle>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowHistory(true)}
+              className="text-sm"
+            >
+              <HistoryIcon className="h-4 w-4 mr-1" />
+              Histórico
+            </Button>
+          </div>
           <DialogDescription className="text-sm">
             Informações completas do aluno
           </DialogDescription>

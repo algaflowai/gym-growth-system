@@ -4,17 +4,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Edit, Trash2, UserX, Eye, Loader2, UserCheck } from 'lucide-react';
+import { Search, Edit, Trash2, UserX, Eye, Loader2, UserCheck, RotateCcw } from 'lucide-react';
 import { useEnrollments } from '@/hooks/useEnrollments';
 import { useStudents } from '@/hooks/useStudents';
+import { Plan } from '@/pages/Index';
 import StudentEditModal from './StudentEditModal';
+import PlanRenewalModal from './PlanRenewalModal';
 
-const EnrollmentManagement = () => {
-  const { enrollments, loading, deleteEnrollment, updateEnrollment } = useEnrollments();
+interface EnrollmentManagementProps {
+  plans?: Plan[];
+}
+
+const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
+  const { enrollments, loading, deleteEnrollment, updateEnrollment, renewEnrollment } = useEnrollments();
   const { updateStudent } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedEnrollment, setSelectedEnrollment] = useState(null);
+  const [showRenewalModal, setShowRenewalModal] = useState(false);
 
   const filteredEnrollments = enrollments.filter(enrollment =>
     enrollment.student?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -35,11 +43,31 @@ const EnrollmentManagement = () => {
     }
   };
 
+  const handleRenew = (enrollment: any) => {
+    setSelectedEnrollment(enrollment);
+    setShowRenewalModal(true);
+  };
+
   const handleSaveStudent = async (id: string, updates: any) => {
     const success = await updateStudent(id, updates);
     if (success) {
       setShowEditModal(false);
       setSelectedStudent(null);
+    }
+    return success;
+  };
+
+  const handleRenewalConfirm = async (
+    enrollmentId: string,
+    planId: string,
+    planName: string,
+    planPrice: number,
+    duration: string
+  ) => {
+    const success = await renewEnrollment(enrollmentId, planId, planName, planPrice, duration);
+    if (success) {
+      setShowRenewalModal(false);
+      setSelectedEnrollment(null);
     }
     return success;
   };
@@ -227,6 +255,18 @@ const EnrollmentManagement = () => {
                         <Edit className="h-4 w-4 mr-1" />
                         Editar
                       </Button>
+
+                      {(enrollment.status === 'active' || enrollment.status === 'expired') && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRenew(enrollment)}
+                          className="hover:bg-green-50 text-green-600 border-green-200"
+                        >
+                          <RotateCcw className="h-4 w-4 mr-1" />
+                          Renovar
+                        </Button>
+                      )}
                       
                       {enrollment.status === 'active' && (
                         <Button
@@ -287,6 +327,18 @@ const EnrollmentManagement = () => {
           setSelectedStudent(null);
         }}
         onSave={handleSaveStudent}
+      />
+
+      {/* Plan Renewal Modal */}
+      <PlanRenewalModal
+        enrollment={selectedEnrollment}
+        plans={plans}
+        isOpen={showRenewalModal}
+        onClose={() => {
+          setShowRenewalModal(false);
+          setSelectedEnrollment(null);
+        }}
+        onRenew={handleRenewalConfirm}
       />
     </div>
   );

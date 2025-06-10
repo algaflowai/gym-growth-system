@@ -25,8 +25,48 @@ export const useEnrollments = () => {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Função para calcular duração em dias baseada no tipo do plano
+  const calculateDurationInDays = (duration: string): number => {
+    switch (duration) {
+      case 'day':
+        return 1;
+      case 'month':
+        return 30;
+      case 'quarter':
+        return 90;
+      case 'semester':
+        return 180;
+      case 'year':
+        return 365;
+      default:
+        return 30;
+    }
+  };
+
+  // Função para atualizar status automaticamente baseado na data
+  const updateExpiredEnrollments = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { error } = await supabase
+        .from('enrollments')
+        .update({ status: 'expired' })
+        .lt('end_date', today)
+        .eq('status', 'active');
+
+      if (error) {
+        console.error('Error updating expired enrollments:', error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   const fetchEnrollments = async () => {
     try {
+      // Primeiro atualiza matrículas expiradas
+      await updateExpiredEnrollments();
+
       const { data, error } = await supabase
         .from('enrollments')
         .select(`
@@ -97,6 +137,108 @@ export const useEnrollments = () => {
         variant: "destructive",
       });
       return null;
+    }
+  };
+
+  const renewEnrollment = async (
+    currentEnrollmentId: string,
+    planId: string,
+    planName: string,
+    planPrice: number,
+    planDuration: string
+  ) => {
+    try {
+      // Busca a matrícula atual
+      const { data: currentEnrollment, error: fetchError } = await supabase
+        .from('enrollments')
+        .select('*')
+        .eq('id', currentEnrollmentId)
+        .single();
+
+      if (fetchError || !currentEnrollment) {
+        console.error('Error fetching current enrollment:', fetchError);
+        toast({
+          title: "Erro",
+          description: "Não foi possível encontrar a matrícula atual.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Calcula as novas datas
+      const currentDate = new Date();
+      const enrollmentEndDate = new Date(currentEnrollment.end_date);
+      
+      // Se o plano já expirou, usa a data atual. Senão, usa o dia seguinte ao término
+      const startDate = enrollmentEndDate < currentDate 
+        ? currentDate 
+        : new Date(enrollmentEndDate.getTime() + 24 * 60 * 60 * 1000);
+
+      const durationInDays = calculateDurationInDays(planDuration);
+      const endDate = new Date(startDate.getTime() + (durationInDays * 24 * 60 * 60 * 1000));
+
+      // Primeiro, marca a matrícula atual como inativa
+      const { error: updateError } = await supabase
+        .from('enrollments')
+        .update({ status: 'inactive' })
+        .eq('id', currentEnrollmentId);
+
+      if (updateError) {
+        console.error('Error updating current enrollment:', updateError);
+        toast({
+          title: "Erro",
+          description: "Não foi possível atualizar a matrícula atual.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Cria a nova matrícula (renovação)
+      const newEnrollmentData = {
+        student_id: currentEnrollment.student_id,
+        plan_id: planId,
+        plan_name: planName,
+        plan_price: planPrice,
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+        status: 'active' as EnrollmentStatus
+      };
+
+      const { error: createError } = await supabase
+        .from('enrollments')
+        .insert([newEnrollmentData]);
+
+      if (createError) {
+        console.error('Error creating new enrollment:', createError);
+        // Reverte a mudança na matrícula atual em caso de erro
+        await supabase
+          .from('enrollments')
+          .update({ status: currentEnrollment.status })
+          .eq('id', currentEnrollmentId);
+        
+        toast({
+          title: "Erro",
+          description: "Não foi possível criar a nova matrícula.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Plano renovado com sucesso!",
+      });
+
+      await fetchEnrollments();
+      return true;
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao renovar o plano.",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -179,6 +321,7 @@ export const useEnrollments = () => {
     loading,
     fetchEnrollments,
     createEnrollment,
+    renewEnrollment,
     updateEnrollment,
     deleteEnrollment,
   };

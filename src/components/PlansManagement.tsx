@@ -83,6 +83,23 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
     });
   };
 
+  const getDurationLabel = (duration: string) => {
+    switch (duration) {
+      case 'day':
+        return 'Diário';
+      case 'month':
+        return 'Mensal';
+      case 'quarter':
+        return 'Trimestral';
+      case 'semester':
+        return 'Semestral';
+      case 'year':
+        return 'Anual';
+      default:
+        return duration;
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between mb-8">
@@ -145,6 +162,7 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
                   onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                   className="w-full h-10 px-3 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
                 >
+                  <option value="day">Diário</option>
                   <option value="month">Mensal</option>
                   <option value="quarter">Trimestral</option>
                   <option value="semester">Semestral</option>
@@ -190,10 +208,7 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
                 <div>
                   <span className="text-sm text-gray-600 dark:text-gray-400">Duração:</span>
                   <p className="font-medium">
-                    {plan.duration === 'month' && 'Mensal'}
-                    {plan.duration === 'quarter' && 'Trimestral'}
-                    {plan.duration === 'semester' && 'Semestral'}
-                    {plan.duration === 'year' && 'Anual'}
+                    {getDurationLabel(plan.duration)}
                   </p>
                 </div>
                 
