@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 import { useStudents } from '@/hooks/useStudents';
 import { useEnrollments } from '@/hooks/useEnrollments';
+import { supabase } from '@/integrations/supabase/client';
 import { Plan } from '@/pages/Index';
 
 interface NewEnrollmentProps {
@@ -19,6 +21,8 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
   const { createStudent } = useStudents();
   const { createEnrollment } = useEnrollments();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingStudent, setExistingStudent] = useState<any>(null);
+  const [showExistingStudentOption, setShowExistingStudentOption] = useState(false);
   
   const [formData, setFormData] = useState({
     // Dados Pessoais
@@ -43,28 +47,211 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     emergencyContact: ''
   });
 
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    // Validação de campos obrigatórios
+    if (!formData.name.trim()) errors.name = 'Nome é obrigatório';
+    if (!formData.phone.trim()) errors.phone = 'Telefone é obrigatório';
+    if (!formData.cpf.trim()) errors.cpf = 'CPF é obrigatório';
+    if (!formData.email.trim()) errors.email = 'Email é obrigatório';
+    if (!formData.plan) errors.plan = 'Plano é obrigatório';
+
+    // Validação de CPF (formato básico)
+    const cpfRegex = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/;
+    if (formData.cpf && !cpfRegex.test(formData.cpf)) {
+      errors.cpf = 'CPF deve ter formato válido (000.000.000-00)';
+    }
+
+    // Validação de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      errors.email = 'Email deve ter formato válido';
+    }
+
+    // Validação de telefone
+    const phoneRegex = /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
+    if (formData.phone && !phoneRegex.test(formData.phone)) {
+      errors.phone = 'Telefone deve ter formato válido (11) 99999-9999';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const checkExistingStudent = async (cpf: string) => {
+    try {
+      console.log('Verificando se existe aluno com CPF:', cpf);
+      
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('cpf', cpf.trim())
+        .maybeSingle();
+
+      if (error) {
+        console.error('Erro ao verificar CPF existente:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Erro inesperado ao verificar CPF:', error);
+      return null;
+    }
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Limpar erro de validação quando o usuário começar a digitar
+    if (validationErrors[field]) {
+      setValidationErrors(prev => ({ ...prev, [field]: '' }));
+    }
+
+    // Verificar CPF em tempo real quando o usuário parar de digitar
+    if (field === 'cpf' && value.length >= 11) {
+      const timeoutId = setTimeout(async () => {
+        const existing = await checkExistingStudent(value);
+        if (existing) {
+          setExistingStudent(existing);
+          setShowExistingStudentOption(true);
+        } else {
+          setExistingStudent(null);
+          setShowExistingStudentOption(false);
+        }
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  };
+
+  const handleUseExistingStudent = async () => {
+    if (!existingStudent) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // Verificar se já existe matrícula ativa para este aluno
+      const { data: existingEnrollments, error: enrollmentError } = await supabase
+        .from('enrollments')
+        .select('*')
+        .eq('student_id', existingStudent.id)
+        .eq('status', 'active');
+
+      if (enrollmentError) {
+        console.error('Erro ao verificar matrículas existentes:', enrollmentError);
+        toast({
+          title: "Erro",
+          description: "Erro ao verificar matrículas existentes.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (existingEnrollments && existingEnrollments.length > 0) {
+        toast({
+          title: "Atenção",
+          description: "Este aluno já possui uma matrícula ativa.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Criar nova matrícula para aluno existente
+      const selectedPlan = plans.find(p => p.id === formData.plan);
+      if (!selectedPlan) {
+        toast({
+          title: "Erro",
+          description: "Plano selecionado não encontrado.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const startDate = new Date();
+      const endDate = new Date();
+      
+      switch (selectedPlan.duration) {
+        case 'month':
+          endDate.setMonth(endDate.getMonth() + 1);
+          break;
+        case 'quarter':
+          endDate.setMonth(endDate.getMonth() + 3);
+          break;
+        case 'year':
+          endDate.setFullYear(endDate.getFullYear() + 1);
+          break;
+        default:
+          endDate.setMonth(endDate.getMonth() + 1);
+      }
+
+      const enrollmentData = {
+        student_id: existingStudent.id,
+        plan_id: selectedPlan.id,
+        plan_name: selectedPlan.name,
+        plan_price: selectedPlan.price,
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+        status: 'active' as const,
+      };
+
+      const newEnrollment = await createEnrollment(enrollmentData);
+      
+      if (newEnrollment) {
+        toast({
+          title: "Sucesso!",
+          description: `Nova matrícula criada para ${existingStudent.name}!`,
+        });
+
+        // Reset form
+        setFormData({
+          name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
+          plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
+        });
+        setExistingStudent(null);
+        setShowExistingStudentOption(false);
+      }
+    } catch (error) {
+      console.error('Erro ao criar matrícula para aluno existente:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao criar matrícula.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({
+        title: "Erro de Validação",
+        description: "Por favor, corrija os campos destacados.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Validação básica
-      if (!formData.name || !formData.phone || !formData.cpf || !formData.email || !formData.plan) {
-        toast({
-          title: "Erro",
-          description: "Por favor, preencha todos os campos obrigatórios.",
-          variant: "destructive",
-        });
+      console.log('Iniciando criação de matrícula...');
+      console.log('Dados do formulário:', formData);
+
+      // Verificar novamente se o CPF já existe
+      const existingStudent = await checkExistingStudent(formData.cpf);
+      if (existingStudent) {
+        setExistingStudent(existingStudent);
+        setShowExistingStudentOption(true);
         setIsSubmitting(false);
         return;
       }
-
-      console.log('Iniciando criação de matrícula...');
-      console.log('Dados do formulário:', formData);
 
       // Encontrar o plano selecionado
       const selectedPlan = plans.find(p => p.id === formData.plan);
@@ -80,13 +267,17 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
 
       console.log('Plano selecionado:', selectedPlan);
 
+      // Limpar e formatar CPF
+      const cleanCpf = formData.cpf.replace(/[^\d]/g, '');
+      const formattedCpf = `${cleanCpf.slice(0,3)}.${cleanCpf.slice(3,6)}.${cleanCpf.slice(6,9)}-${cleanCpf.slice(9,11)}`;
+
       // Criar o aluno primeiro
       const studentData = {
         name: formData.name.trim(),
         phone: formData.phone.trim(),
-        cpf: formData.cpf.trim(),
+        cpf: formattedCpf,
         rg: formData.rg?.trim() || undefined,
-        email: formData.email.trim(),
+        email: formData.email.trim().toLowerCase(),
         address: formData.address?.trim() || undefined,
         city: formData.city?.trim() || undefined,
         zip_code: formData.zipCode?.trim() || undefined,
@@ -161,6 +352,9 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
           name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
           plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
         });
+        setValidationErrors({});
+        setExistingStudent(null);
+        setShowExistingStudentOption(false);
       } else {
         console.error('Falha ao criar matrícula');
         toast({
@@ -169,13 +363,23 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro completo na criação:', error);
-      toast({
-        title: "Erro",
-        description: "Erro inesperado ao criar a matrícula. Verifique sua conexão e tente novamente.",
-        variant: "destructive",
-      });
+      
+      // Tratamento específico para erro de CPF duplicado
+      if (error?.message?.includes('duplicate key value violates unique constraint "students_cpf_key"')) {
+        toast({
+          title: "CPF já cadastrado",
+          description: "Este CPF já está cadastrado no sistema. Verifique os dados ou use a opção para criar nova matrícula para aluno existente.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Erro inesperado ao criar a matrícula. Verifique sua conexão e tente novamente.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -187,6 +391,42 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Nova Matrícula</h2>
         <p className="text-gray-600 dark:text-gray-400 text-lg">Preencha os dados do novo aluno</p>
       </div>
+
+      {showExistingStudentOption && existingStudent && (
+        <Alert className="border-orange-200 bg-orange-50 dark:bg-orange-900/20">
+          <AlertDescription>
+            <div className="space-y-3">
+              <p className="font-medium text-orange-800 dark:text-orange-200">
+                CPF já cadastrado! Encontramos um aluno:
+              </p>
+              <div className="bg-white dark:bg-gray-800 p-3 rounded border">
+                <p><strong>Nome:</strong> {existingStudent.name}</p>
+                <p><strong>Email:</strong> {existingStudent.email}</p>
+                <p><strong>Telefone:</strong> {existingStudent.phone}</p>
+              </div>
+              <div className="flex space-x-3">
+                <Button 
+                  onClick={handleUseExistingStudent}
+                  disabled={!formData.plan || isSubmitting}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  Criar Matrícula para Este Aluno
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowExistingStudentOption(false);
+                    setExistingStudent(null);
+                    setFormData(prev => ({ ...prev, cpf: '' }));
+                  }}
+                >
+                  Usar CPF Diferente
+                </Button>
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Dados Pessoais */}
@@ -206,9 +446,12 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 required
-                className="h-12"
+                className={`h-12 ${validationErrors.name ? 'border-red-500' : ''}`}
                 placeholder="Digite o nome completo"
               />
+              {validationErrors.name && (
+                <p className="text-red-500 text-sm">{validationErrors.name}</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -219,8 +462,11 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="(11) 99999-9999"
                 required
-                className="h-12"
+                className={`h-12 ${validationErrors.phone ? 'border-red-500' : ''}`}
               />
+              {validationErrors.phone && (
+                <p className="text-red-500 text-sm">{validationErrors.phone}</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -231,8 +477,11 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 onChange={(e) => handleInputChange('cpf', e.target.value)}
                 placeholder="000.000.000-00"
                 required
-                className="h-12"
+                className={`h-12 ${validationErrors.cpf ? 'border-red-500' : ''}`}
               />
+              {validationErrors.cpf && (
+                <p className="text-red-500 text-sm">{validationErrors.cpf}</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -254,9 +503,12 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 required
-                className="h-12"
+                className={`h-12 ${validationErrors.email ? 'border-red-500' : ''}`}
                 placeholder="email@exemplo.com"
               />
+              {validationErrors.email && (
+                <p className="text-red-500 text-sm">{validationErrors.email}</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -332,6 +584,9 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                   </div>
                 ))}
               </RadioGroup>
+              {validationErrors.plan && (
+                <p className="text-red-500 text-sm">{validationErrors.plan}</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -412,16 +667,21 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
             type="button" 
             variant="outline" 
             className="h-12 px-8"
-            onClick={() => setFormData({
-              name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
-              plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
-            })}
+            onClick={() => {
+              setFormData({
+                name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
+                plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
+              });
+              setValidationErrors({});
+              setExistingStudent(null);
+              setShowExistingStudentOption(false);
+            }}
           >
             Limpar Formulário
           </Button>
           <Button 
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || showExistingStudentOption}
             className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 h-12 px-8"
           >
             {isSubmitting ? 'Salvando...' : 'Salvar Matrícula'}
