@@ -4,12 +4,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Edit, Trash2, UserX, Eye, Loader2 } from 'lucide-react';
+import { Search, Edit, Trash2, UserX, Eye, Loader2, UserCheck } from 'lucide-react';
 import { useEnrollments } from '@/hooks/useEnrollments';
+import { useStudents } from '@/hooks/useStudents';
+import StudentEditModal from './StudentEditModal';
 
 const EnrollmentManagement = () => {
   const { enrollments, loading, deleteEnrollment, updateEnrollment } = useEnrollments();
+  const { updateStudent } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const filteredEnrollments = enrollments.filter(enrollment =>
     enrollment.student?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -23,8 +28,20 @@ const EnrollmentManagement = () => {
   const expiredEnrollments = enrollments.filter(e => e.status === 'expired').length;
   const totalEnrollments = enrollments.length;
 
-  const handleEdit = (id: string) => {
-    console.log('Edit enrollment:', id);
+  const handleEdit = (enrollment: any) => {
+    if (enrollment.student) {
+      setSelectedStudent(enrollment.student);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleSaveStudent = async (id: string, updates: any) => {
+    const success = await updateStudent(id, updates);
+    if (success) {
+      setShowEditModal(false);
+      setSelectedStudent(null);
+    }
+    return success;
   };
 
   const handleDelete = async (id: string, studentName: string) => {
@@ -36,6 +53,12 @@ const EnrollmentManagement = () => {
   const handleInactivate = async (id: string, studentName: string) => {
     if (confirm(`Tem certeza que deseja inativar a matrícula de ${studentName}?`)) {
       await updateEnrollment(id, { status: 'inactive' });
+    }
+  };
+
+  const handleReactivate = async (id: string, studentName: string) => {
+    if (confirm(`Tem certeza que deseja reativar a matrícula de ${studentName}?`)) {
+      await updateEnrollment(id, { status: 'active' });
     }
   };
 
@@ -197,8 +220,9 @@ const EnrollmentManagement = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleEdit(enrollment.id)}
+                        onClick={() => handleEdit(enrollment)}
                         className="hover:bg-blue-50"
+                        disabled={!enrollment.student}
                       >
                         <Edit className="h-4 w-4 mr-1" />
                         Editar
@@ -213,6 +237,18 @@ const EnrollmentManagement = () => {
                         >
                           <UserX className="h-4 w-4 mr-1" />
                           Inativar
+                        </Button>
+                      )}
+
+                      {enrollment.status === 'inactive' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleReactivate(enrollment.id, enrollment.student?.name || '')}
+                          className="hover:bg-green-50 text-green-600 border-green-200"
+                        >
+                          <UserCheck className="h-4 w-4 mr-1" />
+                          Reativar
                         </Button>
                       )}
                       
@@ -241,6 +277,17 @@ const EnrollmentManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Student Edit Modal */}
+      <StudentEditModal
+        student={selectedStudent}
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedStudent(null);
+        }}
+        onSave={handleSaveStudent}
+      />
     </div>
   );
 };

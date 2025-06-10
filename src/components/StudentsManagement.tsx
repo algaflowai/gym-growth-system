@@ -4,12 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Edit, Trash2, Eye, UserPlus, Loader2 } from 'lucide-react';
+import { Search, Trash2, Eye, UserPlus, Loader2 } from 'lucide-react';
 import { useStudents } from '@/hooks/useStudents';
+import StudentViewModal from './StudentViewModal';
 
 const StudentsManagement = () => {
   const { students, loading, deleteStudent } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -26,6 +29,11 @@ const StudentsManagement = () => {
     if (confirm(`Tem certeza que deseja excluir o aluno ${name}?`)) {
       await deleteStudent(id);
     }
+  };
+
+  const handleView = (student: any) => {
+    setSelectedStudent(student);
+    setShowViewModal(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -154,19 +162,11 @@ const StudentsManagement = () => {
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={() => handleView(student)}
                       className="hover:bg-blue-50"
                     >
                       <Eye className="h-4 w-4 mr-1" />
                       Ver
-                    </Button>
-                    
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="hover:bg-green-50"
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Editar
                     </Button>
                     
                     <Button
@@ -193,6 +193,16 @@ const StudentsManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Student View Modal */}
+      <StudentViewModal
+        student={selectedStudent}
+        isOpen={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedStudent(null);
+        }}
+      />
     </div>
   );
 };

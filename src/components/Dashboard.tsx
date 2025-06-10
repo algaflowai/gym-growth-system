@@ -15,7 +15,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
   const { students, loading: studentsLoading } = useStudents();
   const { enrollments, loading: enrollmentsLoading } = useEnrollments();
   const [birthdayStudents, setBirthdayStudents] = useState<string[]>([]);
-  const [pendingPayments, setPendingPayments] = useState<string[]>([]);
+  const [expiringEnrollments, setExpiringEnrollments] = useState<string[]>([]);
 
   const loading = studentsLoading || enrollmentsLoading;
 
@@ -26,29 +26,34 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
   // Calculate students with birthdays today
   useEffect(() => {
     const today = new Date();
-    const todayString = `${today.getMonth() + 1}-${today.getDate()}`;
+    const todayMonth = today.getMonth() + 1;
+    const todayDay = today.getDate();
     
     const birthdaysToday = students.filter(student => {
       if (!student.birth_date) return false;
       const birthDate = new Date(student.birth_date);
-      const birthString = `${birthDate.getMonth() + 1}-${birthDate.getDate()}`;
-      return birthString === todayString;
+      const birthMonth = birthDate.getMonth() + 1;
+      const birthDay = birthDate.getDate();
+      return birthMonth === todayMonth && birthDay === todayDay;
     }).map(student => student.name);
 
     setBirthdayStudents(birthdaysToday);
   }, [students]);
 
-  // Calculate expired enrollments (pending payments)
+  // Calculate enrollments expiring within 7 days
   useEffect(() => {
-    const pending = enrollments
+    const today = new Date();
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(today.getDate() + 7);
+    
+    const expiring = enrollments
       .filter(enrollment => {
-        const today = new Date();
         const endDate = new Date(enrollment.end_date);
-        return endDate < today && enrollment.status === 'active';
+        return endDate >= today && endDate <= sevenDaysFromNow && enrollment.status === 'active';
       })
       .map(enrollment => enrollment.student?.name || 'Nome não disponível');
 
-    setPendingPayments(pending);
+    setExpiringEnrollments(expiring);
   }, [enrollments]);
 
   // Mock data for chart (we can replace this with real monthly data later)
@@ -130,13 +135,13 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
         <Card className="hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0 shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
-              Matrículas Vencidas
+              Matrículas Vencendo
             </CardTitle>
             <AlertTriangle className="h-5 w-5 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white">{pendingPayments.length}</div>
-            <p className="text-xs text-red-600 mt-1">Requer atenção</p>
+            <div className="text-3xl font-bold text-gray-800 dark:text-white">{expiringEnrollments.length}</div>
+            <p className="text-xs text-red-600 mt-1">Próximos 7 dias</p>
           </CardContent>
         </Card>
       </div>
@@ -240,18 +245,18 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           </CardContent>
         </Card>
 
-        {/* Pending Payments */}
+        {/* Expiring Enrollments */}
         <Card className="border-0 shadow-md border-l-4 border-l-red-500">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-red-700 dark:text-red-300">
               <AlertTriangle className="h-5 w-5" />
-              <span>Matrículas Vencidas</span>
+              <span>Matrículas Vencendo</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {pendingPayments.length > 0 ? (
+            {expiringEnrollments.length > 0 ? (
               <div className="space-y-2 max-h-64 overflow-y-auto">
-                {pendingPayments.map((student, index) => (
+                {expiringEnrollments.map((student, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                     <span className="font-medium text-gray-800 dark:text-white">{student}</span>
                     <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -259,7 +264,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">Nenhuma matrícula vencida</p>
+              <p className="text-gray-500 dark:text-gray-400">Nenhuma matrícula vencendo nos próximos 7 dias</p>
             )}
           </CardContent>
         </Card>
