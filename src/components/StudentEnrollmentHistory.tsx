@@ -13,6 +13,9 @@ interface StudentEnrollmentHistoryProps {
   student?: Student;
 }
 
+// Define the type of status expected for enrollments
+type EnrollmentStatus = "active" | "inactive" | "expired";
+
 const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHistoryProps) => {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +33,13 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
         return;
       }
 
-      setEnrollments(data || []);
+      // Map the data and cast the status to the expected type
+      const enrollmentsData = (data || []).map((enrollment: any) => ({
+        ...enrollment,
+        status: enrollment.status as EnrollmentStatus,
+      }));
+
+      setEnrollments(enrollmentsData);
     } catch (error) {
       console.error('Error:', error);
     } finally {
