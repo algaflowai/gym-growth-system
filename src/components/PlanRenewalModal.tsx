@@ -25,7 +25,11 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
   const [newEndDate, setNewEndDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Filtrar apenas planos ativos
   const activePlans = plans.filter(plan => plan.active);
+
+  console.log('Plans received in modal:', plans);
+  console.log('Active plans:', activePlans);
 
   const calculateDates = (planDuration: string) => {
     const currentDate = new Date();
@@ -74,6 +78,15 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
       }
     }
   }, [selectedPlanId, enrollment, activePlans]);
+
+  // Reset selected plan when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedPlanId('');
+      setNewStartDate('');
+      setNewEndDate('');
+    }
+  }, [isOpen]);
 
   const handleRenew = async () => {
     if (!selectedPlanId || !enrollment) {
@@ -199,21 +212,27 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
           {/* Seleção do Novo Plano */}
           <div className="space-y-4">
             <Label htmlFor="plan-select">Selecionar Novo Plano</Label>
-            <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Escolha um plano para renovação" />
-              </SelectTrigger>
-              <SelectContent>
-                {activePlans.map((plan) => (
-                  <SelectItem key={plan.id} value={plan.id}>
-                    <div className="flex items-center justify-between w-full">
-                      <span>{plan.name} - {getDurationLabel(plan.duration)}</span>
-                      <span className="ml-4 font-semibold">R$ {plan.price.toFixed(2)}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {activePlans.length === 0 ? (
+              <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center">
+                <p className="text-gray-500">Nenhum plano ativo disponível para renovação.</p>
+              </div>
+            ) : (
+              <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha um plano para renovação" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activePlans.map((plan) => (
+                    <SelectItem key={plan.id} value={plan.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{plan.name} - {getDurationLabel(plan.duration)}</span>
+                        <span className="ml-4 font-semibold">R$ {plan.price.toFixed(2)}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Preview do Novo Plano */}
@@ -264,7 +283,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
             </Button>
             <Button 
               onClick={handleRenew}
-              disabled={!selectedPlanId || isSubmitting}
+              disabled={!selectedPlanId || isSubmitting || activePlans.length === 0}
               className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
             >
               {isSubmitting ? 'Renovando...' : 'Confirmar Renovação'}

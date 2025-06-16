@@ -1,9 +1,11 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Edit, Trash2, UserX, Eye, Loader2, UserCheck, RotateCcw } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Edit, Trash2, UserX, Eye, Loader2, UserCheck, RotateCcw, Filter } from 'lucide-react';
 import { useEnrollments } from '@/hooks/useEnrollments';
 import { useGlobalStudents } from '@/hooks/useGlobalStudents';
 import { Plan } from '@/pages/Index';
@@ -18,17 +20,25 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
   const { enrollments, loading, deleteEnrollment, updateEnrollment, renewEnrollment } = useEnrollments();
   const { updateStudent } = useGlobalStudents();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [showRenewalModal, setShowRenewalModal] = useState(false);
 
-  const filteredEnrollments = enrollments.filter(enrollment =>
-    enrollment.student?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    enrollment.student?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    enrollment.student?.phone.includes(searchTerm) ||
-    enrollment.plan_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEnrollments = enrollments.filter(enrollment => {
+    // Filtro por texto (nome, email, telefone, plano)
+    const matchesSearch = 
+      enrollment.student?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      enrollment.student?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      enrollment.student?.phone.includes(searchTerm) ||
+      enrollment.plan_name.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Filtro por status
+    const matchesStatus = statusFilter === 'all' || enrollment.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   const activeEnrollments = enrollments.filter(e => e.status === 'active').length;
   const inactiveEnrollments = enrollments.filter(e => e.status === 'inactive').length;
@@ -134,6 +144,11 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     return '';
   };
 
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -186,16 +201,17 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
         </Card>
       </div>
 
-      {/* Search Bar */}
+      {/* Search and Filter Bar */}
       <Card>
         <CardHeader>
-          <CardTitle>Buscar Matrículas</CardTitle>
+          <CardTitle>Buscar e Filtrar Matrículas</CardTitle>
           <CardDescription>
-            Busque por nome do aluno, email, telefone ou plano
+            Busque por nome do aluno, email, telefone ou plano e filtre por status
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex space-x-2">
+          <div className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-2">
+            {/* Search Input */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -205,10 +221,68 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                 className="pl-10"
               />
             </div>
-            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
-              Buscar
-            </Button>
+            
+            {/* Status Filter */}
+            <div className="w-full lg:w-48">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue>
+                    <div className="flex items-center">
+                      <Filter className="h-4 w-4 mr-2" />
+                      {statusFilter === 'all' ? 'Todos' : 
+                       statusFilter === 'active' ? 'Ativo' :
+                       statusFilter === 'inactive' ? 'Inativo' : 'Expirado'}
+                    </div>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="active">Apenas Ativos</SelectItem>
+                  <SelectItem value="inactive">Apenas Inativos</SelectItem>
+                  <SelectItem value="expired">Apenas Expirados</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={clearFilters}
+                className="hover:bg-gray-50"
+              >
+                Limpar
+              </Button>
+              <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+                Buscar
+              </Button>
+            </div>
           </div>
+          
+          {/* Filter Summary */}
+          {(searchTerm || statusFilter !== 'all') && (
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-blue-700 dark:text-blue-300">
+                  <strong>Filtros ativos:</strong>
+                  {searchTerm && (
+                    <span className="ml-2">
+                      Busca: "{searchTerm}"
+                    </span>
+                  )}
+                  {statusFilter !== 'all' && (
+                    <span className="ml-2">
+                      Status: {statusFilter === 'active' ? 'Ativo' : 
+                              statusFilter === 'inactive' ? 'Inativo' : 'Expirado'}
+                    </span>
+                  )}
+                </div>
+                <Badge variant="secondary">
+                  {filteredEnrollments.length} resultado{filteredEnrollments.length !== 1 ? 's' : ''}
+                </Badge>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -326,7 +400,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
               <div className="text-center py-8 text-gray-500">
                 <Eye className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                 <p>Nenhuma matrícula encontrada</p>
-                <p className="text-sm">Tente ajustar os termos de busca</p>
+                <p className="text-sm">Tente ajustar os termos de busca ou filtros</p>
               </div>
             )}
           </div>
