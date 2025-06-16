@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import Login from './Login';
@@ -79,7 +78,7 @@ const Index = () => {
       case 'new-enrollment':
         return <NewEnrollment plans={plans.filter(p => p.active)} />;
       case 'enrollments':
-        return <EnrollmentManagement />;
+        return <EnrollmentManagement plans={plans} />;
       case 'students':
         return <StudentsManagement />;
       case 'plans':

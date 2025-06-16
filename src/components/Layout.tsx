@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Home, UserPlus, Users, ClipboardList, CreditCard, Settings, LogOut, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -54,8 +53,12 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
           <div className="flex items-center justify-between">
             {isSidebarOpen && (
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-sm">AG</span>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=40&h=40&fit=crop&crop=center" 
+                    alt="AlgaGymManager Logo" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div>
                   <span className="font-bold text-gray-800 dark:text-white text-lg">AlgaGymManager</span>

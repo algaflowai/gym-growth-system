@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Edit, Trash2, UserX, Eye, Loader2, UserCheck, RotateCcw } from 'lucide-react';
 import { useEnrollments } from '@/hooks/useEnrollments';
 import { useGlobalStudents } from '@/hooks/useGlobalStudents';
@@ -18,17 +19,22 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
   const { enrollments, loading, deleteEnrollment, updateEnrollment, renewEnrollment } = useEnrollments();
   const { updateStudent } = useGlobalStudents();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [showRenewalModal, setShowRenewalModal] = useState(false);
 
-  const filteredEnrollments = enrollments.filter(enrollment =>
-    enrollment.student?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    enrollment.student?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    enrollment.student?.phone.includes(searchTerm) ||
-    enrollment.plan_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEnrollments = enrollments.filter(enrollment => {
+    const matchesSearch = enrollment.student?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      enrollment.student?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      enrollment.student?.phone.includes(searchTerm) ||
+      enrollment.plan_name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || enrollment.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const activeEnrollments = enrollments.filter(e => e.status === 'active').length;
   const inactiveEnrollments = enrollments.filter(e => e.status === 'inactive').length;
@@ -205,6 +211,17 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                 className="pl-10"
               />
             </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filtrar por status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="active">Apenas Ativas</SelectItem>
+                <SelectItem value="inactive">Apenas Inativas</SelectItem>
+                <SelectItem value="expired">Apenas Expiradas</SelectItem>
+              </SelectContent>
+            </Select>
             <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
               Buscar
             </Button>
