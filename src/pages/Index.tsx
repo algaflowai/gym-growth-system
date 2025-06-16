@@ -117,7 +117,6 @@ const Index = () => {
       <Layout
         currentPage={currentPage}
         onNavigate={handleNavigate}
-        onLogout={handleLogout}
       >
         {renderCurrentPage()}
       </Layout>
