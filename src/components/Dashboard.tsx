@@ -4,18 +4,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, UserPlus, Calendar, AlertTriangle, Gift, Loader2 } from 'lucide-react';
-import { useStudents } from '@/hooks/useStudents';
+import { useGlobalStudents } from '@/hooks/useGlobalStudents';
 import { useEnrollments } from '@/hooks/useEnrollments';
+import ExpiringEnrollmentsModal from './ExpiringEnrollmentsModal';
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
 }
 
 const Dashboard = ({ onNavigate }: DashboardProps) => {
-  const { students, loading: studentsLoading } = useStudents();
+  const { students, loading: studentsLoading } = useGlobalStudents();
   const { enrollments, loading: enrollmentsLoading, updateEnrollment } = useEnrollments();
   const [birthdayStudents, setBirthdayStudents] = useState<string[]>([]);
-  const [expiringEnrollments, setExpiringEnrollments] = useState<string[]>([]);
+  const [expiringEnrollments, setExpiringEnrollments] = useState<any[]>([]);
+  const [showExpiringModal, setShowExpiringModal] = useState(false);
 
   const loading = studentsLoading || enrollmentsLoading;
 
@@ -24,19 +26,22 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     console.log('Checking birthdays for students:', students);
     
     const today = new Date();
-    const todayISO = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    const todayMonth = today.getMonth() + 1; // getMonth() returns 0-11, we need 1-12
+    const todayDate = today.getDate();
+    
+    console.log(`Today is: ${todayMonth}/${todayDate}`);
     
     const birthdaysToday = students.filter(student => {
       if (!student.birth_date) return false;
       
-      // Parse birth date and format it consistently
+      // Parse the birth date (format is YYYY-MM-DD)
       const birthDate = new Date(student.birth_date);
-      const studentBirthday = `${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`;
-      const todayFormatted = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const birthMonth = birthDate.getMonth() + 1;
+      const birthDay = birthDate.getDate();
       
-      console.log(`Student ${student.name}: birthday ${studentBirthday}, today ${todayFormatted}`);
+      console.log(`Student ${student.name}: birth date ${birthMonth}/${birthDay}`);
       
-      return studentBirthday === todayFormatted;
+      return birthMonth === todayMonth && birthDay === todayDate;
     }).map(student => student.name);
 
     console.log('Birthday students found:', birthdaysToday);
@@ -68,8 +73,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
       .filter(enrollment => {
         const endDate = new Date(enrollment.end_date);
         return endDate >= today && endDate <= sevenDaysFromNow && enrollment.status === 'active';
-      })
-      .map(enrollment => enrollment.student?.name || 'Nome não disponível');
+      });
 
     setExpiringEnrollments(expiring);
   }, [enrollments, updateEnrollment]);
@@ -154,7 +158,10 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0 shadow-md">
+        <Card 
+          className="hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] border-0 shadow-md cursor-pointer"
+          onClick={() => setShowExpiringModal(true)}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
               Matrículas Vencendo
@@ -278,12 +285,24 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           <CardContent className="p-4 sm:p-6 pt-0">
             {expiringEnrollments.length > 0 ? (
               <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
-                {expiringEnrollments.map((student, index) => (
+                {expiringEnrollments.slice(0, 3).map((enrollment, index) => (
                   <div key={index} className="flex items-center justify-between p-2 sm:p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                    <span className="font-medium text-gray-800 dark:text-white text-sm sm:text-base">{student}</span>
+                    <span className="font-medium text-gray-800 dark:text-white text-sm sm:text-base">
+                      {enrollment.student?.name || 'Nome não disponível'}
+                    </span>
                     <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                   </div>
                 ))}
+                {expiringEnrollments.length > 3 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowExpiringModal(true)}
+                    className="w-full mt-2 text-red-600 border-red-200 hover:bg-red-50"
+                  >
+                    Ver todos ({expiringEnrollments.length})
+                  </Button>
+                )}
               </div>
             ) : (
               <p className="text-gray-500 dark:text-gray-400 text-sm">Nenhuma matrícula vencendo nos próximos 7 dias</p>
@@ -291,6 +310,14 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Expiring Enrollments Modal */}
+      <ExpiringEnrollmentsModal
+        enrollments={expiringEnrollments}
+        isOpen={showExpiringModal}
+        onClose={() => setShowExpiringModal(false)}
+        onNavigate={onNavigate}
+      />
     </div>
   );
 };
