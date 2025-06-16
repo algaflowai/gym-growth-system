@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Edit, Trash2, UserX, Eye, Loader2, UserCheck, RotateCcw } from 'lucide-react';
 import { useEnrollments } from '@/hooks/useEnrollments';
-import { useStudents } from '@/hooks/useStudents';
+import { useGlobalStudents } from '@/hooks/useGlobalStudents';
 import { Plan } from '@/pages/Index';
 import StudentEditModal from './StudentEditModal';
 import PlanRenewalModal from './PlanRenewalModal';
@@ -17,7 +16,7 @@ interface EnrollmentManagementProps {
 
 const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
   const { enrollments, loading, deleteEnrollment, updateEnrollment, renewEnrollment } = useEnrollments();
-  const { updateStudent } = useStudents();
+  const { updateStudent } = useGlobalStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -80,13 +79,29 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
 
   const handleInactivate = async (id: string, studentName: string) => {
     if (confirm(`Tem certeza que deseja inativar a matrícula de ${studentName}?`)) {
-      await updateEnrollment(id, { status: 'inactive' });
+      const success = await updateEnrollment(id, { status: 'inactive' });
+      
+      // Also update the student status to inactive
+      if (success) {
+        const enrollment = enrollments.find(e => e.id === id);
+        if (enrollment?.student_id) {
+          await updateStudent(enrollment.student_id, { status: 'inactive' });
+        }
+      }
     }
   };
 
   const handleReactivate = async (id: string, studentName: string) => {
     if (confirm(`Tem certeza que deseja reativar a matrícula de ${studentName}?`)) {
-      await updateEnrollment(id, { status: 'active' });
+      const success = await updateEnrollment(id, { status: 'active' });
+      
+      // Also update the student status to active
+      if (success) {
+        const enrollment = enrollments.find(e => e.id === id);
+        if (enrollment?.student_id) {
+          await updateStudent(enrollment.student_id, { status: 'active' });
+        }
+      }
     }
   };
 

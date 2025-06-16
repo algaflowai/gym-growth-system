@@ -1,15 +1,14 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Trash2, Eye, UserPlus, Loader2 } from 'lucide-react';
-import { useStudents } from '@/hooks/useStudents';
+import { useGlobalStudents } from '@/hooks/useGlobalStudents';
 import StudentViewModal from './StudentViewModal';
 
 const StudentsManagement = () => {
-  const { students, loading, deleteStudent } = useStudents();
+  const { students, loading, deleteStudent } = useGlobalStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
