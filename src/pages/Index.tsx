@@ -11,6 +11,9 @@ import StudentsManagement from '../components/StudentsManagement';
 import PlansManagement from '../components/PlansManagement';
 import FinancialSection from '../components/FinancialSection';
 import SettingsSection from '../components/SettingsSection';
+import RestrictedAccessModal from '../components/RestrictedAccessModal';
+import { useAccessControl } from '../hooks/useAccessControl';
+import { usePasswordManager } from '../hooks/usePasswordManager';
 
 export interface Plan {
   id: string;
@@ -24,12 +27,17 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showRestrictedModal, setShowRestrictedModal] = useState(false);
+  const [pendingPage, setPendingPage] = useState<string>('');
   const [plans, setPlans] = useState<Plan[]>([
     { id: '1', name: 'Diária', price: 15, duration: 'day', active: true },
     { id: '2', name: 'Mensal', price: 89, duration: 'month', active: true },
     { id: '3', name: 'Trimestral', price: 240, duration: 'quarter', active: true },
     { id: '4', name: 'Anual', price: 890, duration: 'year', active: true },
   ]);
+
+  const { hasAccess, grantAccess } = useAccessControl();
+  const { verifyPassword } = usePasswordManager();
 
   const handleLogin = (email: string, password: string) => {
     // Mock authentication - in real app, validate with backend
@@ -47,7 +55,42 @@ const Index = () => {
   };
 
   const handleNavigate = (page: string) => {
+    // Check if page requires restricted access
+    if (page === 'financial' && !hasAccess('financial')) {
+      setPendingPage(page);
+      setShowRestrictedModal(true);
+      return;
+    }
+    
+    if (page === 'settings' && !hasAccess('settings')) {
+      setPendingPage(page);
+      setShowRestrictedModal(true);
+      return;
+    }
+
     setCurrentPage(page);
+  };
+
+  const handleRestrictedAccess = async (password: string) => {
+    const pageMap: { [key: string]: string } = {
+      'financial': 'financeiro',
+      'settings': 'configuracoes'
+    };
+
+    const dbPageName = pageMap[pendingPage];
+    
+    if (dbPageName) {
+      const isValid = await verifyPassword(dbPageName, password);
+      
+      if (isValid) {
+        grantAccess(pendingPage as 'financial' | 'settings');
+        setCurrentPage(pendingPage);
+        setShowRestrictedModal(false);
+        setPendingPage('');
+      } else {
+        // Error handling is done in usePasswordManager
+      }
+    }
   };
 
   const handleForgotPassword = () => {
@@ -71,6 +114,17 @@ const Index = () => {
 
   const handleDeletePlan = (id: string) => {
     setPlans(prev => prev.filter(plan => plan.id !== id));
+  };
+
+  const getRestrictedModalTitle = () => {
+    switch (pendingPage) {
+      case 'financial':
+        return 'Acesso ao Módulo Financeiro';
+      case 'settings':
+        return 'Acesso às Configurações';
+      default:
+        return 'Acesso Restrito';
+    }
   };
 
   const renderCurrentPage = () => {
@@ -122,6 +176,16 @@ const Index = () => {
       >
         {renderCurrentPage()}
       </Layout>
+      
+      <RestrictedAccessModal
+        isOpen={showRestrictedModal}
+        onClose={() => {
+          setShowRestrictedModal(false);
+          setPendingPage('');
+        }}
+        onSubmit={handleRestrictedAccess}
+        title={getRestrictedModalTitle()}
+      />
     </ThemeProvider>
   );
 };

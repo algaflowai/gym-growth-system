@@ -9,6 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      enrollment_history: {
+        Row: {
+          archived_at: string
+          created_at: string
+          end_date: string
+          enrollment_id: string
+          id: string
+          plan_id: string
+          plan_name: string
+          plan_price: number
+          start_date: string
+          status: string
+          student_id: string
+        }
+        Insert: {
+          archived_at?: string
+          created_at?: string
+          end_date: string
+          enrollment_id: string
+          id?: string
+          plan_id: string
+          plan_name: string
+          plan_price: number
+          start_date: string
+          status: string
+          student_id: string
+        }
+        Update: {
+          archived_at?: string
+          created_at?: string
+          end_date?: string
+          enrollment_id?: string
+          id?: string
+          plan_id?: string
+          plan_name?: string
+          plan_price?: number
+          start_date?: string
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollment_history_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollment_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           created_at: string
@@ -55,6 +112,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      senhas_acesso: {
+        Row: {
+          created_at: string
+          id: string
+          pagina: string
+          senha: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pagina: string
+          senha: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pagina?: string
+          senha?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       settings: {
         Row: {

@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Settings, User, Bell, Shield, Database, Lock } from 'lucide-react';
+import { Settings, User, Bell, Shield, Database, Lock, KeyRound } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { usePasswordManager } from '@/hooks/usePasswordManager';
 
 const SettingsSection = () => {
   const [passwordForm, setPasswordForm] = useState({
@@ -15,7 +16,14 @@ const SettingsSection = () => {
     newPassword: '',
     confirmPassword: ''
   });
+  const [restrictedPasswordForm, setRestrictedPasswordForm] = useState({
+    financePassword: '',
+    configPassword: ''
+  });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isUpdatingRestrictedPasswords, setIsUpdatingRestrictedPasswords] = useState(false);
+
+  const { updatePassword } = usePasswordManager();
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +74,73 @@ const SettingsSection = () => {
       }
       setIsChangingPassword(false);
     }, 1500);
+  };
+
+  const handleRestrictedPasswordsUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!restrictedPasswordForm.financePassword && !restrictedPasswordForm.configPassword) {
+      toast({
+        title: "Erro",
+        description: "Preencha pelo menos uma senha para atualizar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingRestrictedPasswords(true);
+    
+    try {
+      let success = true;
+
+      // Atualizar senha do financeiro se fornecida
+      if (restrictedPasswordForm.financePassword) {
+        if (restrictedPasswordForm.financePassword.length < 6) {
+          toast({
+            title: "Erro",
+            description: "A senha do financeiro deve ter pelo menos 6 caracteres.",
+            variant: "destructive",
+          });
+          setIsUpdatingRestrictedPasswords(false);
+          return;
+        }
+
+        const financeResult = await updatePassword('financeiro', restrictedPasswordForm.financePassword);
+        if (!financeResult) success = false;
+      }
+
+      // Atualizar senha das configurações se fornecida
+      if (restrictedPasswordForm.configPassword) {
+        if (restrictedPasswordForm.configPassword.length < 6) {
+          toast({
+            title: "Erro",
+            description: "A senha das configurações deve ter pelo menos 6 caracteres.",
+            variant: "destructive",
+          });
+          setIsUpdatingRestrictedPasswords(false);
+          return;
+        }
+
+        const configResult = await updatePassword('configuracoes', restrictedPasswordForm.configPassword);
+        if (!configResult) success = false;
+      }
+
+      if (success) {
+        setRestrictedPasswordForm({ financePassword: '', configPassword: '' });
+        toast({
+          title: "Sucesso",
+          description: "Senhas de acesso atualizadas com sucesso!",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao atualizar senhas.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingRestrictedPasswords(false);
+    }
   };
 
   const handleSaveSettings = () => {
@@ -268,6 +343,72 @@ const SettingsSection = () => {
         </CardContent>
       </Card>
 
+      {/* Restricted Areas Password Management */}
+      <Card className="border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-xl">
+            <KeyRound className="h-5 w-5" />
+            <span>Senhas para Áreas Restritas</span>
+          </CardTitle>
+          <CardDescription>
+            Altere as senhas de acesso ao módulo financeiro e configurações
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleRestrictedPasswordsUpdate} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="financePassword">Nova Senha - Módulo Financeiro</Label>
+                <Input
+                  id="financePassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={restrictedPasswordForm.financePassword}
+                  onChange={(e) => setRestrictedPasswordForm(prev => ({ ...prev, financePassword: e.target.value }))}
+                  className="h-12"
+                />
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Deixe em branco para manter a senha atual
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="configPassword">Nova Senha - Configurações</Label>
+                <Input
+                  id="configPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={restrictedPasswordForm.configPassword}
+                  onChange={(e) => setRestrictedPasswordForm(prev => ({ ...prev, configPassword: e.target.value }))}
+                  className="h-12"
+                />
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Deixe em branco para manter a senha atual
+                </p>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="font-medium text-blue-800 dark:text-blue-200">Senhas Padrão Atuais</div>
+              <div className="text-sm text-blue-600 dark:text-blue-300 mt-1 space-y-1">
+                <div><strong>Financeiro:</strong> financeiro123</div>
+                <div><strong>Configurações:</strong> configuracao123</div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button 
+                type="submit"
+                disabled={isUpdatingRestrictedPasswords}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              >
+                {isUpdatingRestrictedPasswords ? 'Atualizando...' : 'Atualizar Senhas de Acesso'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
       {/* Preferences */}
       <Card className="border-0 shadow-lg">
         <CardHeader>
@@ -312,62 +453,6 @@ const SettingsSection = () => {
               </div>
               <Switch />
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Security Settings */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-xl">
-            <Shield className="h-5 w-5" />
-            <span>Segurança</span>
-          </CardTitle>
-          <CardDescription>
-            Configurações de segurança do sistema
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="restrictedPassword">Senhas para Áreas Restritas</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  id="financePassword"
-                  type="password"
-                  placeholder="Senha Financeiro"
-                  defaultValue="finance1710"
-                  className="h-12"
-                />
-                <Input
-                  id="configPassword"
-                  type="password"
-                  placeholder="Senha Configurações"
-                  defaultValue="config1710"
-                  className="h-12"
-                />
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Senhas para acessar o módulo financeiro e configurações
-              </p>
-            </div>
-            
-            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div>
-                <div className="font-medium">Autenticação de Dois Fatores</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Adicione uma camada extra de segurança</div>
-              </div>
-              <Switch />
-            </div>
-          </div>
-          
-          <div className="flex justify-end pt-4">
-            <Button 
-              onClick={handleSaveSettings}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-            >
-              Salvar Configurações de Segurança
-            </Button>
           </div>
         </CardContent>
       </Card>

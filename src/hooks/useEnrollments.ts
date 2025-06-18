@@ -176,48 +176,48 @@ export const useEnrollments = () => {
       const durationInDays = calculateDurationInDays(planDuration);
       const endDate = new Date(startDate.getTime() + (durationInDays * 24 * 60 * 60 * 1000));
 
-      // Primeiro, marca a matrícula atual como inativa
-      const { error: updateError } = await supabase
-        .from('enrollments')
-        .update({ status: 'inactive' })
-        .eq('id', currentEnrollmentId);
+      // Primeiro, salva o histórico da matrícula atual
+      const { error: historyError } = await supabase
+        .from('enrollment_history')
+        .insert([{
+          enrollment_id: currentEnrollment.id,
+          student_id: currentEnrollment.student_id,
+          plan_id: currentEnrollment.plan_id,
+          plan_name: currentEnrollment.plan_name,
+          plan_price: currentEnrollment.plan_price,
+          start_date: currentEnrollment.start_date,
+          end_date: currentEnrollment.end_date,
+          status: currentEnrollment.status
+        }]);
 
-      if (updateError) {
-        console.error('Error updating current enrollment:', updateError);
+      if (historyError) {
+        console.error('Error creating enrollment history:', historyError);
         toast({
           title: "Erro",
-          description: "Não foi possível atualizar a matrícula atual.",
+          description: "Erro ao salvar histórico da matrícula.",
           variant: "destructive",
         });
         return false;
       }
 
-      // Cria a nova matrícula (renovação)
-      const newEnrollmentData = {
-        student_id: currentEnrollment.student_id,
-        plan_id: planId,
-        plan_name: planName,
-        plan_price: planPrice,
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
-        status: 'active' as EnrollmentStatus
-      };
-
-      const { error: createError } = await supabase
+      // Atualiza a matrícula existente com o novo plano
+      const { error: updateError } = await supabase
         .from('enrollments')
-        .insert([newEnrollmentData]);
+        .update({
+          plan_id: planId,
+          plan_name: planName,
+          plan_price: planPrice,
+          start_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
+          status: 'active' as EnrollmentStatus
+        })
+        .eq('id', currentEnrollmentId);
 
-      if (createError) {
-        console.error('Error creating new enrollment:', createError);
-        // Reverte a mudança na matrícula atual em caso de erro
-        await supabase
-          .from('enrollments')
-          .update({ status: currentEnrollment.status })
-          .eq('id', currentEnrollmentId);
-        
+      if (updateError) {
+        console.error('Error updating enrollment:', updateError);
         toast({
           title: "Erro",
-          description: "Não foi possível criar a nova matrícula.",
+          description: "Não foi possível renovar a matrícula.",
           variant: "destructive",
         });
         return false;
