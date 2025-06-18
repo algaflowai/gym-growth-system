@@ -212,7 +212,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-2">
                         <span>{plan.name} - {getDurationLabel(plan.duration)}</span>
-                        {isFixe·xedPlan(plan.id) && <Lock className="h-3 w-3 text-blue-600" />}
+                        {isFixedPlan(plan.id) && <Lock className="h-3 w-3 text-blue-600" />}
                       </div>
                       <span className="ml-4 font-semibold">R$ {plan.price.toFixed(2)}</span>
                     </div>
