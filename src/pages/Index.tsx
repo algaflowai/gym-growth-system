@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import Login from './Login';
@@ -11,7 +10,6 @@ import StudentsManagement from '../components/StudentsManagement';
 import PlansManagement from '../components/PlansManagement';
 import FinancialSection from '../components/FinancialSection';
 import SettingsSection from '../components/SettingsSection';
-import { usePlans } from '@/hooks/usePlans';
 
 export interface Plan {
   id: string;
@@ -25,7 +23,11 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const { plans, loading, addPlan, updatePlan, deletePlan } = usePlans();
+  const [plans, setPlans] = useState<Plan[]>([
+    { id: '1', name: 'Mensal', price: 89, duration: 'month', active: true },
+    { id: '2', name: 'Trimestral', price: 240, duration: 'quarter', active: true },
+    { id: '3', name: 'Anual', price: 890, duration: 'year', active: true },
+  ]);
 
   const handleLogin = (email: string, password: string) => {
     // Mock authentication - in real app, validate with backend
@@ -54,6 +56,21 @@ const Index = () => {
     setShowForgotPassword(false);
   };
 
+  const handleAddPlan = (plan: Omit<Plan, 'id'>) => {
+    const newPlan = { ...plan, id: Date.now().toString() };
+    setPlans(prev => [...prev, newPlan]);
+  };
+
+  const handleUpdatePlan = (id: string, updatedPlan: Partial<Plan>) => {
+    setPlans(prev => prev.map(plan => 
+      plan.id === id ? { ...plan, ...updatedPlan } : plan
+    ));
+  };
+
+  const handleDeletePlan = (id: string) => {
+    setPlans(prev => prev.filter(plan => plan.id !== id));
+  };
+
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'dashboard':
@@ -68,9 +85,9 @@ const Index = () => {
         return (
           <PlansManagement
             plans={plans}
-            onAddPlan={addPlan}
-            onUpdatePlan={updatePlan}
-            onDeletePlan={deletePlan}
+            onAddPlan={handleAddPlan}
+            onUpdatePlan={handleUpdatePlan}
+            onDeletePlan={handleDeletePlan}
           />
         );
       case 'financial':

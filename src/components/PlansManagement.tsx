@@ -6,15 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Lock } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Plan } from '@/pages/Index';
 
 interface PlansManagementProps {
   plans: Plan[];
-  onAddPlan: (plan: Omit<Plan, 'id'>) => Promise<boolean>;
-  onUpdatePlan: (id: string, plan: Partial<Plan>) => Promise<boolean>;
-  onDeletePlan: (id: string) => Promise<boolean>;
+  onAddPlan: (plan: Omit<Plan, 'id'>) => void;
+  onUpdatePlan: (id: string, plan: Partial<Plan>) => void;
+  onDeletePlan: (id: string) => void;
 }
 
 const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: PlansManagementProps) => {
@@ -26,7 +26,7 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
     duration: 'month'
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     const planData = {
@@ -36,30 +36,26 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
       active: true
     };
 
-    let success = false;
     if (editingPlan) {
-      success = await onUpdatePlan(editingPlan.id, planData);
+      onUpdatePlan(editingPlan.id, planData);
+      toast({
+        title: "Plano atualizado!",
+        description: `O plano ${formData.name} foi atualizado com sucesso.`,
+      });
     } else {
-      success = await onAddPlan(planData);
+      onAddPlan(planData);
+      toast({
+        title: "Plano criado!",
+        description: `O plano ${formData.name} foi criado com sucesso.`,
+      });
     }
 
-    if (success) {
-      setFormData({ name: '', price: '', duration: 'month' });
-      setEditingPlan(null);
-      setIsDialogOpen(false);
-    }
+    setFormData({ name: '', price: '', duration: 'month' });
+    setEditingPlan(null);
+    setIsDialogOpen(false);
   };
 
   const handleEdit = (plan: Plan) => {
-    if (plan.id === 'daily-fixed') {
-      toast({
-        title: "Ação não permitida",
-        description: "O plano Diária é fixo e não pode ser editado.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setEditingPlan(plan);
     setFormData({
       name: plan.name,
@@ -69,32 +65,22 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (plan: Plan) => {
-    if (plan.id === 'daily-fixed') {
-      toast({
-        title: "Ação não permitida",
-        description: "O plano Diária é fixo e não pode ser excluído.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleDelete = (plan: Plan) => {
     if (confirm(`Tem certeza que deseja excluir o plano "${plan.name}"?`)) {
-      await onDeletePlan(plan.id);
+      onDeletePlan(plan.id);
+      toast({
+        title: "Plano excluído!",
+        description: `O plano ${plan.name} foi excluído com sucesso.`,
+      });
     }
   };
 
-  const handleToggleActive = async (plan: Plan) => {
-    if (plan.id === 'daily-fixed') {
-      toast({
-        title: "Ação não permitida",
-        description: "O plano Diária é fixo e sempre ativo.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    await onUpdatePlan(plan.id, { active: !plan.active });
+  const handleToggleActive = (plan: Plan) => {
+    onUpdatePlan(plan.id, { active: !plan.active });
+    toast({
+      title: plan.active ? "Plano desativado!" : "Plano ativado!",
+      description: `O plano ${plan.name} foi ${plan.active ? 'desativado' : 'ativado'}.`,
+    });
   };
 
   const getDurationLabel = (duration: string) => {
@@ -113,8 +99,6 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
         return duration;
     }
   };
-
-  const isFixedPlan = (planId: string) => planId === 'daily-fixed';
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -201,20 +185,14 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => (
-          <Card key={plan.id} className={`border-0 shadow-lg transition-all duration-200 ${plan.active ? '' : 'opacity-60'} ${isFixedPlan(plan.id) ? 'ring-2 ring-blue-200 bg-blue-50/30 dark:bg-blue-900/10' : ''}`}>
+          <Card key={plan.id} className={`border-0 shadow-lg transition-all duration-200 ${plan.active ? '' : 'opacity-60'}`}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  {isFixedPlan(plan.id) && (
-                    <Lock className="h-4 w-4 text-blue-600" title="Plano fixo - não pode ser modificado" />
-                  )}
-                </div>
+                <CardTitle className="text-xl">{plan.name}</CardTitle>
                 <div className="flex items-center space-x-2">
                   <Switch
                     checked={plan.active}
                     onCheckedChange={() => handleToggleActive(plan)}
-                    disabled={isFixedPlan(plan.id)}
                   />
                   <span className={`text-xs px-2 py-1 rounded-full ${plan.active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
                     {plan.active ? 'Ativo' : 'Inativo'}
@@ -231,7 +209,6 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
                   <span className="text-sm text-gray-600 dark:text-gray-400">Duração:</span>
                   <p className="font-medium">
                     {getDurationLabel(plan.duration)}
-                    {isFixedPlan(plan.id) && <span className="text-blue-600 ml-1">(24 horas)</span>}
                   </p>
                 </div>
                 
@@ -241,7 +218,6 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
                     size="sm"
                     onClick={() => handleEdit(plan)}
                     className="flex-1"
-                    disabled={isFixedPlan(plan.id)}
                   >
                     <Edit className="h-4 w-4 mr-1" />
                     Editar
@@ -251,19 +227,11 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
                     size="sm"
                     onClick={() => handleDelete(plan)}
                     className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    disabled={isFixedPlan(plan.id)}
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Excluir
                   </Button>
                 </div>
-                
-                {isFixedPlan(plan.id) && (
-                  <div className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                    <Lock className="h-3 w-3 inline mr-1" />
-                    Plano fixo do sistema
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
