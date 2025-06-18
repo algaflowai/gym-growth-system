@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, CreditCardIcon } from 'lucide-react';
+import { CalendarIcon, CreditCardIcon, Lock } from 'lucide-react';
 import { Plan } from '@/pages/Index';
 import { Enrollment } from '@/hooks/useEnrollments';
 import { toast } from '@/hooks/use-toast';
@@ -25,6 +25,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
   const [newEndDate, setNewEndDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Filtrar apenas planos ativos (incluindo o plano fixo "Diária")
   const activePlans = plans.filter(plan => plan.active);
 
   const calculateDates = (planDuration: string) => {
@@ -149,6 +150,8 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
     }
   };
 
+  const isFixedPlan = (planId: string) => planId === 'daily-fixed';
+
   if (!enrollment) return null;
 
   return (
@@ -207,7 +210,10 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
                 {activePlans.map((plan) => (
                   <SelectItem key={plan.id} value={plan.id}>
                     <div className="flex items-center justify-between w-full">
-                      <span>{plan.name} - {getDurationLabel(plan.duration)}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{plan.name} - {getDurationLabel(plan.duration)}</span>
+                        {isFixe·xedPlan(plan.id) && <Lock className="h-3 w-3 text-blue-600" />}
+                      </div>
                       <span className="ml-4 font-semibold">R$ {plan.price.toFixed(2)}</span>
                     </div>
                   </SelectItem>
@@ -215,6 +221,14 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
               </SelectContent>
             </Select>
           </div>
+
+          {!activePlans.length && (
+            <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+              <p className="text-yellow-800 dark:text-yellow-200">
+                Nenhum plano ativo disponível para renovação.
+              </p>
+            </div>
+          )}
 
           {/* Preview do Novo Plano */}
           {selectedPlanId && (
@@ -245,6 +259,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
                     <span className="text-gray-600">Duração:</span>
                     <p className="font-medium">
                       {getDurationLabel(activePlans.find(p => p.id === selectedPlanId)?.duration || '')}
+                      {isFixedPlan(selectedPlanId) && <span className="text-blue-600 ml-1">(24h)</span>}
                     </p>
                   </div>
                 </div>
@@ -264,7 +279,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
             </Button>
             <Button 
               onClick={handleRenew}
-              disabled={!selectedPlanId || isSubmitting}
+              disabled={!selectedPlanId || isSubmitting || !activePlans.length}
               className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
             >
               {isSubmitting ? 'Renovando...' : 'Confirmar Renovação'}

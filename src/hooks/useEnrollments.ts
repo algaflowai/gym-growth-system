@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -29,7 +28,7 @@ export const useEnrollments = () => {
   const calculateDurationInDays = (duration: string): number => {
     switch (duration) {
       case 'day':
-        return 1;
+        return 1; // Plano diário tem duração de 1 dia (24 horas)
       case 'month':
         return 30;
       case 'quarter':
