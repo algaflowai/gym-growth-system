@@ -1,21 +1,19 @@
+
 import React, { useState } from 'react';
 import { useStudents } from '@/hooks/useStudents';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Edit, Search, Plus, UserCheck, UserX } from 'lucide-react';
+import { Eye, Search, UserCheck, UserX } from 'lucide-react';
 import StudentViewModal from './StudentViewModal';
-import StudentEditModal from './StudentEditModal';
 import { Student } from '@/hooks/useStudents';
 
 const StudentsManagement = () => {
-  const { students, loading, updateStudent, fetchStudents } = useStudents();
+  const { students, loading } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -30,25 +28,6 @@ const StudentsManagement = () => {
   const handleViewStudent = (student: Student) => {
     setSelectedStudent(student);
     setShowViewModal(true);
-  };
-
-  const handleEditStudent = (student: Student) => {
-    setEditingStudent(student);
-    setShowEditModal(true);
-  };
-
-  const handleToggleStatus = async (student: Student) => {
-    const newStatus = student.status === 'active' ? 'inactive' : 'active';
-    await updateStudent(student.id, { status: newStatus });
-  };
-
-  const handleSaveStudent = async (id: string, updates: Partial<Student>): Promise<boolean> => {
-    const success = await updateStudent(id, updates);
-    if (success) {
-      setShowEditModal(false);
-      setEditingStudent(null);
-    }
-    return success;
   };
 
   const getStatusColor = (status: string) => {
@@ -92,33 +71,6 @@ const StudentsManagement = () => {
             >
               <Eye className="w-4 h-4" />
               Ver
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleEditStudent(student)}
-              className="flex items-center gap-1"
-            >
-              <Edit className="w-4 h-4" />
-              Editar
-            </Button>
-            <Button
-              variant={student.status === 'active' ? 'destructive' : 'default'}
-              size="sm"
-              onClick={() => handleToggleStatus(student)}
-              className="flex items-center gap-1"
-            >
-              {student.status === 'active' ? (
-                <>
-                  <UserX className="w-4 h-4" />
-                  Inativar
-                </>
-              ) : (
-                <>
-                  <UserCheck className="w-4 h-4" />
-                  Ativar
-                </>
-              )}
             </Button>
           </div>
         </CardContent>
@@ -190,16 +142,6 @@ const StudentsManagement = () => {
           setShowViewModal(false);
           setSelectedStudent(null);
         }}
-      />
-
-      <StudentEditModal
-        student={editingStudent}
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setEditingStudent(null);
-        }}
-        onSave={handleSaveStudent}
       />
     </div>
   );

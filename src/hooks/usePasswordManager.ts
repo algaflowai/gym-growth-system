@@ -18,6 +18,9 @@ export const usePasswordManager = () => {
     try {
       setLoading(true);
       
+      console.log('Verifying password for page:', page);
+      console.log('Entered password:', enteredPassword);
+      
       // Busca a senha criptografada para a página
       const { data, error } = await supabase
         .from('senhas_acesso')
@@ -35,6 +38,8 @@ export const usePasswordManager = () => {
         return false;
       }
 
+      console.log('Found stored hash for page:', page);
+
       // Verifica a senha usando a função crypt do PostgreSQL
       const { data: verificationResult, error: verifyError } = await supabase
         .rpc('verify_password', {
@@ -50,6 +55,16 @@ export const usePasswordManager = () => {
           variant: "destructive",
         });
         return false;
+      }
+
+      console.log('Password verification result:', verificationResult);
+
+      if (!verificationResult) {
+        toast({
+          title: "Acesso Negado",
+          description: "Senha incorreta.",
+          variant: "destructive",
+        });
       }
 
       return verificationResult === true;

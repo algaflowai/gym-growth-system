@@ -14,16 +14,16 @@ interface DashboardProps {
 
 const Dashboard = ({ onNavigate }: DashboardProps) => {
   const { students, loading: studentsLoading } = useGlobalStudents();
-  const { enrollments, loading: enrollmentsLoading, updateEnrollment } = useEnrollments();
+  const { enrollments, loading: enrollmentsLoading } = useEnrollments();
   const [birthdayStudents, setBirthdayStudents] = useState<string[]>([]);
   const [expiringEnrollments, setExpiringEnrollments] = useState<any[]>([]);
   const [showExpiringModal, setShowExpiringModal] = useState(false);
 
   const loading = studentsLoading || enrollmentsLoading;
 
-  // Calculate students with birthdays today
+  // Calculate students with birthdays today (only active students)
   useEffect(() => {
-    console.log('Checking birthdays for students:', students);
+    console.log('Checking birthdays for active students:', students);
     
     const today = new Date();
     const todayMonth = today.getMonth() + 1; // getMonth() returns 0-11, we need 1-12
@@ -32,51 +32,46 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     console.log(`Today is: ${todayMonth}/${todayDate}`);
     
     const birthdaysToday = students.filter(student => {
-      if (!student.birth_date) return false;
+      // Only check active students
+      if (student.status !== 'active' || !student.birth_date) return false;
       
       // Parse the birth date (format is YYYY-MM-DD)
       const birthDate = new Date(student.birth_date);
       const birthMonth = birthDate.getMonth() + 1;
       const birthDay = birthDate.getDate();
       
-      console.log(`Student ${student.name}: birth date ${birthMonth}/${birthDay}`);
+      console.log(`Student ${student.name}: birth date ${birthMonth}/${birthDay}, status: ${student.status}`);
       
       return birthMonth === todayMonth && birthDay === todayDate;
     }).map(student => student.name);
 
-    console.log('Birthday students found:', birthdaysToday);
+    console.log('Birthday students found (active only):', birthdaysToday);
     setBirthdayStudents(birthdaysToday);
   }, [students]);
 
-  // Auto-inactivate expired enrollments and calculate expiring ones
+  // Calculate enrollments expiring within 7 days (only active enrollments)
   useEffect(() => {
     const today = new Date();
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 7);
     const sevenDaysFromNow = new Date();
     sevenDaysFromNow.setDate(today.getDate() + 7);
     
-    console.log('Processing enrollments for auto-inactivation and expiring alerts');
+    console.log('Processing enrollments for expiring alerts');
     
-    // Auto-inactivate expired enrollments that are 7+ days overdue
-    enrollments.forEach(enrollment => {
-      const endDate = new Date(enrollment.end_date);
-      
-      if (enrollment.status === 'active' && endDate < sevenDaysAgo) {
-        console.log(`Auto-inactivating enrollment for ${enrollment.student?.name || 'Unknown'} - expired on ${enrollment.end_date}`);
-        updateEnrollment(enrollment.id, { status: 'expired' });
-      }
-    });
-    
-    // Calculate enrollments expiring within 7 days
+    // Calculate enrollments expiring within 7 days (only active enrollments)
     const expiring = enrollments
       .filter(enrollment => {
         const endDate = new Date(enrollment.end_date);
-        return endDate >= today && endDate <= sevenDaysFromNow && enrollment.status === 'active';
+        const isActive = enrollment.status === 'active';
+        const isExpiringSoon = endDate >= today && endDate <= sevenDaysFromNow;
+        
+        console.log(`Enrollment for ${enrollment.student?.name}: end_date=${enrollment.end_date}, status=${enrollment.status}, expiring soon=${isExpiringSoon}`);
+        
+        return isActive && isExpiringSoon;
       });
 
+    console.log('Expiring enrollments found:', expiring.length);
     setExpiringEnrollments(expiring);
-  }, [enrollments, updateEnrollment]);
+  }, [enrollments]);
 
   // Calculate statistics
   const activeEnrollments = enrollments.filter(e => e.status === 'active').length;
@@ -154,7 +149,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           </CardHeader>
           <CardContent className="p-3 sm:p-6 pt-0">
             <div className="text-xl sm:text-3xl font-bold text-gray-800 dark:text-white">{birthdayStudents.length}</div>
-            <p className="text-xs text-purple-600 mt-1">Hoje</p>
+            <p className="text-xs text-purple-600 mt-1">Hoje (apenas ativos)</p>
           </CardContent>
         </Card>
 
@@ -255,7 +250,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="flex items-center space-x-2 text-purple-700 dark:text-purple-300 text-sm sm:text-base">
               <Gift className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span>Aniversariantes do Dia</span>
+              <span>Aniversariantes do Dia (Apenas Ativos)</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
@@ -269,7 +264,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-sm">Nenhum aniversariante hoje</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Nenhum aniversariante ativo hoje</p>
             )}
           </CardContent>
         </Card>
@@ -279,7 +274,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="flex items-center space-x-2 text-red-700 dark:text-red-300 text-sm sm:text-base">
               <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span>Matrículas Vencendo</span>
+              <span>Matrículas Vencendo (7 dias)</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
@@ -305,7 +300,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                 )}
               </div>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-sm">Nenhuma matrícula vencendo nos próximos 7 dias</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Nenhuma matrícula ativa vencendo nos próximos 7 dias</p>
             )}
           </CardContent>
         </Card>
