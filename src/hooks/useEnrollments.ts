@@ -28,7 +28,7 @@ export const useEnrollments = () => {
   const calculateDurationInDays = (duration: string): number => {
     switch (duration) {
       case 'day':
-        return 1;
+        return 1; // Fixed: Daily plan should be 1 day, not 30
       case 'month':
         return 30;
       case 'quarter':
@@ -47,14 +47,23 @@ export const useEnrollments = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      const { error } = await supabase
+      // First mark expired enrollments
+      const { error: expiredError } = await supabase
         .from('enrollments')
         .update({ status: 'expired' })
         .lt('end_date', today)
         .eq('status', 'active');
 
-      if (error) {
-        console.error('Error updating expired enrollments:', error);
+      if (expiredError) {
+        console.error('Error updating expired enrollments:', expiredError);
+      }
+
+      // Then inactivate enrollments that have been expired for more than 5 days
+      const { error: inactivateError } = await supabase
+        .rpc('inactivate_expired_enrollments');
+
+      if (inactivateError) {
+        console.error('Error inactivating expired enrollments:', inactivateError);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -63,15 +72,17 @@ export const useEnrollments = () => {
 
   const fetchEnrollments = async () => {
     try {
-      // Primeiro atualiza matrículas expiradas
+      // Primeiro atualiza matrículas expiradas e inativa as antigas
       await updateExpiredEnrollments();
 
+      // Fetch only active and expired enrollments (hide inactive ones)
       const { data, error } = await supabase
         .from('enrollments')
         .select(`
           *,
           student:students(*)
         `)
+        .in('status', ['active', 'expired']) // Only show active and expired enrollments
         .order('created_at', { ascending: false });
 
       if (error) {

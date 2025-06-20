@@ -80,7 +80,11 @@ const Index = () => {
     const dbPageName = pageMap[pendingPage];
     
     if (dbPageName) {
+      console.log('Attempting to verify password for page:', dbPageName);
+      console.log('Entered password:', password);
+      
       const isValid = await verifyPassword(dbPageName, password);
+      console.log('Password verification result:', isValid);
       
       if (isValid) {
         grantAccess(pendingPage as 'financial' | 'settings');
@@ -89,6 +93,7 @@ const Index = () => {
         setPendingPage('');
       } else {
         // Error handling is done in usePasswordManager
+        console.log('Password verification failed');
       }
     }
   };

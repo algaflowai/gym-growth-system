@@ -235,6 +235,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      inactivate_expired_enrollments: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_encrypted_password: {
         Args: { page_name: string; new_password: string }
         Returns: undefined
