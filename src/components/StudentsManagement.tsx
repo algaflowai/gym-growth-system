@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useStudents } from '@/hooks/useStudents';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,12 +42,13 @@ const StudentsManagement = () => {
     await updateStudent(student.id, { status: newStatus });
   };
 
-  const handleSaveStudent = async (updatedStudent: Partial<Student>) => {
-    if (editingStudent) {
-      await updateStudent(editingStudent.id, updatedStudent);
+  const handleSaveStudent = async (id: string, updates: Partial<Student>): Promise<boolean> => {
+    const success = await updateStudent(id, updates);
+    if (success) {
       setShowEditModal(false);
       setEditingStudent(null);
     }
+    return success;
   };
 
   const getStatusColor = (status: string) => {
