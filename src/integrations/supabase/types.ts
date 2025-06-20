@@ -235,7 +235,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_encrypted_password: {
+        Args: { page_name: string; new_password: string }
+        Returns: undefined
+      }
+      verify_password: {
+        Args: { stored_hash: string; password_input: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
