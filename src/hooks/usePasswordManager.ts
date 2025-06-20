@@ -30,6 +30,18 @@ export const usePasswordManager = () => {
 
       if (error) {
         console.error('Error fetching password:', error);
+        
+        // Se não encontrar a senha no banco, verifica contra as senhas padrão
+        const defaultPasswords: { [key: string]: string } = {
+          'financeiro': 'financeiro123',
+          'configuracoes': 'configuracao123'
+        };
+        
+        if (defaultPasswords[page] && enteredPassword === defaultPasswords[page]) {
+          console.log('Using default password for page:', page);
+          return true;
+        }
+        
         toast({
           title: "Erro",
           description: "Erro ao verificar senha.",
@@ -85,21 +97,58 @@ export const usePasswordManager = () => {
     try {
       setLoading(true);
       
-      // Atualiza a senha usando a função crypt do PostgreSQL
-      const { error } = await supabase
-        .rpc('update_encrypted_password', {
-          page_name: page,
-          new_password: newPassword
-        });
+      // Verifica se já existe uma entrada para a página
+      const { data: existingPassword, error: fetchError } = await supabase
+        .from('senhas_acesso')
+        .select('id')
+        .eq('pagina', page)
+        .single();
 
-      if (error) {
-        console.error('Error updating password:', error);
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error checking existing password:', fetchError);
         toast({
           title: "Erro",
-          description: "Erro ao atualizar senha.",
+          description: "Erro ao verificar senha existente.",
           variant: "destructive",
         });
         return false;
+      }
+
+      if (existingPassword) {
+        // Atualiza a senha existente
+        const { error } = await supabase
+          .rpc('update_encrypted_password', {
+            page_name: page,
+            new_password: newPassword
+          });
+
+        if (error) {
+          console.error('Error updating password:', error);
+          toast({
+            title: "Erro",
+            description: "Erro ao atualizar senha.",
+            variant: "destructive",
+          });
+          return false;
+        }
+      } else {
+        // Cria nova entrada com senha criptografada
+        const { error } = await supabase
+          .from('senhas_acesso')
+          .insert([{
+            pagina: page,
+            senha: newPassword // Será criptografada por um trigger no banco
+          }]);
+
+        if (error) {
+          console.error('Error creating password:', error);
+          toast({
+            title: "Erro",
+            description: "Erro ao criar senha.",
+            variant: "destructive",
+          });
+          return false;
+        }
       }
 
       toast({

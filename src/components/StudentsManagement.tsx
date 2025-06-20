@@ -58,7 +58,7 @@ const StudentsManagement = () => {
             <p><strong>CPF:</strong> {student.cpf}</p>
             <p><strong>Telefone:</strong> {student.phone}</p>
             {student.birth_date && (
-              <p><strong>Data de Nascimento:</strong> {new Date(student.birth_date).toLocaleDateString()}</p>
+              <p><strong>Data de Nascimento:</strong> {new Date(student.birth_date + 'T00:00:00').toLocaleDateString('pt-BR')}</p>
             )}
           </div>
           

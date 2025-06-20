@@ -28,7 +28,7 @@ export const useEnrollments = () => {
   const calculateDurationInDays = (duration: string): number => {
     switch (duration) {
       case 'day':
-        return 1; // Fixed: Daily plan should be 1 day, not 30
+        return 1; // Plano diário é válido por 1 dia (vence no mesmo dia)
       case 'month':
         return 30;
       case 'quarter':
@@ -116,6 +116,42 @@ export const useEnrollments = () => {
 
   const createEnrollment = async (enrollmentData: Omit<Enrollment, 'id' | 'created_at' | 'updated_at' | 'student'>) => {
     try {
+      // Primeiro, verificar se o aluno já tem uma matrícula ativa
+      const { data: existingEnrollments, error: checkError } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('student_id', enrollmentData.student_id)
+        .eq('status', 'active');
+
+      if (checkError) {
+        console.error('Error checking existing enrollments:', checkError);
+        toast({
+          title: "Erro",
+          description: "Erro ao verificar matrículas existentes.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      // Se já existe uma matrícula ativa, inativar ela primeiro
+      if (existingEnrollments && existingEnrollments.length > 0) {
+        const { error: updateError } = await supabase
+          .from('enrollments')
+          .update({ status: 'inactive' })
+          .eq('student_id', enrollmentData.student_id)
+          .eq('status', 'active');
+
+        if (updateError) {
+          console.error('Error inactivating existing enrollment:', updateError);
+          toast({
+            title: "Erro",
+            description: "Erro ao inativar matrícula anterior.",
+            variant: "destructive",
+          });
+          return null;
+        }
+      }
+
       const { data, error } = await supabase
         .from('enrollments')
         .insert([enrollmentData])
@@ -175,19 +211,39 @@ export const useEnrollments = () => {
         return false;
       }
 
-      // Calcula as novas datas
-      const currentDate = new Date();
-      const enrollmentEndDate = new Date(currentEnrollment.end_date);
-      
-      // Se o plano já expirou, usa a data atual. Senão, usa o dia seguinte ao término
-      const startDate = enrollmentEndDate < currentDate 
-        ? currentDate 
-        : new Date(enrollmentEndDate.getTime() + 24 * 60 * 60 * 1000);
+      // Primeiro, inativar qualquer matrícula ativa existente do mesmo aluno
+      const { error: inactivateError } = await supabase
+        .from('enrollments')
+        .update({ status: 'inactive' })
+        .eq('student_id', currentEnrollment.student_id)
+        .eq('status', 'active');
+
+      if (inactivateError) {
+        console.error('Error inactivating existing enrollments:', inactivateError);
+        toast({
+          title: "Erro",
+          description: "Erro ao inativar matrículas anteriores.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Calcula as novas datas - sempre iniciando hoje
+      const today = new Date();
+      const startDate = today;
 
       const durationInDays = calculateDurationInDays(planDuration);
-      const endDate = new Date(startDate.getTime() + (durationInDays * 24 * 60 * 60 * 1000));
+      let endDate;
 
-      // Primeiro, salva o histórico da matrícula atual
+      if (planDuration === 'day') {
+        // Para plano diário, vence no mesmo dia
+        endDate = new Date(startDate);
+      } else {
+        // Para outros planos, adiciona os dias de duração
+        endDate = new Date(startDate.getTime() + (durationInDays * 24 * 60 * 60 * 1000));
+      }
+
+      // Salva o histórico da matrícula atual
       const { error: historyError } = await supabase
         .from('enrollment_history')
         .insert([{
