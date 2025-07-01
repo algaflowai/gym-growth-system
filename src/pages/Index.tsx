@@ -11,9 +11,7 @@ import StudentsManagement from '../components/StudentsManagement';
 import PlansManagement from '../components/PlansManagement';
 import FinancialSection from '../components/FinancialSection';
 import SettingsSection from '../components/SettingsSection';
-import RestrictedAccessModal from '../components/RestrictedAccessModal';
 import { useAccessControl } from '../hooks/useAccessControl';
-import { usePasswordManager } from '../hooks/usePasswordManager';
 
 export interface Plan {
   id: string;
@@ -27,8 +25,6 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [showRestrictedModal, setShowRestrictedModal] = useState(false);
-  const [pendingPage, setPendingPage] = useState<string>('');
   const [plans, setPlans] = useState<Plan[]>([
     { id: '1', name: 'Diária', price: 15, duration: 'day', active: true },
     { id: '2', name: 'Mensal', price: 89, duration: 'month', active: true },
@@ -36,8 +32,7 @@ const Index = () => {
     { id: '4', name: 'Anual', price: 890, duration: 'year', active: true },
   ]);
 
-  const { hasAccess, grantAccess } = useAccessControl();
-  const { verifyPassword } = usePasswordManager();
+  const { hasAccess } = useAccessControl();
 
   const handleLogin = (email: string, password: string) => {
     // Mock authentication - in real app, validate with backend
@@ -55,47 +50,8 @@ const Index = () => {
   };
 
   const handleNavigate = (page: string) => {
-    // Check if page requires restricted access
-    if (page === 'financial' && !hasAccess('financial')) {
-      setPendingPage(page);
-      setShowRestrictedModal(true);
-      return;
-    }
-    
-    if (page === 'settings' && !hasAccess('settings')) {
-      setPendingPage(page);
-      setShowRestrictedModal(true);
-      return;
-    }
-
+    // Acesso direto às páginas - sem verificação de senha
     setCurrentPage(page);
-  };
-
-  const handleRestrictedAccess = async (password: string) => {
-    const pageMap: { [key: string]: string } = {
-      'financial': 'financeiro',
-      'settings': 'configuracoes'
-    };
-
-    const dbPageName = pageMap[pendingPage];
-    
-    if (dbPageName) {
-      console.log('Attempting to verify password for page:', dbPageName);
-      console.log('Entered password:', password);
-      
-      const isValid = await verifyPassword(dbPageName, password);
-      console.log('Password verification result:', isValid);
-      
-      if (isValid) {
-        grantAccess(pendingPage as 'financial' | 'settings');
-        setCurrentPage(pendingPage);
-        setShowRestrictedModal(false);
-        setPendingPage('');
-      } else {
-        // Error handling is done in usePasswordManager
-        console.log('Password verification failed');
-      }
-    }
   };
 
   const handleForgotPassword = () => {
@@ -119,17 +75,6 @@ const Index = () => {
 
   const handleDeletePlan = (id: string) => {
     setPlans(prev => prev.filter(plan => plan.id !== id));
-  };
-
-  const getRestrictedModalTitle = () => {
-    switch (pendingPage) {
-      case 'financial':
-        return 'Acesso ao Módulo Financeiro';
-      case 'settings':
-        return 'Acesso às Configurações';
-      default:
-        return 'Acesso Restrito';
-    }
   };
 
   const renderCurrentPage = () => {
@@ -163,34 +108,30 @@ const Index = () => {
   if (!isAuthenticated) {
     return (
       <ThemeProvider defaultTheme="light" storageKey="algagym-ui-theme">
-        {showForgotPassword ? (
-          <ForgotPassword onBackToLogin={handleBackToLogin} />
-        ) : (
-          <Login onLogin={handleLogin} onForgotPassword={handleForgotPassword} />
-        )}
+        <div className="min-h-screen">
+          {showForgotPassword ? (
+            <ForgotPassword onBackToLogin={handleBackToLogin} />
+          ) : (
+            <Login onLogin={handleLogin} onForgotPassword={handleForgotPassword} />
+          )}
+        </div>
       </ThemeProvider>
     );
   }
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="algagym-ui-theme">
-      <Layout
-        currentPage={currentPage}
-        onNavigate={handleNavigate}
-        onLogout={handleLogout}
-      >
-        {renderCurrentPage()}
-      </Layout>
-      
-      <RestrictedAccessModal
-        isOpen={showRestrictedModal}
-        onClose={() => {
-          setShowRestrictedModal(false);
-          setPendingPage('');
-        }}
-        onSubmit={handleRestrictedAccess}
-        title={getRestrictedModalTitle()}
-      />
+      <div className="min-h-screen">
+        <Layout
+          currentPage={currentPage}
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+        >
+          <div className="w-full max-w-full overflow-x-hidden">
+            {renderCurrentPage()}
+          </div>
+        </Layout>
+      </div>
     </ThemeProvider>
   );
 };

@@ -38,6 +38,11 @@ const StudentsManagement = () => {
     return status === 'active' ? UserCheck : UserX;
   };
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
+  };
+
   const renderStudentCard = (student: Student) => {
     const StatusIcon = getStatusIcon(student.status);
     
@@ -45,20 +50,20 @@ const StudentsManagement = () => {
       <Card key={student.id} className="hover:shadow-md transition-shadow">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">{student.name}</CardTitle>
+            <CardTitle className="text-base sm:text-lg break-words">{student.name}</CardTitle>
             <Badge className={getStatusColor(student.status)}>
               <StatusIcon className="w-3 h-3 mr-1" />
               {student.status === 'active' ? 'Ativo' : 'Inativo'}
             </Badge>
           </div>
-          <CardDescription>{student.email}</CardDescription>
+          <CardDescription className="text-sm break-words">{student.email}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm text-gray-600">
             <p><strong>CPF:</strong> {student.cpf}</p>
             <p><strong>Telefone:</strong> {student.phone}</p>
             {student.birth_date && (
-              <p><strong>Data de Nascimento:</strong> {new Date(student.birth_date + 'T00:00:00').toLocaleDateString('pt-BR')}</p>
+              <p><strong>Data de Nascimento:</strong> {formatDate(student.birth_date)}</p>
             )}
           </div>
           
@@ -67,7 +72,7 @@ const StudentsManagement = () => {
               variant="outline"
               size="sm"
               onClick={() => handleViewStudent(student)}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 w-full sm:w-auto"
             >
               <Eye className="w-4 h-4" />
               Ver
@@ -87,13 +92,13 @@ const StudentsManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-2 sm:p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">Gerenciamento de Alunos</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gerenciamento de Alunos</h1>
       </div>
 
       <div className="flex gap-4 items-center">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Buscar por nome, email, CPF ou telefone..."
@@ -106,7 +111,7 @@ const StudentsManagement = () => {
 
       {/* Active Students */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
           Alunos Ativos ({activeStudents.length})
         </h2>
         {activeStudents.length === 0 ? (
@@ -116,7 +121,7 @@ const StudentsManagement = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {activeStudents.map(renderStudentCard)}
           </div>
         )}
@@ -125,10 +130,10 @@ const StudentsManagement = () => {
       {/* Inactive Students */}
       {inactiveStudents.length > 0 && (
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
             Alunos Inativos ({inactiveStudents.length})
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {inactiveStudents.map(renderStudentCard)}
           </div>
         </div>

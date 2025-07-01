@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,10 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [showRenewalModal, setShowRenewalModal] = useState(false);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
+  };
 
   const filteredEnrollments = enrollments.filter(enrollment => {
     const matchesSearch = enrollment.student?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -152,42 +157,42 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-2 sm:p-4">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-green-700">Matrículas Ativas</CardTitle>
+            <CardTitle className="text-sm sm:text-lg text-green-700">Matrículas Ativas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-800">{activeEnrollments}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-green-800">{activeEnrollments}</div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-gray-700">Matrículas Inativas</CardTitle>
+            <CardTitle className="text-sm sm:text-lg text-gray-700">Matrículas Inativas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-800">{inactiveEnrollments}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-800">{inactiveEnrollments}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-red-700">Matrículas Expiradas</CardTitle>
+            <CardTitle className="text-sm sm:text-lg text-red-700">Matrículas Expiradas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-red-800">{expiredEnrollments}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-red-800">{expiredEnrollments}</div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-blue-700">Total Geral</CardTitle>
+            <CardTitle className="text-sm sm:text-lg text-blue-700">Total Geral</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-800">{totalEnrollments}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-blue-800">{totalEnrollments}</div>
           </CardContent>
         </Card>
       </div>
@@ -195,13 +200,13 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
       {/* Search Bar */}
       <Card>
         <CardHeader>
-          <CardTitle>Buscar Matrículas</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-lg sm:text-xl">Buscar Matrículas</CardTitle>
+          <CardDescription className="text-sm">
             Busque por nome do aluno, email, telefone ou plano
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -212,7 +217,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
@@ -222,7 +227,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                 <SelectItem value="expired">Apenas Expiradas</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 w-full sm:w-auto">
               Buscar
             </Button>
           </div>
@@ -232,8 +237,8 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
       {/* Enrollments Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Matrículas</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-lg sm:text-xl">Lista de Matrículas</CardTitle>
+          <CardDescription className="text-sm">
             {filteredEnrollments.length} matrícula(s) encontrada(s)
           </CardDescription>
         </CardHeader>
@@ -244,24 +249,24 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
               return (
                 <div
                   key={enrollment.id}
-                  className={`border rounded-lg p-4 transition-all hover:shadow-md ${getExpiryWarning(enrollment.end_date)}`}
+                  className={`border rounded-lg p-3 sm:p-4 transition-all hover:shadow-md ${getExpiryWarning(enrollment.end_date)}`}
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
+                  <div className="flex flex-col space-y-4">
                     <div className="space-y-2">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="text-lg font-semibold text-gray-800">
+                      <div className="flex items-center space-x-3 flex-wrap gap-2">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 break-words">
                           {enrollment.student?.name || 'Nome não disponível'}
                         </h3>
                         {getStatusBadge(enrollment.status)}
                       </div>
                       
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>Email: {enrollment.student?.email || 'N/A'}</p>
+                        <p className="break-words">Email: {enrollment.student?.email || 'N/A'}</p>
                         <p>Telefone: {enrollment.student?.phone || 'N/A'}</p>
                         <p>Plano: {enrollment.plan_name} - R$ {enrollment.plan_price.toFixed(2)}</p>
-                        <p>Início: {new Date(enrollment.start_date).toLocaleDateString('pt-BR')}</p>
+                        <p>Início: {formatDate(enrollment.start_date)}</p>
                         <p>
-                          Vencimento: {new Date(enrollment.end_date).toLocaleDateString('pt-BR')}
+                          Vencimento: {formatDate(enrollment.end_date)}
                           {daysUntilExpiry > 0 && (
                             <span className="ml-2 text-orange-600">
                               ({daysUntilExpiry} dias restantes)
@@ -281,7 +286,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                         size="sm"
                         variant="outline"
                         onClick={() => handleEdit(enrollment)}
-                        className="hover:bg-blue-50"
+                        className="hover:bg-blue-50 flex-1 sm:flex-none"
                         disabled={!enrollment.student}
                       >
                         <Edit className="h-4 w-4 mr-1" />
@@ -293,7 +298,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                           size="sm"
                           variant="outline"
                           onClick={() => handleRenew(enrollment)}
-                          className="hover:bg-green-50 text-green-600 border-green-200"
+                          className="hover:bg-green-50 text-green-600 border-green-200 flex-1 sm:flex-none"
                         >
                           <RotateCcw className="h-4 w-4 mr-1" />
                           Renovar
@@ -305,7 +310,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                           size="sm"
                           variant="outline"
                           onClick={() => handleInactivate(enrollment.id, enrollment.student?.name || '')}
-                          className="hover:bg-orange-50"
+                          className="hover:bg-orange-50 flex-1 sm:flex-none"
                         >
                           <UserX className="h-4 w-4 mr-1" />
                           Inativar
@@ -317,7 +322,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                           size="sm"
                           variant="outline"
                           onClick={() => handleReactivate(enrollment.id, enrollment.student?.name || '')}
-                          className="hover:bg-green-50 text-green-600 border-green-200"
+                          className="hover:bg-green-50 text-green-600 border-green-200 flex-1 sm:flex-none"
                         >
                           <UserCheck className="h-4 w-4 mr-1" />
                           Reativar
@@ -328,7 +333,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(enrollment.id, enrollment.student?.name || '')}
-                        className="hover:bg-red-50 text-red-600 border-red-200"
+                        className="hover:bg-red-50 text-red-600 border-red-200 flex-1 sm:flex-none"
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
                         Excluir

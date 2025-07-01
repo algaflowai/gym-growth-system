@@ -27,6 +27,10 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
 
   const activePlans = plans.filter(plan => plan.active);
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
+  };
+
   const calculateDates = (planDuration: string) => {
     const currentDate = new Date();
     const enrollmentEndDate = new Date(enrollment?.end_date || '');
@@ -40,7 +44,8 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
     
     switch (planDuration) {
       case 'day':
-        endDate.setDate(startDate.getDate() + 1);
+        // Para plano diário, vence em 24 horas
+        endDate = new Date(startDate.getTime() + (24 * 60 * 60 * 1000));
         break;
       case 'month':
         endDate.setDate(startDate.getDate() + 30);
@@ -153,29 +158,29 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-0">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CreditCardIcon className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <CreditCardIcon className="h-4 w-4 sm:h-5 sm:w-5" />
             Renovar Plano
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             Selecione um novo plano para renovar a matrícula do aluno
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Informações do Plano Atual */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Plano Atual</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Plano Atual</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">{enrollment.student?.name}</span>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="font-medium text-sm sm:text-base break-words">{enrollment.student?.name}</span>
                 {getStatusBadge(enrollment.status)}
               </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600">Plano:</span>
                   <p className="font-medium">{enrollment.plan_name}</p>
@@ -186,11 +191,11 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
                 </div>
                 <div>
                   <span className="text-gray-600">Data de Início:</span>
-                  <p className="font-medium">{new Date(enrollment.start_date).toLocaleDateString('pt-BR')}</p>
+                  <p className="font-medium">{formatDate(enrollment.start_date)}</p>
                 </div>
                 <div>
                   <span className="text-gray-600">Data de Término:</span>
-                  <p className="font-medium">{new Date(enrollment.end_date).toLocaleDateString('pt-BR')}</p>
+                  <p className="font-medium">{formatDate(enrollment.end_date)}</p>
                 </div>
               </div>
             </CardContent>
@@ -198,17 +203,17 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
 
           {/* Seleção do Novo Plano */}
           <div className="space-y-4">
-            <Label htmlFor="plan-select">Selecionar Novo Plano</Label>
+            <Label htmlFor="plan-select" className="text-sm font-medium">Selecionar Novo Plano</Label>
             <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Escolha um plano para renovação" />
               </SelectTrigger>
               <SelectContent>
                 {activePlans.map((plan) => (
                   <SelectItem key={plan.id} value={plan.id}>
                     <div className="flex items-center justify-between w-full">
-                      <span>{plan.name} - {getDurationLabel(plan.duration)}</span>
-                      <span className="ml-4 font-semibold">R$ {plan.price.toFixed(2)}</span>
+                      <span className="text-sm">{plan.name} - {getDurationLabel(plan.duration)}</span>
+                      <span className="ml-4 font-semibold text-sm">R$ {plan.price.toFixed(2)}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -220,20 +225,20 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
           {selectedPlanId && (
             <Card className="border-green-200 bg-green-50">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <CalendarIcon className="h-5 w-5" />
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                   Preview da Renovação
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600">Nova Data de Início:</span>
-                    <p className="font-medium">{new Date(newStartDate).toLocaleDateString('pt-BR')}</p>
+                    <p className="font-medium">{formatDate(newStartDate)}</p>
                   </div>
                   <div>
                     <span className="text-gray-600">Nova Data de Término:</span>
-                    <p className="font-medium">{new Date(newEndDate).toLocaleDateString('pt-BR')}</p>
+                    <p className="font-medium">{formatDate(newEndDate)}</p>
                   </div>
                   <div>
                     <span className="text-gray-600">Valor do Plano:</span>
@@ -253,19 +258,20 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
           )}
 
           {/* Botões de Ação */}
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onClose}
               disabled={isSubmitting}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button 
               onClick={handleRenew}
               disabled={!selectedPlanId || isSubmitting}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 w-full sm:w-auto"
             >
               {isSubmitting ? 'Renovando...' : 'Confirmar Renovação'}
             </Button>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -28,7 +29,7 @@ export const useEnrollments = () => {
   const calculateDurationInDays = (duration: string): number => {
     switch (duration) {
       case 'day':
-        return 1; // Plano diário é válido por 1 dia (vence no mesmo dia)
+        return 1; // Plano diário é válido por 1 dia (24 horas)
       case 'month':
         return 30;
       case 'quarter':
@@ -119,7 +120,7 @@ export const useEnrollments = () => {
       // Primeiro, verificar se o aluno já tem uma matrícula ativa
       const { data: existingEnrollments, error: checkError } = await supabase
         .from('enrollments')
-        .select('id')
+        .select('*')
         .eq('student_id', enrollmentData.student_id)
         .eq('status', 'active');
 
@@ -133,22 +134,36 @@ export const useEnrollments = () => {
         return null;
       }
 
-      // Se já existe uma matrícula ativa, inativar ela primeiro
+      // Se já existe uma matrícula ativa, salvar no histórico e excluir
       if (existingEnrollments && existingEnrollments.length > 0) {
-        const { error: updateError } = await supabase
-          .from('enrollments')
-          .update({ status: 'inactive' })
-          .eq('student_id', enrollmentData.student_id)
-          .eq('status', 'active');
+        for (const enrollment of existingEnrollments) {
+          // Salva no histórico
+          const { error: historyError } = await supabase
+            .from('enrollment_history')
+            .insert([{
+              enrollment_id: enrollment.id,
+              student_id: enrollment.student_id,
+              plan_id: enrollment.plan_id,
+              plan_name: enrollment.plan_name,
+              plan_price: enrollment.plan_price,
+              start_date: enrollment.start_date,
+              end_date: enrollment.end_date,
+              status: enrollment.status
+            }]);
 
-        if (updateError) {
-          console.error('Error inactivating existing enrollment:', updateError);
-          toast({
-            title: "Erro",
-            description: "Erro ao inativar matrícula anterior.",
-            variant: "destructive",
-          });
-          return null;
+          if (historyError) {
+            console.error('Error creating enrollment history:', historyError);
+          }
+
+          // Exclui a matrícula anterior
+          const { error: deleteError } = await supabase
+            .from('enrollments')
+            .delete()
+            .eq('id', enrollment.id);
+
+          if (deleteError) {
+            console.error('Error deleting existing enrollment:', deleteError);
+          }
         }
       }
 
@@ -211,38 +226,6 @@ export const useEnrollments = () => {
         return false;
       }
 
-      // Primeiro, inativar qualquer matrícula ativa existente do mesmo aluno
-      const { error: inactivateError } = await supabase
-        .from('enrollments')
-        .update({ status: 'inactive' })
-        .eq('student_id', currentEnrollment.student_id)
-        .eq('status', 'active');
-
-      if (inactivateError) {
-        console.error('Error inactivating existing enrollments:', inactivateError);
-        toast({
-          title: "Erro",
-          description: "Erro ao inativar matrículas anteriores.",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      // Calcula as novas datas - sempre iniciando hoje
-      const today = new Date();
-      const startDate = today;
-
-      const durationInDays = calculateDurationInDays(planDuration);
-      let endDate;
-
-      if (planDuration === 'day') {
-        // Para plano diário, vence no mesmo dia
-        endDate = new Date(startDate);
-      } else {
-        // Para outros planos, adiciona os dias de duração
-        endDate = new Date(startDate.getTime() + (durationInDays * 24 * 60 * 60 * 1000));
-      }
-
       // Salva o histórico da matrícula atual
       const { error: historyError } = await supabase
         .from('enrollment_history')
@@ -265,6 +248,21 @@ export const useEnrollments = () => {
           variant: "destructive",
         });
         return false;
+      }
+
+      // Calcula as novas datas - sempre iniciando hoje
+      const today = new Date();
+      const startDate = today;
+
+      const durationInDays = calculateDurationInDays(planDuration);
+      let endDate;
+
+      if (planDuration === 'day') {
+        // Para plano diário, vence em 24 horas (próximo dia)
+        endDate = new Date(startDate.getTime() + (24 * 60 * 60 * 1000));
+      } else {
+        // Para outros planos, adiciona os dias de duração
+        endDate = new Date(startDate.getTime() + (durationInDays * 24 * 60 * 60 * 1000));
       }
 
       // Atualiza a matrícula existente com o novo plano
@@ -345,6 +343,33 @@ export const useEnrollments = () => {
 
   const deleteEnrollment = async (id: string) => {
     try {
+      // Busca a matrícula antes de excluir para salvar no histórico
+      const { data: enrollment, error: fetchError } = await supabase
+        .from('enrollments')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (!fetchError && enrollment) {
+        // Salva no histórico antes de excluir
+        const { error: historyError } = await supabase
+          .from('enrollment_history')
+          .insert([{
+            enrollment_id: enrollment.id,
+            student_id: enrollment.student_id,
+            plan_id: enrollment.plan_id,
+            plan_name: enrollment.plan_name,
+            plan_price: enrollment.plan_price,
+            start_date: enrollment.start_date,
+            end_date: enrollment.end_date,
+            status: enrollment.status
+          }]);
+
+        if (historyError) {
+          console.error('Error creating enrollment history:', historyError);
+        }
+      }
+
       const { error } = await supabase
         .from('enrollments')
         .delete()

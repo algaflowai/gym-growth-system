@@ -8,11 +8,12 @@ interface AccessState {
 
 export const useAccessControl = () => {
   const [accessGranted, setAccessGranted] = useState<AccessState>({
-    financial: false,
-    settings: false,
+    financial: true, // Acesso sempre liberado
+    settings: true,  // Acesso sempre liberado
   });
 
   const grantAccess = (section: 'financial' | 'settings') => {
+    // Função mantida para compatibilidade, mas não faz nada
     setAccessGranted(prev => ({
       ...prev,
       [section]: true,
@@ -20,14 +21,15 @@ export const useAccessControl = () => {
   };
 
   const revokeAccess = (section: 'financial' | 'settings') => {
+    // Função mantida para compatibilidade, mas não faz nada
     setAccessGranted(prev => ({
       ...prev,
-      [section]: false,
+      [section]: true, // Sempre verdadeiro
     }));
   };
 
   const hasAccess = (section: 'financial' | 'settings'): boolean => {
-    return accessGranted[section];
+    return true; // Sempre retorna verdadeiro
   };
 
   return {
