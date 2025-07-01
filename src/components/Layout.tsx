@@ -1,8 +1,8 @@
+
 import { useState } from 'react';
-import { Home, UserPlus, Users, ClipboardList, CreditCard, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Home, UserPlus, Users, ClipboardList, CreditCard, Settings, LogOut, Menu, X, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import RestrictedAccessModal from './RestrictedAccessModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,7 +13,6 @@ interface LayoutProps {
 
 const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [restrictedModal, setRestrictedModal] = useState<string | null>(null);
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -21,27 +20,14 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
     { id: 'enrollments', label: 'Gestão de Matrículas', icon: ClipboardList },
     { id: 'students', label: 'Alunos', icon: Users },
     { id: 'plans', label: 'Planos', icon: CreditCard },
+    { id: 'pricing', label: 'Assinatura', icon: CreditCard },
+    { id: 'ai-trainer', label: 'IA Trainer', icon: Brain },
+    { id: 'financial', label: 'Financeiro', icon: CreditCard },
+    { id: 'settings', label: 'Configurações', icon: Settings },
   ];
-
-  const restrictedItems = [
-    { id: 'financial', label: 'Financeiro', icon: CreditCard, password: 'finance1710' },
-    { id: 'settings', label: 'Configurações', icon: Settings, password: 'config1710' },
-  ];
-
-  const handleRestrictedAccess = (itemId: string, password: string) => {
-    const item = restrictedItems.find(item => item.id === itemId);
-    
-    if (item && password === item.password) {
-      setRestrictedModal(null);
-      onNavigate(itemId);
-    } else {
-      alert('Senha incorreta! Tente novamente.');
-    }
-  };
 
   const getPageTitle = () => {
-    const allItems = [...menuItems, ...restrictedItems];
-    const currentItem = allItems.find(item => item.id === currentPage);
+    const currentItem = menuItems.find(item => item.id === currentPage);
     return currentItem?.label || 'Dashboard';
   };
 
@@ -98,27 +84,6 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
           })}
 
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-            {restrictedItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setRestrictedModal(item.id)}
-                  className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-                    currentPage === item.id
-                      ? 'bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900 dark:to-red-900 text-orange-700 dark:text-orange-300 shadow-md'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                  title={!isSidebarOpen ? item.label : undefined}
-                >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
-                  {isSidebarOpen && <span className="font-medium">{item.label}</span>}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
             <button
               onClick={onLogout}
               className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
@@ -151,16 +116,6 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
           {children}
         </main>
       </div>
-
-      {/* Restricted Access Modal */}
-      {restrictedModal && (
-        <RestrictedAccessModal
-          isOpen={!!restrictedModal}
-          onClose={() => setRestrictedModal(null)}
-          onSubmit={(password) => handleRestrictedAccess(restrictedModal, password)}
-          title="Acesso Restrito"
-        />
-      )}
     </div>
   );
 };

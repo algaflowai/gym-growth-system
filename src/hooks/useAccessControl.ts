@@ -1,40 +1,16 @@
 
-import { useState } from 'react';
-
-interface AccessState {
-  financial: boolean;
-  settings: boolean;
-}
+// Este hook foi removido pois o controle de acesso foi simplificado
+// As páginas de Financeiro e Configurações agora são acessíveis diretamente
 
 export const useAccessControl = () => {
-  const [accessGranted, setAccessGranted] = useState<AccessState>({
-    financial: true, // Acesso sempre liberado
-    settings: true,  // Acesso sempre liberado
-  });
-
-  const grantAccess = (section: 'financial' | 'settings') => {
-    // Função mantida para compatibilidade, mas não faz nada
-    setAccessGranted(prev => ({
-      ...prev,
-      [section]: true,
-    }));
-  };
-
-  const revokeAccess = (section: 'financial' | 'settings') => {
-    // Função mantida para compatibilidade, mas não faz nada
-    setAccessGranted(prev => ({
-      ...prev,
-      [section]: true, // Sempre verdadeiro
-    }));
-  };
-
-  const hasAccess = (section: 'financial' | 'settings'): boolean => {
-    return true; // Sempre retorna verdadeiro
-  };
+  // Retorna sempre true para manter compatibilidade
+  const hasAccess = () => true;
+  const grantAccess = () => {};
+  const revokeAccess = () => {};
 
   return {
+    hasAccess,
     grantAccess,
     revokeAccess,
-    hasAccess,
   };
 };

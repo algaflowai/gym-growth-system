@@ -9,9 +9,10 @@ import NewEnrollment from '../components/NewEnrollment';
 import EnrollmentManagement from '../components/EnrollmentManagement';
 import StudentsManagement from '../components/StudentsManagement';
 import PlansManagement from '../components/PlansManagement';
+import PricingSection from '../components/PricingSection';
+import AITrainer from '../components/AITrainer';
 import FinancialSection from '../components/FinancialSection';
 import SettingsSection from '../components/SettingsSection';
-import { useAccessControl } from '../hooks/useAccessControl';
 
 export interface Plan {
   id: string;
@@ -32,8 +33,6 @@ const Index = () => {
     { id: '4', name: 'Anual', price: 890, duration: 'year', active: true },
   ]);
 
-  const { hasAccess } = useAccessControl();
-
   const handleLogin = (email: string, password: string) => {
     // Mock authentication - in real app, validate with backend
     if (email && password) {
@@ -50,7 +49,6 @@ const Index = () => {
   };
 
   const handleNavigate = (page: string) => {
-    // Acesso direto às páginas - sem verificação de senha
     setCurrentPage(page);
   };
 
@@ -96,6 +94,10 @@ const Index = () => {
             onDeletePlan={handleDeletePlan}
           />
         );
+      case 'pricing':
+        return <PricingSection />;
+      case 'ai-trainer':
+        return <AITrainer />;
       case 'financial':
         return <FinancialSection />;
       case 'settings':
