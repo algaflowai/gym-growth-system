@@ -1,9 +1,6 @@
 
-// Este hook foi removido pois o controle de acesso foi simplificado
-// As páginas de Financeiro e Configurações agora são acessíveis diretamente
-
+// Simplified access control hook - always returns true since access control was removed
 export const useAccessControl = () => {
-  // Retorna sempre true para manter compatibilidade
   const hasAccess = () => true;
   const grantAccess = () => {};
   const revokeAccess = () => {};

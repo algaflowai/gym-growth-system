@@ -113,30 +113,6 @@ export type Database = {
           },
         ]
       }
-      senhas_acesso: {
-        Row: {
-          created_at: string
-          id: string
-          pagina: string
-          senha: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          pagina: string
-          senha: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          pagina?: string
-          senha?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       settings: {
         Row: {
           created_at: string

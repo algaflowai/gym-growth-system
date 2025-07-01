@@ -1,7 +1,5 @@
 
-// Este componente foi removido pois o acesso restrito foi simplificado
-// As páginas de Financeiro e Configurações agora são acessíveis diretamente
-
+// This component is no longer used since access control was removed
 import React from 'react';
 
 interface RestrictedAccessModalProps {
@@ -12,7 +10,7 @@ interface RestrictedAccessModalProps {
 }
 
 const RestrictedAccessModal = ({ isOpen, onClose, onSubmit, title }: RestrictedAccessModalProps) => {
-  // Componente não é mais utilizado
+  // Component no longer renders anything since access control was removed
   return null;
 };
 
