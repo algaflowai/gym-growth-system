@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Home, UserPlus, Users, ClipboardList, CreditCard, Settings, LogOut, Menu, X, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,9 +39,9 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
                   <img 
-                    src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=40&h=40&fit=crop&crop=center" 
+                    src="/lovable-uploads/19a3b703-3706-4ccb-9561-29eacc5d0f04.png" 
                     alt="AlgaGymManager Logo" 
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 </div>
                 <div>

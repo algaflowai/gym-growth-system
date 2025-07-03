@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Eye, EyeOff, Check, Crown, Zap, Star, Users, BarChart3, Smartphone, Shield } from 'lucide-react';
+import { Eye, EyeOff, Check, Crown, Zap, Star, Users, BarChart3, Smartphone, Shield, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -99,6 +98,11 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
       icon: Shield,
       title: 'Segurança Total',
       description: 'Seus dados protegidos com criptografia de nível empresarial'
+    },
+    {
+      icon: Calendar,
+      title: 'Teste Grátis por 30 dias',
+      description: 'Use o aplicativo e explore todas as nossas funcionalidades gratuitamente por 30 dias, sem compromisso.'
     }
   ];
 
@@ -199,9 +203,9 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
           <div className="flex items-center justify-center space-x-3 mb-6">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl overflow-hidden">
               <img 
-                src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=64&h=64&fit=crop&crop=center" 
+                src="/lovable-uploads/19a3b703-3706-4ccb-9561-29eacc5d0f04.png" 
                 alt="AlgaGymManager Logo" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
             <div>
@@ -211,114 +215,113 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-start">
-          {/* Login Form */}
-          <div className="space-y-8">
-            <Card className="shadow-2xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-              <CardHeader className="space-y-1 pb-8">
-                <CardTitle className="text-3xl font-bold text-center text-gray-800 dark:text-white">
-                  Bem-vindo de volta
-                </CardTitle>
-                <CardDescription className="text-center text-gray-600 dark:text-gray-300 text-lg">
-                  Faça login para acessar sua conta
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-gray-700 dark:text-gray-300 font-medium">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="h-12 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-gray-700 dark:text-gray-300 font-medium">Senha</Label>
-                    <div className="relative">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
+            {/* Login Form */}
+            <div className="space-y-8">
+              <Card className="shadow-2xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+                <CardHeader className="space-y-1 pb-8">
+                  <CardTitle className="text-3xl font-bold text-center text-gray-800 dark:text-white">
+                    Bem-vindo de volta
+                  </CardTitle>
+                  <CardDescription className="text-center text-gray-600 dark:text-gray-300 text-lg">
+                    Faça login para acessar sua conta
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-gray-700 dark:text-gray-300 font-medium">Email</Label>
                       <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Sua senha"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        id="email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="h-12 pr-12 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
+                        className="h-12 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-gray-700 dark:text-gray-300 font-medium">Senha</Label>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Sua senha"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          className="h-12 pr-12 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        >
+                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
                       <button
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        onClick={onForgotPassword}
+                        className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                       >
-                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        Esqueceu sua senha?
                       </button>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={onForgotPassword}
-                      className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-lg transition-all duration-200 transform hover:scale-105"
                     >
-                      Esqueceu sua senha?
-                    </button>
+                      {isLoading ? 'Entrando...' : 'Entrar'}
+                    </Button>
+                  </form>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">Ou continue com</span>
+                    </div>
                   </div>
 
                   <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-lg transition-all duration-200 transform hover:scale-105"
+                    type="button"
+                    variant="outline"
+                    onClick={handleGoogleLogin}
+                    className="w-full h-12 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
                   >
-                    {isLoading ? 'Entrando...' : 'Entrar'}
+                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Continuar com Google
                   </Button>
-                </form>
 
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+                  <div className="text-center">
+                    <span className="text-gray-600 dark:text-gray-300">Não tem uma conta? </span>
+                    <button
+                      onClick={onShowSignup}
+                      className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium hover:underline"
+                    >
+                      Cadastre-se aqui
+                    </button>
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">Ou continue com</span>
-                  </div>
-                </div>
+                </CardContent>
+              </Card>
+            </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleGoogleLogin}
-                  className="w-full h-12 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
-                >
-                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Continuar com Google
-                </Button>
-
-                <div className="text-center">
-                  <span className="text-gray-600 dark:text-gray-300">Não tem uma conta? </span>
-                  <button
-                    onClick={onShowSignup}
-                    className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium hover:underline"
-                  >
-                    Cadastre-se aqui
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Features and Plans Section */}
-          <div className="space-y-12">
             {/* Features Section */}
-            <div>
+            <div className="space-y-8">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-8 text-center">
                 Por que escolher o AlgaGymManager?
               </h2>
@@ -341,81 +344,94 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
                 })}
               </div>
             </div>
+          </div>
 
-            {/* Compact Plans Section */}
-            <div>
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">
-                Escolha seu Plano
-              </h2>
-              <div className="space-y-4">
-                {plans.map((plan) => {
-                  const Icon = plan.icon;
-                  return (
-                    <Card 
-                      key={plan.id} 
-                      className={`relative overflow-hidden ${plan.popular ? 'ring-2 ring-blue-500' : ''} hover:shadow-lg transition-all duration-300`}
-                    >
-                      {plan.popular && (
-                        <div className="absolute top-0 left-0 right-0">
-                          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-1 text-xs font-semibold">
-                            MAIS POPULAR
-                          </div>
-                        </div>
+          {/* Plans Section - Now Below and Horizontal */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+              Escolha seu Plano
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Selecione o plano ideal para sua academia e comece a transformar sua gestão hoje mesmo
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            {plans.map((plan) => {
+              const Icon = plan.icon;
+              return (
+                <Card 
+                  key={plan.id} 
+                  className={`relative overflow-hidden ${plan.popular ? 'ring-2 ring-blue-500 scale-105' : ''} hover:shadow-xl transition-all duration-300`}
+                >
+                  {plan.popular && (
+                    <div className="absolute top-0 left-0 right-0">
+                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 text-sm font-semibold">
+                        MAIS POPULAR
+                      </div>
+                    </div>
+                  )}
+                  
+                  <CardHeader className={`text-center ${plan.popular ? 'pt-12' : 'pt-6'}`}>
+                    <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-r ${plan.color} flex items-center justify-center mb-4`}>
+                      <Icon className="h-8 w-8 text-white" />
+                    </div>
+                    
+                    <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+                    <CardDescription className="text-gray-600 dark:text-gray-300">
+                      {plan.description}
+                    </CardDescription>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-center space-x-2">
+                        <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                          {plan.price}
+                        </span>
+                        {plan.originalPrice && (
+                          <span className="text-lg text-gray-500 line-through">
+                            {plan.originalPrice}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300">{plan.period}</p>
+                      {plan.savings && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800">
+                          {plan.savings}
+                        </Badge>
                       )}
-                      
-                      <CardContent className={`p-4 ${plan.popular ? 'pt-8' : 'pt-4'}`}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${plan.color} flex items-center justify-center`}>
-                              <Icon className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-gray-900 dark:text-white">{plan.name}</h3>
-                              <p className="text-xs text-gray-600 dark:text-gray-300">{plan.description}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center space-x-1">
-                              <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                {plan.price}
-                              </span>
-                              {plan.originalPrice && (
-                                <span className="text-sm text-gray-500 line-through">
-                                  {plan.originalPrice}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-gray-300">{plan.period}</p>
-                            {plan.savings && (
-                              <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs mt-1">
-                                {plan.savings}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          {plan.features.map((feature, index) => (
-                            <div key={index} className="flex items-center space-x-2">
-                              <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
-                              <span className="text-xs text-gray-700 dark:text-gray-300">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <Button
-                          onClick={() => handleSubscribe(plan.id)}
-                          disabled={isLoadingPlan === plan.id}
-                          className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white font-medium transition-all duration-200 text-sm h-8`}
-                        >
-                          {isLoadingPlan === plan.id ? 'Processando...' : plan.buttonText}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-6">
+                    <ul className="space-y-3">
+                      {plan.features.map((feature, index) => (
+                        <li key={index} className="flex items-center space-x-3">
+                          <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
+                          <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <Button
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={isLoadingPlan === plan.id}
+                      className={`w-full h-12 bg-gradient-to-r ${plan.color} hover:opacity-90 text-white font-semibold transition-all duration-200`}
+                    >
+                      {isLoadingPlan === plan.id ? 'Processando...' : plan.buttonText}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="text-center pt-8 border-t border-gray-200 dark:border-gray-700 mt-12">
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Todos os planos incluem suporte técnico e atualizações regulares
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Cancele a qualquer momento • Sem taxas ocultas • Pagamento seguro
+            </p>
           </div>
         </div>
       </div>
