@@ -20,7 +20,6 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
     { id: 'enrollments', label: 'Gestão de Matrículas', icon: ClipboardList },
     { id: 'students', label: 'Alunos', icon: Users },
     { id: 'plans', label: 'Planos', icon: CreditCard },
-    { id: 'pricing', label: 'Assinatura', icon: CreditCard },
     { id: 'ai-trainer', label: 'IA Trainer', icon: Brain },
     { id: 'financial', label: 'Financeiro', icon: CreditCard },
     { id: 'settings', label: 'Configurações', icon: Settings },

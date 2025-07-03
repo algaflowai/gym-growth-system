@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, Mail } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ForgotPasswordProps {
   onBackToLogin: () => void;
@@ -21,15 +22,34 @@ const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simular envio de email
-    setTimeout(() => {
-      setEmailSent(true);
-      setIsLoading(false);
-      toast({
-        title: "Email enviado!",
-        description: "Verifique sua caixa de entrada para instruções de redefinição de senha.",
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/`,
       });
-    }, 2000);
+
+      if (error) {
+        toast({
+          title: "Erro ao enviar email",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        setEmailSent(true);
+        toast({
+          title: "Email enviado!",
+          description: "Verifique sua caixa de entrada para instruções de redefinição de senha.",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao solicitar redefinição de senha:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro inesperado. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -89,7 +109,7 @@ const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
               </div>
               
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Não recebeu o email? Verifique sua pasta de spam ou entre em contato com o administrador.
+                Não recebeu o email? Verifique sua pasta de spam ou tente novamente.
               </p>
             </div>
           )}
