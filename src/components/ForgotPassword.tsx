@@ -10,9 +10,10 @@ import { toast } from '@/hooks/use-toast';
 
 interface ForgotPasswordProps {
   onBackToLogin: () => void;
+  onResetPassword: (email: string) => Promise<{ error: any }>;
 }
 
-const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
+const ForgotPassword = ({ onBackToLogin, onResetPassword }: ForgotPasswordProps) => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -21,19 +22,35 @@ const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simular envio de email
-    setTimeout(() => {
-      setEmailSent(true);
-      setIsLoading(false);
+    try {
+      const { error } = await onResetPassword(email);
+      
+      if (error) {
+        toast({
+          title: "Erro",
+          description: error.message || "Não foi possível enviar o email de redefinição.",
+          variant: "destructive",
+        });
+      } else {
+        setEmailSent(true);
+        toast({
+          title: "Email enviado!",
+          description: "Verifique sua caixa de entrada para instruções de redefinição de senha.",
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: "Email enviado!",
-        description: "Verifique sua caixa de entrada para instruções de redefinição de senha.",
+        title: "Erro",
+        description: "Não foi possível enviar o email de redefinição. Tente novamente.",
+        variant: "destructive",
       });
-    }, 2000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 relative">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
