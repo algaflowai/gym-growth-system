@@ -18,7 +18,7 @@ interface EnrollmentManagementProps {
 }
 
 const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
-  const { enrollments, loading, deleteEnrollment, updateEnrollment, renewEnrollment, refreshEnrollments } = useEnrollments();
+  const { enrollments, loading, deleteEnrollment, updateEnrollment, renewEnrollment, fetchEnrollments } = useEnrollments();
   const { updateStudent } = useGlobalStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -83,7 +83,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     if (success) {
       setShowEditModal(false);
       setSelectedStudent(null);
-      await refreshEnrollments(); // Refresh to get updated data
+      await fetchEnrollments(); // Use fetchEnrollments instead of refreshEnrollments
     }
     return success;
   };
@@ -99,7 +99,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     if (success) {
       setShowRenewalModal(false);
       setSelectedEnrollment(null);
-      await refreshEnrollments(); // Refresh to get updated data
+      await fetchEnrollments(); // Use fetchEnrollments instead of refreshEnrollments
     }
     return success;
   };
@@ -122,7 +122,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
           title: "Matrícula excluída",
           description: `A matrícula de ${studentName} foi excluída com sucesso.`,
         });
-        await refreshEnrollments(); // Refresh to update the list and counters
+        await fetchEnrollments(); // Use fetchEnrollments instead of refreshEnrollments
       } else {
         toast({
           title: "Erro ao excluir",
@@ -164,7 +164,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
           description: `A matrícula de ${studentName} foi inativada com sucesso.`,
         });
         
-        await refreshEnrollments(); // Refresh to update counters and list
+        await fetchEnrollments(); // Use fetchEnrollments instead of refreshEnrollments
       }
     } catch (error) {
       console.error('Erro ao inativar matrícula:', error);
@@ -198,7 +198,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
           description: `A matrícula de ${studentName} foi reativada com sucesso.`,
         });
         
-        await refreshEnrollments(); // Refresh to update counters and list
+        await fetchEnrollments(); // Use fetchEnrollments instead of refreshEnrollments
       }
     } catch (error) {
       console.error('Erro ao reativar matrícula:', error);
@@ -337,7 +337,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
           <div className="space-y-4">
             {filteredEnrollments.map((enrollment) => {
               const daysUntilExpiry = getDaysUntilExpiry(enrollment.end_date);
-              const isDeleting = isDeleting === enrollment.id;
+              const isCurrentlyDeleting = isDeleting === enrollment.id;
               
               return (
                 <div
@@ -388,7 +388,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                         variant="outline"
                         onClick={() => handleEdit(enrollment)}
                         className="hover:bg-blue-50 flex-1 sm:flex-initial min-w-0"
-                        disabled={!enrollment.student || isDeleting}
+                        disabled={!enrollment.student || isCurrentlyDeleting}
                       >
                         <Edit className="h-4 w-4 sm:mr-1" />
                         <span className="hidden sm:inline">Editar</span>
@@ -400,7 +400,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                           variant="outline"
                           onClick={() => handleRenew(enrollment)}
                           className="hover:bg-green-50 text-green-600 border-green-200 flex-1 sm:flex-initial min-w-0"
-                          disabled={isDeleting}
+                          disabled={isCurrentlyDeleting}
                         >
                           <RotateCcw className="h-4 w-4 sm:mr-1" />
                           <span className="hidden sm:inline">Renovar</span>
@@ -413,7 +413,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                           variant="outline"
                           onClick={() => handleInactivate(enrollment.id, enrollment.student?.name || '')}
                           className="hover:bg-orange-50 flex-1 sm:flex-initial min-w-0"
-                          disabled={isDeleting}
+                          disabled={isCurrentlyDeleting}
                         >
                           <UserX className="h-4 w-4 sm:mr-1" />
                           <span className="hidden sm:inline">Inativar</span>
@@ -426,7 +426,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                           variant="outline"
                           onClick={() => handleReactivate(enrollment.id, enrollment.student?.name || '')}
                           className="hover:bg-green-50 text-green-600 border-green-200 flex-1 sm:flex-initial min-w-0"
-                          disabled={isDeleting}
+                          disabled={isCurrentlyDeleting}
                         >
                           <UserCheck className="h-4 w-4 sm:mr-1" />
                           <span className="hidden sm:inline">Reativar</span>
@@ -438,15 +438,15 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                         variant="outline"
                         onClick={() => handleDelete(enrollment.id, enrollment.student?.name || '')}
                         className="hover:bg-red-50 text-red-600 border-red-200 flex-1 sm:flex-initial min-w-0"
-                        disabled={isDeleting}
+                        disabled={isCurrentlyDeleting}
                       >
-                        {isDeleting ? (
+                        {isCurrentlyDeleting ? (
                           <Loader2 className="h-4 w-4 animate-spin sm:mr-1" />
                         ) : (
                           <Trash2 className="h-4 w-4 sm:mr-1" />
                         )}
                         <span className="hidden sm:inline">
-                          {isDeleting ? 'Excluindo...' : 'Excluir'}
+                          {isCurrentlyDeleting ? 'Excluindo...' : 'Excluir'}
                         </span>
                       </Button>
                     </div>
