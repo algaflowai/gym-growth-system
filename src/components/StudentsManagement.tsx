@@ -49,9 +49,9 @@ const StudentsManagement = () => {
     return (
       <Card key={student.id} className="hover:shadow-md transition-shadow">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <CardTitle className="text-base sm:text-lg break-words">{student.name}</CardTitle>
-            <Badge className={getStatusColor(student.status)}>
+            <Badge className={`${getStatusColor(student.status)} w-fit`}>
               <StatusIcon className="w-3 h-3 mr-1" />
               {student.status === 'active' ? 'Ativo' : 'Inativo'}
             </Badge>
@@ -60,14 +60,16 @@ const StudentsManagement = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm text-gray-600">
-            <p><strong>CPF:</strong> {student.cpf}</p>
-            <p><strong>Telefone:</strong> {student.phone}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <p><strong>CPF:</strong> {student.cpf}</p>
+              <p><strong>Telefone:</strong> {student.phone}</p>
+            </div>
             {student.birth_date && (
               <p><strong>Data de Nascimento:</strong> {formatDate(student.birth_date)}</p>
             )}
           </div>
           
-          <div className="flex gap-2 mt-4">
+          <div className="mt-4">
             <Button
               variant="outline"
               size="sm"
@@ -75,7 +77,7 @@ const StudentsManagement = () => {
               className="flex items-center gap-1 w-full sm:w-auto"
             >
               <Eye className="w-4 h-4" />
-              Ver
+              Ver Detalhes
             </Button>
           </div>
         </CardContent>
@@ -92,13 +94,13 @@ const StudentsManagement = () => {
   }
 
   return (
-    <div className="space-y-6 p-2 sm:p-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gerenciamento de Alunos</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">Gerenciamento de Alunos</h1>
       </div>
 
       <div className="flex gap-4 items-center">
-        <div className="relative flex-1 max-w-full sm:max-w-md">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Buscar por nome, email, CPF ou telefone..."
@@ -121,7 +123,7 @@ const StudentsManagement = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {activeStudents.map(renderStudentCard)}
           </div>
         )}
@@ -133,7 +135,7 @@ const StudentsManagement = () => {
           <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
             Alunos Inativos ({inactiveStudents.length})
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {inactiveStudents.map(renderStudentCard)}
           </div>
         </div>

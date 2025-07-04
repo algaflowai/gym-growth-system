@@ -197,39 +197,39 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-xl overflow-hidden">
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-3 mb-6">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center shadow-xl overflow-hidden">
               <img 
                 src="/lovable-uploads/19a3b703-3706-4ccb-9561-29eacc5d0f04.png" 
                 alt="AlgaGymManager Logo" 
                 className="w-full h-full object-contain rounded-full"
               />
             </div>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-800 dark:text-white">AlgaGymManager</h1>
-              <p className="text-gray-600 dark:text-gray-300">Sistema Completo de Gestão para Academias</p>
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white">AlgaGymManager</h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Sistema Completo de Gestão para Academias</p>
             </div>
           </div>
         </div>
 
         <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start mb-12 lg:mb-16">
             {/* Login Form */}
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8 order-2 lg:order-1">
               <Card className="shadow-2xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                <CardHeader className="space-y-1 pb-8">
-                  <CardTitle className="text-3xl font-bold text-center text-gray-800 dark:text-white">
+                <CardHeader className="space-y-1 pb-6 sm:pb-8">
+                  <CardTitle className="text-2xl sm:text-3xl font-bold text-center text-gray-800 dark:text-white">
                     Bem-vindo de volta
                   </CardTitle>
-                  <CardDescription className="text-center text-gray-600 dark:text-gray-300 text-lg">
+                  <CardDescription className="text-center text-gray-600 dark:text-gray-300 text-base sm:text-lg">
                     Faça login para acessar sua conta
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                <CardContent className="space-y-4 sm:space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-gray-700 dark:text-gray-300 font-medium">Email</Label>
                       <Input
@@ -239,7 +239,7 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="h-12 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
+                        className="h-11 sm:h-12 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
                       />
                     </div>
                     <div className="space-y-2">
@@ -252,7 +252,7 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
-                          className="h-12 pr-12 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
+                          className="h-11 sm:h-12 pr-12 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
                         />
                         <button
                           type="button"
@@ -277,7 +277,7 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-lg transition-all duration-200 transform hover:scale-105"
+                      className="w-full h-11 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-base sm:text-lg transition-all duration-200 transform hover:scale-105"
                     >
                       {isLoading ? 'Entrando...' : 'Entrar'}
                     </Button>
@@ -296,7 +296,7 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
                     type="button"
                     variant="outline"
                     onClick={handleGoogleLogin}
-                    className="w-full h-12 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
+                    className="w-full h-11 sm:h-12 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
                   >
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -321,23 +321,23 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
             </div>
 
             {/* Features Section */}
-            <div className="space-y-8">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-8 text-center">
+            <div className="space-y-6 sm:space-y-8 order-1 lg:order-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-6 sm:mb-8 text-center">
                 Por que escolher o AlgaGymManager?
               </h2>
-              <div className="grid gap-6">
+              <div className="grid gap-4 sm:gap-6">
                 {features.map((feature, index) => {
                   const Icon = feature.icon;
                   return (
                     <div key={index} className="flex items-start space-x-4 p-4 rounded-xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200 dark:border-gray-700">
                       <div className="flex-shrink-0">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                          <Icon className="h-6 w-6 text-white" />
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                          <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                         </div>
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-800 dark:text-white mb-1">{feature.title}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{feature.description}</p>
+                        <h3 className="font-semibold text-gray-800 dark:text-white mb-1 text-sm sm:text-base">{feature.title}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{feature.description}</p>
                       </div>
                     </div>
                   );
@@ -346,17 +346,17 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
             </div>
           </div>
 
-          {/* Plans Section - Now Below and Horizontal */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+          {/* Plans Section */}
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-4">
               Escolha seu Plano
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto px-4">
               Selecione o plano ideal para sua academia e comece a transformar sua gestão hoje mesmo
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto px-4">
             {plans.map((plan) => {
               const Icon = plan.icon;
               return (
@@ -366,48 +366,48 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
                 >
                   {plan.popular && (
                     <div className="absolute top-0 left-0 right-0">
-                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 text-sm font-semibold">
+                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 text-xs sm:text-sm font-semibold">
                         MAIS POPULAR
                       </div>
                     </div>
                   )}
                   
                   <CardHeader className={`text-center ${plan.popular ? 'pt-12' : 'pt-6'}`}>
-                    <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-r ${plan.color} flex items-center justify-center mb-4`}>
-                      <Icon className="h-8 w-8 text-white" />
+                    <div className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full bg-gradient-to-r ${plan.color} flex items-center justify-center mb-4`}>
+                      <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                     </div>
                     
-                    <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-                    <CardDescription className="text-gray-600 dark:text-gray-300">
+                    <CardTitle className="text-xl sm:text-2xl font-bold">{plan.name}</CardTitle>
+                    <CardDescription className="text-gray-600 dark:text-gray-300 text-sm">
                       {plan.description}
                     </CardDescription>
                     
                     <div className="space-y-2">
                       <div className="flex items-center justify-center space-x-2">
-                        <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                        <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
                           {plan.price}
                         </span>
                         {plan.originalPrice && (
-                          <span className="text-lg text-gray-500 line-through">
+                          <span className="text-base sm:text-lg text-gray-500 line-through">
                             {plan.originalPrice}
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300">{plan.period}</p>
+                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">{plan.period}</p>
                       {plan.savings && (
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
                           {plan.savings}
                         </Badge>
                       )}
                     </div>
                   </CardHeader>
                   
-                  <CardContent className="space-y-6">
-                    <ul className="space-y-3">
+                  <CardContent className="space-y-4 sm:space-y-6">
+                    <ul className="space-y-2 sm:space-y-3">
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-center space-x-3">
-                          <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                          <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                          <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -415,7 +415,7 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
                     <Button
                       onClick={() => handleSubscribe(plan.id)}
                       disabled={isLoadingPlan === plan.id}
-                      className={`w-full h-12 bg-gradient-to-r ${plan.color} hover:opacity-90 text-white font-semibold transition-all duration-200`}
+                      className={`w-full h-10 sm:h-12 bg-gradient-to-r ${plan.color} hover:opacity-90 text-white font-semibold transition-all duration-200 text-sm sm:text-base`}
                     >
                       {isLoadingPlan === plan.id ? 'Processando...' : plan.buttonText}
                     </Button>
@@ -425,11 +425,11 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
             })}
           </div>
 
-          <div className="text-center pt-8 border-t border-gray-200 dark:border-gray-700 mt-12">
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
+          <div className="text-center pt-6 sm:pt-8 border-t border-gray-200 dark:border-gray-700 mt-8 sm:mt-12 px-4">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4">
               Todos os planos incluem suporte técnico e atualizações regulares
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               Cancele a qualquer momento • Sem taxas ocultas • Pagamento seguro
             </p>
           </div>
