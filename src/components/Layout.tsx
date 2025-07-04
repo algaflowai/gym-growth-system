@@ -37,11 +37,11 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
           <div className="flex items-center justify-between">
             {isSidebarOpen && (
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
                   <img 
                     src="/lovable-uploads/19a3b703-3706-4ccb-9561-29eacc5d0f04.png" 
                     alt="AlgaGymManager Logo" 
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain rounded-full"
                   />
                 </div>
                 <div>

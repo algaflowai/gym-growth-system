@@ -201,11 +201,11 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl overflow-hidden">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-xl overflow-hidden">
               <img 
                 src="/lovable-uploads/19a3b703-3706-4ccb-9561-29eacc5d0f04.png" 
                 alt="AlgaGymManager Logo" 
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain rounded-full"
               />
             </div>
             <div>
