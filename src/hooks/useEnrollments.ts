@@ -15,6 +15,7 @@ export interface Enrollment {
   status: 'active' | 'inactive' | 'expired';
   created_at: string;
   updated_at: string;
+  user_id: string;
   student?: Student;
 }
 
@@ -73,10 +74,19 @@ export const useEnrollments = () => {
 
   const fetchEnrollments = async () => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('User not authenticated');
+        setEnrollments([]);
+        setLoading(false);
+        return;
+      }
+
       // Primeiro atualiza matrículas expiradas e inativa as antigas
       await updateExpiredEnrollments();
 
-      // Fetch all enrollments (active, inactive, and expired)
+      // Fetch all enrollments (active, inactive, and expired) for current user
       const { data, error } = await supabase
         .from('enrollments')
         .select(`
@@ -115,8 +125,19 @@ export const useEnrollments = () => {
     }
   };
 
-  const createEnrollment = async (enrollmentData: Omit<Enrollment, 'id' | 'created_at' | 'updated_at' | 'student'>) => {
+  const createEnrollment = async (enrollmentData: Omit<Enrollment, 'id' | 'created_at' | 'updated_at' | 'student' | 'user_id'>) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para criar uma matrícula.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
       // Primeiro, verificar se o aluno já tem uma matrícula ativa
       const { data: existingEnrollments, error: checkError } = await supabase
         .from('enrollments')
@@ -148,7 +169,8 @@ export const useEnrollments = () => {
               plan_price: enrollment.plan_price,
               start_date: enrollment.start_date,
               end_date: enrollment.end_date,
-              status: enrollment.status
+              status: enrollment.status,
+              user_id: user.id
             }]);
 
           if (historyError) {
@@ -188,7 +210,8 @@ export const useEnrollments = () => {
       const correctedEnrollmentData = {
         ...enrollmentData,
         start_date: startDate,
-        end_date: endDate
+        end_date: endDate,
+        user_id: user.id
       };
 
       const { data, error } = await supabase
@@ -233,6 +256,17 @@ export const useEnrollments = () => {
     planDuration: string
   ) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para renovar uma matrícula.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       // Busca a matrícula atual
       const { data: currentEnrollment, error: fetchError } = await supabase
         .from('enrollments')
@@ -261,7 +295,8 @@ export const useEnrollments = () => {
           plan_price: currentEnrollment.plan_price,
           start_date: currentEnrollment.start_date,
           end_date: currentEnrollment.end_date,
-          status: currentEnrollment.status
+          status: currentEnrollment.status,
+          user_id: user.id
         }]);
 
       if (historyError) {
@@ -368,6 +403,17 @@ export const useEnrollments = () => {
 
   const deleteEnrollment = async (id: string) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para excluir uma matrícula.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       // Busca a matrícula antes de excluir para salvar no histórico
       const { data: enrollment, error: fetchError } = await supabase
         .from('enrollments')
@@ -387,7 +433,8 @@ export const useEnrollments = () => {
             plan_price: enrollment.plan_price,
             start_date: enrollment.start_date,
             end_date: enrollment.end_date,
-            status: enrollment.status
+            status: enrollment.status,
+            user_id: user.id
           }]);
 
         if (historyError) {

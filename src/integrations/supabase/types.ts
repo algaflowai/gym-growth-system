@@ -27,6 +27,7 @@ export type Database = {
           start_date: string
           status: string
           student_id: string
+          user_id: string | null
         }
         Insert: {
           archived_at?: string
@@ -40,6 +41,7 @@ export type Database = {
           start_date: string
           status: string
           student_id: string
+          user_id?: string | null
         }
         Update: {
           archived_at?: string
@@ -53,6 +55,7 @@ export type Database = {
           start_date?: string
           status?: string
           student_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -83,6 +86,7 @@ export type Database = {
           status: string
           student_id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -95,6 +99,7 @@ export type Database = {
           status?: string
           student_id: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -107,6 +112,7 @@ export type Database = {
           status?: string
           student_id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -165,6 +171,7 @@ export type Database = {
           rg: string | null
           status: string
           updated_at: string
+          user_id: string | null
           zip_code: string | null
         }
         Insert: {
@@ -186,6 +193,7 @@ export type Database = {
           rg?: string | null
           status?: string
           updated_at?: string
+          user_id?: string | null
           zip_code?: string | null
         }
         Update: {
@@ -207,6 +215,7 @@ export type Database = {
           rg?: string | null
           status?: string
           updated_at?: string
+          user_id?: string | null
           zip_code?: string | null
         }
         Relationships: []
@@ -216,6 +225,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       inactivate_expired_enrollments: {
         Args: Record<PropertyKey, never>
         Returns: undefined

@@ -23,6 +23,7 @@ export interface Student {
   created_at: string;
   updated_at: string;
   deleted_at?: string;
+  user_id: string;
 }
 
 type StudentStatus = "active" | "inactive" | "deleted";
@@ -49,6 +50,16 @@ export const useGlobalStudents = () => {
 
   const fetchStudents = useCallback(async () => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('User not authenticated');
+        globalStudents = [];
+        globalLoading = false;
+        notifySubscribers();
+        return;
+      }
+
       const { data, error } = await supabase
         .from('students')
         .select('*')
@@ -86,11 +97,22 @@ export const useGlobalStudents = () => {
     }
   }, []);
 
-  const createStudent = useCallback(async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at'>) => {
+  const createStudent = useCallback(async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para criar um aluno.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('students')
-        .insert([studentData])
+        .insert([{ ...studentData, user_id: user.id }])
         .select()
         .single();
 
@@ -159,6 +181,17 @@ export const useGlobalStudents = () => {
 
   const deleteStudent = useCallback(async (id: string) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para excluir um aluno.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       // First check if student has any active enrollments
       const { data: activeEnrollments, error: enrollmentError } = await supabase
         .from('enrollments')
@@ -198,7 +231,8 @@ export const useGlobalStudents = () => {
                 plan_price: fullEnrollment.plan_price,
                 start_date: fullEnrollment.start_date,
                 end_date: fullEnrollment.end_date,
-                status: fullEnrollment.status
+                status: fullEnrollment.status,
+                user_id: user.id
               }]);
 
             if (historyError) {

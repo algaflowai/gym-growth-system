@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +21,15 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
 
   const fetchStudentEnrollments = async () => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('User not authenticated');
+        setEnrollments([]);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('enrollments')
         .select('*')
@@ -53,6 +61,7 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
     }
   }, [studentId]);
 
+  
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':

@@ -23,6 +23,7 @@ export interface Student {
   created_at: string;
   updated_at: string;
   deleted_at?: string;
+  user_id: string;
 }
 
 // Defina o tipo de status esperado para alunos
@@ -34,6 +35,15 @@ export const useStudents = () => {
 
   const fetchStudents = async () => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('User not authenticated');
+        setStudents([]);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('students')
         .select('*')
@@ -69,11 +79,22 @@ export const useStudents = () => {
     }
   };
 
-  const createStudent = async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at'>) => {
+  const createStudent = async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para criar um aluno.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('students')
-        .insert([studentData])
+        .insert([{ ...studentData, user_id: user.id }])
         .select()
         .single();
 
