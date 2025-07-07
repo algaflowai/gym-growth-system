@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -104,37 +103,60 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     return success;
   };
 
-  const handleDelete = async (id: string, studentName: string) => {
-    // Show confirmation dialog
-    const confirmed = window.confirm(`Tem certeza que deseja excluir a matrícula de ${studentName}?\n\nEsta ação não pode ser desfeita.`);
-    
-    if (!confirmed) {
+  const handleDelete = async (enrollmentId: string, studentName: string) => {
+    // Validação do ID da matrícula
+    if (!enrollmentId || enrollmentId.trim() === '') {
+      toast({
+        title: "Erro de Validação",
+        description: "ID da matrícula inválido.",
+        variant: "destructive",
+      });
       return;
     }
 
-    setIsDeleting(id);
+    console.log(`Iniciando exclusão da matrícula: ${enrollmentId} do aluno: ${studentName}`);
+
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir a matrícula de ${studentName}?\n\n` +
+      `ID da matrícula: ${enrollmentId}\n\n` +
+      `Esta ação não pode ser desfeita.`
+    );
+    
+    if (!confirmed) {
+      console.log('Exclusão cancelada pelo usuário');
+      return;
+    }
+
+    setIsDeleting(enrollmentId);
     
     try {
-      const success = await deleteEnrollment(id);
+      console.log(`Chamando função de exclusão para matrícula ${enrollmentId}`);
+      
+      const success = await deleteEnrollment(enrollmentId);
       
       if (success) {
+        console.log(`Matrícula ${enrollmentId} excluída com sucesso`);
         toast({
-          title: "Matrícula excluída",
+          title: "Matrícula Excluída",
           description: `A matrícula de ${studentName} foi excluída com sucesso.`,
         });
+        
+        // Recarrega a lista de matrículas
         await fetchEnrollments();
       } else {
+        console.log(`Falha ao excluir matrícula ${enrollmentId}`);
         toast({
-          title: "Erro ao excluir",
-          description: "Não foi possível excluir a matrícula. Tente novamente.",
+          title: "Falha na Exclusão",
+          description: "Não foi possível excluir a matrícula. Verifique suas permissões e tente novamente.",
           variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error('Erro ao excluir matrícula:', error);
+    } catch (error: any) {
+      console.error('Erro inesperado na exclusão:', error);
       toast({
-        title: "Erro inesperado",
-        description: "Ocorreu um erro inesperado. Tente novamente.",
+        title: "Erro Inesperado",
+        description: `Ocorreu um erro inesperado: ${error?.message || 'Erro desconhecido'}`,
         variant: "destructive",
       });
     } finally {
@@ -377,6 +399,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                               )}
                             </p>
                           </div>
+                          <p className="text-xs text-gray-500"><strong>ID:</strong> {enrollment.id}</p>
                         </div>
                       </div>
                     </div>
@@ -439,6 +462,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                         onClick={() => handleDelete(enrollment.id, enrollment.student?.name || '')}
                         className="hover:bg-red-50 text-red-600 border-red-200 flex-1 sm:flex-initial min-w-0"
                         disabled={isCurrentlyDeleting}
+                        title={`Excluir matrícula ${enrollment.id}`}
                       >
                         {isCurrentlyDeleting ? (
                           <Loader2 className="h-4 w-4 animate-spin sm:mr-1" />

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -368,16 +367,30 @@ export const useEnrollments = () => {
 
   const updateEnrollment = async (id: string, updates: Partial<Enrollment>) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para atualizar uma matrícula.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      console.log(`Atualizando matrícula ${id} para usuário ${user.id}`);
+
       const { error } = await supabase
         .from('enrollments')
         .update(updates)
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id); // Garantir que só atualiza se pertencer ao usuário
 
       if (error) {
         console.error('Error updating enrollment:', error);
         toast({
           title: "Erro",
-          description: "Não foi possível atualizar a matrícula.",
+          description: `Não foi possível atualizar a matrícula: ${error.message}`,
           variant: "destructive",
         });
         return false;
@@ -407,55 +420,99 @@ export const useEnrollments = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
-          title: "Erro",
+          title: "Erro de Autenticação",
           description: "Você precisa estar logado para excluir uma matrícula.",
           variant: "destructive",
         });
         return false;
       }
 
-      // Busca a matrícula antes de excluir para salvar no histórico
+      console.log(`Tentando excluir matrícula ${id} para usuário ${user.id}`);
+
+      // Busca a matrícula antes de excluir para salvar no histórico e verificar se pertence ao usuário
       const { data: enrollment, error: fetchError } = await supabase
         .from('enrollments')
         .select('*')
         .eq('id', id)
+        .eq('user_id', user.id) // Garantir que só busca se pertencer ao usuário
         .single();
 
-      if (!fetchError && enrollment) {
-        // Salva no histórico antes de excluir
-        const { error: historyError } = await supabase
-          .from('enrollment_history')
-          .insert([{
-            enrollment_id: enrollment.id,
-            student_id: enrollment.student_id,
-            plan_id: enrollment.plan_id,
-            plan_name: enrollment.plan_name,
-            plan_price: enrollment.plan_price,
-            start_date: enrollment.start_date,
-            end_date: enrollment.end_date,
-            status: enrollment.status,
-            user_id: user.id
-          }]);
-
-        if (historyError) {
-          console.error('Error creating enrollment history:', historyError);
+      if (fetchError) {
+        console.error('Error fetching enrollment for deletion:', fetchError);
+        if (fetchError.code === 'PGRST116') {
+          toast({
+            title: "Erro de Acesso",
+            description: "Matrícula não encontrada ou você não tem permissão para excluí-la.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: `Erro ao buscar matrícula: ${fetchError.message}`,
+            variant: "destructive",
+          });
         }
+        return false;
       }
 
-      const { error } = await supabase
-        .from('enrollments')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting enrollment:', error);
+      if (!enrollment) {
         toast({
           title: "Erro",
-          description: "Não foi possível excluir a matrícula.",
+          description: "Matrícula não encontrada ou você não tem permissão para excluí-la.",
           variant: "destructive",
         });
         return false;
       }
+
+      console.log(`Matrícula encontrada, salvando no histórico...`);
+
+      // Salva no histórico antes de excluir
+      const { error: historyError } = await supabase
+        .from('enrollment_history')
+        .insert([{
+          enrollment_id: enrollment.id,
+          student_id: enrollment.student_id,
+          plan_id: enrollment.plan_id,
+          plan_name: enrollment.plan_name,
+          plan_price: enrollment.plan_price,
+          start_date: enrollment.start_date,
+          end_date: enrollment.end_date,
+          status: enrollment.status,
+          user_id: user.id
+        }]);
+
+      if (historyError) {
+        console.error('Error creating enrollment history:', historyError);
+        toast({
+          title: "Aviso",
+          description: "Não foi possível salvar no histórico, mas a exclusão continuará.",
+          variant: "destructive",
+        });
+      } else {
+        console.log('Histórico salvo com sucesso');
+      }
+
+      console.log(`Excluindo matrícula ${id}...`);
+
+      // Exclui a matrícula (RLS garante que só pode excluir se user_id = auth.uid())
+      const { error: deleteError, count } = await supabase
+        .from('enrollments')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id) // Dupla verificação
+        .select(); // Para contar quantos registros foram afetados
+
+      if (deleteError) {
+        console.error('Error deleting enrollment:', deleteError);
+        toast({
+          title: "Erro na Exclusão",
+          description: `Não foi possível excluir a matrícula: ${deleteError.message}`,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      console.log(`Exclusão realizada. Registros afetados:`, count);
 
       toast({
         title: "Sucesso",
@@ -464,11 +521,11 @@ export const useEnrollments = () => {
 
       await fetchEnrollments();
       return true;
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (error: any) {
+      console.error('Unexpected error during deletion:', error);
       toast({
-        title: "Erro",
-        description: "Erro inesperado ao excluir a matrícula.",
+        title: "Erro Inesperado",
+        description: `Erro inesperado ao excluir a matrícula: ${error?.message || 'Erro desconhecido'}`,
         variant: "destructive",
       });
       return false;
