@@ -159,9 +159,72 @@ export const useGlobalStudents = () => {
 
   const deleteStudent = useCallback(async (id: string) => {
     try {
+      // First check if student has any active enrollments
+      const { data: activeEnrollments, error: enrollmentError } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('student_id', id)
+        .in('status', ['active', 'expired']);
+
+      if (enrollmentError) {
+        console.error('Error checking enrollments:', enrollmentError);
+        toast({
+          title: "Erro",
+          description: "Erro ao verificar matrículas do aluno.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // If student has active or expired enrollments, move them to history first
+      if (activeEnrollments && activeEnrollments.length > 0) {
+        for (const enrollment of activeEnrollments) {
+          // Get full enrollment data
+          const { data: fullEnrollment, error: getError } = await supabase
+            .from('enrollments')
+            .select('*')
+            .eq('id', enrollment.id)
+            .single();
+
+          if (!getError && fullEnrollment) {
+            // Save to history
+            const { error: historyError } = await supabase
+              .from('enrollment_history')
+              .insert([{
+                enrollment_id: fullEnrollment.id,
+                student_id: fullEnrollment.student_id,
+                plan_id: fullEnrollment.plan_id,
+                plan_name: fullEnrollment.plan_name,
+                plan_price: fullEnrollment.plan_price,
+                start_date: fullEnrollment.start_date,
+                end_date: fullEnrollment.end_date,
+                status: fullEnrollment.status
+              }]);
+
+            if (historyError) {
+              console.error('Error creating enrollment history:', historyError);
+            }
+
+            // Delete the enrollment
+            const { error: deleteEnrollmentError } = await supabase
+              .from('enrollments')
+              .delete()
+              .eq('id', enrollment.id);
+
+            if (deleteEnrollmentError) {
+              console.error('Error deleting enrollment:', deleteEnrollmentError);
+            }
+          }
+        }
+      }
+
+      // Now delete the student by marking as deleted
       const { error } = await supabase
         .from('students')
-        .update({ status: 'deleted', deleted_at: new Date().toISOString() })
+        .update({ 
+          status: 'deleted', 
+          deleted_at: new Date().toISOString() 
+        })
         .eq('id', id);
 
       if (error) {

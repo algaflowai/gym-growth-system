@@ -76,14 +76,14 @@ export const useEnrollments = () => {
       // Primeiro atualiza matrículas expiradas e inativa as antigas
       await updateExpiredEnrollments();
 
-      // Fetch only active and expired enrollments (hide inactive ones)
+      // Fetch all enrollments (active, inactive, and expired)
       const { data, error } = await supabase
         .from('enrollments')
         .select(`
           *,
           student:students(*)
         `)
-        .in('status', ['active', 'expired']) // Only show active and expired enrollments
+        .in('status', ['active', 'inactive', 'expired']) // Show all statuses
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -258,8 +258,9 @@ export const useEnrollments = () => {
       let endDate;
 
       if (planDuration === 'day') {
-        // Para plano diário, vence em 24 horas (próximo dia)
-        endDate = new Date(startDate.getTime() + (24 * 60 * 60 * 1000));
+        // Para plano diário, vence exatamente em 1 dia (24 horas)
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 1);
       } else {
         // Para outros planos, adiciona os dias de duração
         endDate = new Date(startDate.getTime() + (durationInDays * 24 * 60 * 60 * 1000));

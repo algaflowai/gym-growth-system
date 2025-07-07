@@ -83,7 +83,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     if (success) {
       setShowEditModal(false);
       setSelectedStudent(null);
-      await fetchEnrollments(); // Use fetchEnrollments instead of refreshEnrollments
+      await fetchEnrollments();
     }
     return success;
   };
@@ -99,7 +99,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     if (success) {
       setShowRenewalModal(false);
       setSelectedEnrollment(null);
-      await fetchEnrollments(); // Use fetchEnrollments instead of refreshEnrollments
+      await fetchEnrollments();
     }
     return success;
   };
@@ -122,7 +122,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
           title: "Matrícula excluída",
           description: `A matrícula de ${studentName} foi excluída com sucesso.`,
         });
-        await fetchEnrollments(); // Use fetchEnrollments instead of refreshEnrollments
+        await fetchEnrollments();
       } else {
         toast({
           title: "Erro ao excluir",
@@ -164,7 +164,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
           description: `A matrícula de ${studentName} foi inativada com sucesso.`,
         });
         
-        await fetchEnrollments(); // Use fetchEnrollments instead of refreshEnrollments
+        await fetchEnrollments();
       }
     } catch (error) {
       console.error('Erro ao inativar matrícula:', error);
@@ -198,7 +198,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
           description: `A matrícula de ${studentName} foi reativada com sucesso.`,
         });
         
-        await fetchEnrollments(); // Use fetchEnrollments instead of refreshEnrollments
+        await fetchEnrollments();
       }
     } catch (error) {
       console.error('Erro ao reativar matrícula:', error);
