@@ -167,9 +167,33 @@ export const useEnrollments = () => {
         }
       }
 
+      // Recalcular as datas baseado no tipo de plano para garantir correção
+      const today = new Date();
+      const startDate = today.toISOString().split('T')[0];
+      
+      // Extrair o tipo de duração do plan_id (assumindo formato como "day", "month", etc.)
+      const planDuration = enrollmentData.plan_id.split('-')[0]; // ex: "day-plan" -> "day"
+      
+      let endDate;
+      if (planDuration === 'day') {
+        // Para plano diário, vence exatamente em 1 dia
+        const nextDay = new Date(today);
+        nextDay.setDate(today.getDate() + 1);
+        endDate = nextDay.toISOString().split('T')[0];
+      } else {
+        // Para outros planos, usar a data original do frontend
+        endDate = enrollmentData.end_date;
+      }
+
+      const correctedEnrollmentData = {
+        ...enrollmentData,
+        start_date: startDate,
+        end_date: endDate
+      };
+
       const { data, error } = await supabase
         .from('enrollments')
-        .insert([enrollmentData])
+        .insert([correctedEnrollmentData])
         .select()
         .single();
 

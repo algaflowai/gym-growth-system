@@ -233,9 +233,9 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
 
   const getExpiryWarning = (endDate: string) => {
     const daysUntilExpiry = getDaysUntilExpiry(endDate);
-    if (daysUntilExpiry < 0) return 'border-red-200 bg-red-50';
-    if (daysUntilExpiry <= 7) return 'border-orange-200 bg-orange-50';
-    if (daysUntilExpiry <= 30) return 'border-yellow-200 bg-yellow-50';
+    if (daysUntilExpiry < 0) return 'border-red-200';
+    if (daysUntilExpiry <= 7) return 'border-orange-200';
+    if (daysUntilExpiry <= 30) return 'border-yellow-200';
     return '';
   };
 
