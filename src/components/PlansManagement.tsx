@@ -33,6 +33,7 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
       name: formData.name,
       price: parseFloat(formData.price),
       duration: formData.duration,
+      durationDays: getDurationDays(formData.duration),
       active: true
     };
 
@@ -97,6 +98,17 @@ const PlansManagement = ({ plans, onAddPlan, onUpdatePlan, onDeletePlan }: Plans
         return 'Anual';
       default:
         return duration;
+    }
+  };
+
+  const getDurationDays = (duration: string) => {
+    switch (duration) {
+      case 'day': return 1;
+      case 'month': return 30;
+      case 'quarter': return 90;
+      case 'semester': return 180;
+      case 'year': return 365;
+      default: return 30;
     }
   };
 

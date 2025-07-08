@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Student } from './useStudents';
+import dayjs, { BRAZIL_TZ } from '@/lib/dayjs';
 
 export interface Enrollment {
   id: string;
@@ -46,7 +47,7 @@ export const useEnrollments = () => {
   // Função para atualizar status automaticamente baseado na data
   const updateExpiredEnrollments = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = dayjs.tz(new Date(), BRAZIL_TZ).format('YYYY-MM-DD');
       
       // First mark expired enrollments
       const { error: expiredError } = await supabase
@@ -189,21 +190,21 @@ export const useEnrollments = () => {
       }
 
       // Recalcular as datas baseado no tipo de plano para garantir correção
-      const today = new Date();
-      const startDate = today.toISOString().split('T')[0];
+      const start = dayjs.tz(new Date(), BRAZIL_TZ).startOf('day');
+      const startDate = start.format('YYYY-MM-DD');
       
       // Extrair o tipo de duração do plan_id (assumindo formato como "day", "month", etc.)
       const planDuration = enrollmentData.plan_id.split('-')[0]; // ex: "day-plan" -> "day"
       
       let endDate;
       if (planDuration === 'day') {
-        // Para plano diário, vence exatamente em 1 dia
-        const nextDay = new Date(today);
-        nextDay.setDate(today.getDate() + 1);
-        endDate = nextDay.toISOString().split('T')[0];
+        // Para plano diário, vence exatamente em 1 dia (24 horas)
+        const expires = start.add(1, 'day').endOf('day');
+        endDate = expires.format('YYYY-MM-DD');
       } else {
-        // Para outros planos, usar a data original do frontend
-        endDate = enrollmentData.end_date;
+        // Para outros planos, usar a data original do frontend mas ajustar para timezone
+        const originalEnd = dayjs.tz(enrollmentData.end_date, BRAZIL_TZ);
+        endDate = originalEnd.format('YYYY-MM-DD');
       }
 
       const correctedEnrollmentData = {
@@ -308,20 +309,21 @@ export const useEnrollments = () => {
         return false;
       }
 
-      // Calcula as novas datas - sempre iniciando hoje
-      const today = new Date();
-      const startDate = today;
+      // Calcula as novas datas - sempre iniciando hoje no timezone brasileiro
+      const start = dayjs.tz(new Date(), BRAZIL_TZ).startOf('day');
+      const startDate = start.toDate();
 
       const durationInDays = calculateDurationInDays(planDuration);
       let endDate;
 
       if (planDuration === 'day') {
         // Para plano diário, vence exatamente em 1 dia (24 horas)
-        endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 1);
+        const expires = start.add(1, 'day').endOf('day');
+        endDate = expires.toDate();
       } else {
         // Para outros planos, adiciona os dias de duração
-        endDate = new Date(startDate.getTime() + (durationInDays * 24 * 60 * 60 * 1000));
+        const expires = start.add(durationInDays, 'day').endOf('day');
+        endDate = expires.toDate();
       }
 
       // Atualiza a matrícula existente com o novo plano
@@ -331,8 +333,8 @@ export const useEnrollments = () => {
           plan_id: planId,
           plan_name: planName,
           plan_price: planPrice,
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
+          start_date: dayjs.tz(startDate, BRAZIL_TZ).format('YYYY-MM-DD'),
+          end_date: dayjs.tz(endDate, BRAZIL_TZ).format('YYYY-MM-DD'),
           status: 'active' as EnrollmentStatus
         })
         .eq('id', currentEnrollmentId);

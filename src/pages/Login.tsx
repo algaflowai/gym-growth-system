@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, EyeOff, Check, Crown, Zap, Star, Users, BarChart3, Smartphone, Shield, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface LoginProps {
   onLogin: (email: string, password: string) => void;
@@ -201,16 +202,19 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-3 mb-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center shadow-xl overflow-hidden">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center shadow-xl overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
               <img 
                 src="/lovable-uploads/19a3b703-3706-4ccb-9561-29eacc5d0f04.png" 
                 alt="AlgaGymManager Logo" 
-                className="w-full h-full object-contain rounded-full"
+                className="w-12 h-12 sm:w-16 sm:h-16 object-contain"
               />
             </div>
             <div className="text-center sm:text-left">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white">AlgaGymManager</h1>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Sistema Completo de Gestão para Academias</p>
+            </div>
+            <div className="flex sm:absolute sm:top-6 sm:right-6">
+              <ThemeToggle />
             </div>
           </div>
         </div>

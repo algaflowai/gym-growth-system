@@ -21,6 +21,7 @@ export interface Plan {
   name: string;
   price: number;
   duration: string;
+  durationDays: number;
   active: boolean;
 }
 
@@ -31,10 +32,10 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot-password'>('login');
   const [plans, setPlans] = useState<Plan[]>([
-    { id: '1', name: 'Diária', price: 15, duration: 'day', active: true },
-    { id: '2', name: 'Mensal', price: 89, duration: 'month', active: true },
-    { id: '3', name: 'Trimestral', price: 240, duration: 'quarter', active: true },
-    { id: '4', name: 'Anual', price: 890, duration: 'year', active: true },
+    { id: '1', name: 'Diária', price: 15, duration: 'day', durationDays: 1, active: true },
+    { id: '2', name: 'Mensal', price: 89, duration: 'month', durationDays: 30, active: true },
+    { id: '3', name: 'Trimestral', price: 240, duration: 'quarter', durationDays: 90, active: true },
+    { id: '4', name: 'Anual', price: 890, duration: 'year', durationDays: 365, active: true },
   ]);
 
   useEffect(() => {

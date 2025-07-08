@@ -10,6 +10,7 @@ import { CalendarIcon, CreditCardIcon } from 'lucide-react';
 import { Plan } from '@/pages/Index';
 import { Enrollment } from '@/hooks/useEnrollments';
 import { toast } from '@/hooks/use-toast';
+import dayjs, { BRAZIL_TZ, formatBrazilianDate } from '@/lib/dayjs';
 
 interface PlanRenewalModalProps {
   enrollment: Enrollment | null;
@@ -28,44 +29,44 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
   const activePlans = plans.filter(plan => plan.active);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
+    return formatBrazilianDate(dateString);
   };
 
   const calculateDates = (planDuration: string) => {
-    const currentDate = new Date();
-    const enrollmentEndDate = new Date(enrollment?.end_date || '');
+    const currentDate = dayjs.tz(new Date(), BRAZIL_TZ);
+    const enrollmentEndDate = dayjs.tz(enrollment?.end_date || '', BRAZIL_TZ);
     
     // Se o plano já expirou, usa a data atual. Senão, usa o dia seguinte ao término
-    const startDate = enrollmentEndDate < currentDate 
-      ? currentDate 
-      : new Date(enrollmentEndDate.getTime() + 24 * 60 * 60 * 1000);
+    const startDate = enrollmentEndDate.isBefore(currentDate) 
+      ? currentDate.startOf('day')
+      : enrollmentEndDate.add(1, 'day').startOf('day');
 
-    let endDate = new Date(startDate);
+    let endDate;
     
     switch (planDuration) {
       case 'day':
         // Para plano diário, vence em 24 horas
-        endDate = new Date(startDate.getTime() + (24 * 60 * 60 * 1000));
+        endDate = startDate.add(1, 'day').endOf('day');
         break;
       case 'month':
-        endDate.setDate(startDate.getDate() + 30);
+        endDate = startDate.add(30, 'day').endOf('day');
         break;
       case 'quarter':
-        endDate.setDate(startDate.getDate() + 90);
+        endDate = startDate.add(90, 'day').endOf('day');
         break;
       case 'semester':
-        endDate.setDate(startDate.getDate() + 180);
+        endDate = startDate.add(180, 'day').endOf('day');
         break;
       case 'year':
-        endDate.setDate(startDate.getDate() + 365);
+        endDate = startDate.add(365, 'day').endOf('day');
         break;
       default:
-        endDate.setDate(startDate.getDate() + 30);
+        endDate = startDate.add(30, 'day').endOf('day');
     }
 
     return {
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0]
+      startDate: startDate.format('YYYY-MM-DD'),
+      endDate: endDate.format('YYYY-MM-DD')
     };
   };
 
