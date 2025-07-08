@@ -243,6 +243,21 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     try {
       console.log('Iniciando criação de matrícula...');
       console.log('Dados do formulário:', formData);
+      
+      // Verificar se o usuário está autenticado
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('Usuário autenticado:', user);
+      console.log('Erro de autenticação:', authError);
+      
+      if (!user) {
+        toast({
+          title: "Erro de Autenticação",
+          description: "Você precisa estar logado para criar uma matrícula.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
       // Verificar novamente se o CPF já existe
       const existingStudent = await checkExistingStudent(formData.cpf);

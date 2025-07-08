@@ -35,11 +35,11 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
       {/* Mobile Header */}
       <div className="lg:hidden bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
             <img 
               src="/lovable-uploads/19a3b703-3706-4ccb-9561-29eacc5d0f04.png" 
               alt="AlgaGymManager Logo" 
-              className="w-full h-full object-contain rounded-full"
+              className="w-8 h-8 object-contain"
             />
           </div>
           <span className="font-bold text-gray-800 dark:text-white text-lg">AlgaGymManager</span>
@@ -78,11 +78,11 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
         <div className="hidden lg:block p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
                 <img 
                   src="/lovable-uploads/19a3b703-3706-4ccb-9561-29eacc5d0f04.png" 
                   alt="AlgaGymManager Logo" 
-                  className="w-full h-full object-contain rounded-full"
+                  className="w-10 h-10 object-contain"
                 />
               </div>
               <div>
