@@ -6,18 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Brain, User, Target, Zap, AlertCircle } from 'lucide-react';
-import { useStudents } from '@/hooks/useStudents';
+import { useStudents, Student } from '@/hooks/useStudents';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-
-interface Student {
-  id: string;
-  name: string;
-  main_goal?: string;
-  health_issues?: string;
-  restrictions?: string;
-  birth_date?: string;
-}
 
 const AITrainer = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -42,7 +33,7 @@ const AITrainer = () => {
       // Preparar dados do aluno com informações mais completas
       const studentData = {
         name: selectedStudent.name,
-        gender: (selectedStudent as any).gender || 'Não informado', // Cast temporário até o tipo ser atualizado
+        gender: selectedStudent.gender || 'Não informado',
         main_goal: selectedStudent.main_goal || 'Condicionamento físico geral',
         health_issues: selectedStudent.health_issues || 'Nenhum',
         restrictions: selectedStudent.restrictions || 'Nenhuma',
