@@ -14,8 +14,18 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, studentData } = await req.json();
+    const { studentData } = await req.json();
     
+    if (!studentData) {
+      return new Response(
+        JSON.stringify({ error: 'Dados do aluno são obrigatórios' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     
     if (!openAIApiKey) {
@@ -25,13 +35,13 @@ RECOMENDAÇÃO DE TREINO PERSONALIZADA
 =====================================
 
 ALUNO: ${studentData.name}
-OBJETIVO: ${studentData.goal}
-IDADE: ${studentData.age} anos
+OBJETIVO: ${studentData.main_goal || 'Condicionamento físico geral'}
+GÊNERO: ${studentData.gender || 'Não informado'}
 
 📋 ANÁLISE DO PERFIL:
-- Aluno com foco em ${studentData.goal}
-- Considerações especiais: ${studentData.healthIssues}
-- Restrições: ${studentData.restrictions}
+- Aluno com foco em ${studentData.main_goal || 'condicionamento físico geral'}
+- Considerações especiais: ${studentData.health_issues || 'Nenhuma'}
+- Restrições: ${studentData.restrictions || 'Nenhuma'}
 
 🏋️ PROGRAMA SEMANAL SUGERIDO:
 
@@ -79,6 +89,26 @@ Configure a chave da OpenAI para recomendações mais detalhadas e personalizada
       });
     }
 
+    // Prompt personalizado conforme especificado
+    const customPrompt = `Crie um treino personalizado com base nas informações do aluno: objetivo, restrições físicas ou lesões, e gênero. Para treinos femininos, dê mais foco a membros inferiores; para masculinos, priorize membros superiores.
+
+Dados do aluno:
+- Nome: ${studentData.name}
+- Gênero: ${studentData.gender || 'Não informado'}
+- Objetivo: ${studentData.main_goal || 'Condicionamento físico geral'}
+- Restrições/Lesões: ${studentData.restrictions || 'Nenhuma'}
+- Problemas de saúde: ${studentData.health_issues || 'Nenhum'}
+- Idade: ${studentData.age || 'Não informada'}
+
+Formato da resposta:
+1. ANÁLISE DO PERFIL
+2. PROGRAMA SEMANAL DETALHADO (3-4 treinos)
+3. EXERCÍCIOS ESPECÍFICOS (séries, repetições, descanso)
+4. CONSIDERAÇÕES ESPECIAIS
+5. DICAS DE NUTRIÇÃO BÁSICAS
+
+Seja específico e prático, considerando o gênero para a divisão de treinos conforme solicitado.`;
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -90,9 +120,12 @@ Configure a chave da OpenAI para recomendações mais detalhadas e personalizada
         messages: [
           { 
             role: 'system', 
-            content: 'Você é um personal trainer experiente e especializado em criar programas de treino personalizados. Sempre forneça recomendações seguras, detalhadas e baseadas em evidências científicas.' 
+            content: 'Você é um personal trainer especializado e experiente. Crie treinos personalizados, detalhados e seguros baseados nas informações fornecidas. Para treinos femininos, priorize membros inferiores (pernas, glúteos). Para treinos masculinos, priorize membros superiores (peito, costas, ombros, braços).' 
           },
-          { role: 'user', content: prompt }
+          { 
+            role: 'user', 
+            content: customPrompt 
+          }
         ],
         max_tokens: 2000,
         temperature: 0.7,

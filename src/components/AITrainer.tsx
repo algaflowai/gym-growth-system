@@ -39,39 +39,21 @@ const AITrainer = () => {
     setIsGenerating(true);
     
     try {
-      // Preparar dados do aluno
+      // Preparar dados do aluno com informações mais completas
       const studentData = {
         name: selectedStudent.name,
-        goal: selectedStudent.main_goal || 'Não informado',
-        healthIssues: selectedStudent.health_issues || 'Nenhuma',
+        gender: selectedStudent.gender || 'Não informado', // Incluir gênero
+        main_goal: selectedStudent.main_goal || 'Condicionamento físico geral',
+        health_issues: selectedStudent.health_issues || 'Nenhum',
         restrictions: selectedStudent.restrictions || 'Nenhuma',
         age: selectedStudent.birth_date ? 
           new Date().getFullYear() - new Date(selectedStudent.birth_date).getFullYear() : 
-          'Não informado'
+          'Não informada'
       };
 
-      // Criar prompt para a IA
-      const prompt = `Como personal trainer especializado, crie uma recomendação de treino personalizada para:
-
-Nome: ${studentData.name}
-Idade: ${studentData.age} anos
-Objetivo: ${studentData.goal}
-Problemas de saúde: ${studentData.healthIssues}
-Restrições: ${studentData.restrictions}
-
-Por favor, forneça:
-1. Análise do perfil do aluno
-2. Programa de treino semanal detalhado
-3. Exercícios específicos com séries e repetições
-4. Considerações especiais baseadas nas restrições
-5. Progressão sugerida
-6. Dicas de nutrição básicas
-
-Seja específico e profissional.`;
-
-      // Simulação da chamada para OpenAI (será implementada quando as chaves forem configuradas)
+      // Chamar a edge function atualizada (sem prompt customizado, pois agora é gerado na função)
       const response = await supabase.functions.invoke('generate-workout', {
-        body: { prompt, studentData }
+        body: { studentData }
       });
 
       if (response.error) {
