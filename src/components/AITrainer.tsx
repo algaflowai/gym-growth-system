@@ -42,7 +42,6 @@ const AITrainer = () => {
       // Preparar dados do aluno com informações mais completas
       const studentData = {
         name: selectedStudent.name,
-        gender: selectedStudent.gender || 'Não informado', // Incluir gênero
         main_goal: selectedStudent.main_goal || 'Condicionamento físico geral',
         health_issues: selectedStudent.health_issues || 'Nenhum',
         restrictions: selectedStudent.restrictions || 'Nenhuma',
