@@ -42,6 +42,7 @@ const AITrainer = () => {
       // Preparar dados do aluno com informações mais completas
       const studentData = {
         name: selectedStudent.name,
+        gender: (selectedStudent as any).gender || 'Não informado', // Cast temporário até o tipo ser atualizado
         main_goal: selectedStudent.main_goal || 'Condicionamento físico geral',
         health_issues: selectedStudent.health_issues || 'Nenhum',
         restrictions: selectedStudent.restrictions || 'Nenhuma',
@@ -287,8 +288,9 @@ Esta é uma recomendação básica. Para análise mais detalhada, configure a in
                 Sobre a IA Trainer
               </h4>
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                Esta funcionalidade utiliza inteligência artificial para gerar recomendações de treino personalizadas. 
-                Para obter análises mais detalhadas e específicas, configure a integração com OpenAI nas configurações do sistema.
+                Esta funcionalidade utiliza inteligência artificial avançada para gerar recomendações de treino personalizadas.
+                O sistema considera o gênero do aluno para criar treinos específicos: <strong>treinos femininos</strong> focam em membros inferiores, 
+                <strong>treinos masculinos</strong> priorizam membros superiores. Configure a integração com OpenAI para análises mais detalhadas.
               </p>
             </div>
           </div>

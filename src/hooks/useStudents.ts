@@ -14,6 +14,7 @@ export interface Student {
   city?: string;
   zip_code?: string;
   birth_date?: string;
+  gender?: string; // Novo campo para gênero
   emergency_contact?: string;
   health_issues?: string;
   restrictions?: string;

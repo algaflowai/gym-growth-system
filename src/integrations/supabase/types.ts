@@ -161,6 +161,7 @@ export type Database = {
           deleted_at: string | null
           email: string
           emergency_contact: string | null
+          gender: string | null
           health_issues: string | null
           id: string
           main_goal: string | null
@@ -183,6 +184,7 @@ export type Database = {
           deleted_at?: string | null
           email: string
           emergency_contact?: string | null
+          gender?: string | null
           health_issues?: string | null
           id?: string
           main_goal?: string | null
@@ -205,6 +207,7 @@ export type Database = {
           deleted_at?: string | null
           email?: string
           emergency_contact?: string | null
+          gender?: string | null
           health_issues?: string | null
           id?: string
           main_goal?: string | null
