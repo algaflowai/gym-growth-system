@@ -1,52 +1,63 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
-import { DollarSign, TrendingUp, Calendar, CreditCard, TrendingDown, AlertTriangle } from 'lucide-react';
+import { DollarSign, TrendingUp, Calendar, CreditCard, TrendingDown, AlertTriangle, Loader2 } from 'lucide-react';
+import { useFinancialData } from '@/hooks/useFinancialData';
 
 const FinancialSection = () => {
-  // Mock data for demonstration
-  const monthlyRevenue = 45600;
-  const totalRevenue = 547200;
-  const monthlyGrowth = 15.3;
-  const activeSubscriptions = 156;
-  const monthlyLosses = 3200;
-  const lossRate = 7.0;
+  const { financialData, loading } = useFinancialData();
 
-  const monthlyData = [
-    { month: 'Jan', revenue: 38500, losses: 2800 },
-    { month: 'Fev', revenue: 42300, losses: 3100 },
-    { month: 'Mar', revenue: 39800, losses: 2900 },
-    { month: 'Abr', revenue: 44600, losses: 3400 },
-    { month: 'Mai', revenue: 41200, losses: 2600 },
-    { month: 'Jun', revenue: 45600, losses: 3200 },
-    { month: 'Jul', revenue: 47300, losses: 3000 },
-    { month: 'Ago', revenue: 43900, losses: 3500 },
-    { month: 'Set', revenue: 48700, losses: 2800 },
-    { month: 'Out', revenue: 52100, losses: 3600 },
-    { month: 'Nov', revenue: 49800, losses: 3100 },
-    { month: 'Dez', revenue: 45600, losses: 3200 },
-  ];
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Módulo Financeiro</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">Acompanhe a performance financeira da academia</p>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <span className="ml-2 text-gray-600 dark:text-gray-400">Carregando dados financeiros...</span>
+        </div>
+      </div>
+    );
+  }
 
-  const evolutionData = [
-    { month: 'Jan', value: 38500 },
-    { month: 'Fev', value: 42300 },
-    { month: 'Mar', value: 39800 },
-    { month: 'Abr', value: 44600 },
-    { month: 'Mai', value: 41200 },
-    { month: 'Jun', value: 45600 },
-  ];
+  if (!financialData) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Módulo Financeiro</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">Acompanhe a performance financeira da academia</p>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400">Não foi possível carregar os dados financeiros.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const {
+    monthlyRevenue,
+    totalRevenue,
+    monthlyGrowth,
+    activeSubscriptions,
+    monthlyLosses,
+    lossRate,
+    evolutionData,
+    lossAnalysisData
+  } = financialData;
+
+  // Mock data para os gráficos que ainda não têm implementação real
+  const monthlyData = evolutionData.map(item => ({
+    month: item.month,
+    revenue: item.value,
+    losses: Math.round(item.value * (lossRate / 100))
+  }));
 
   const planData = [
-    { name: 'Mensal', value: 45, revenue: 20250, color: '#2563eb' },
-    { name: 'Trimestral', value: 30, revenue: 21600, color: '#16a34a' },
-    { name: 'Anual', value: 25, revenue: 22250, color: '#dc2626' },
-  ];
-
-  const lossAnalysisData = [
-    { category: 'Inadimplência', value: 45, amount: 1440, color: '#dc2626' },
-    { category: 'Cancelamentos', value: 30, amount: 960, color: '#f59e0b' },
-    { category: 'Transferências', value: 15, amount: 480, color: '#3b82f6' },
-    { category: 'Outros', value: 10, amount: 320, color: '#6b7280' },
+    { name: 'Mensal', value: Math.round(activeSubscriptions * 0.45), revenue: Math.round(monthlyRevenue * 0.45), color: '#2563eb' },
+    { name: 'Trimestral', value: Math.round(activeSubscriptions * 0.30), revenue: Math.round(monthlyRevenue * 0.30), color: '#16a34a' },
+    { name: 'Anual', value: Math.round(activeSubscriptions * 0.25), revenue: Math.round(monthlyRevenue * 0.25), color: '#dc2626' },
   ];
 
   return (
@@ -328,7 +339,7 @@ const FinancialSection = () => {
             </div>
 
             <div className="text-center p-6 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl">
-              <div className="text-2xl font-bold text-gray-800 dark:text-white">{lossRate}%</div>
+              <div className="text-2xl font-bold text-gray-800 dark:text-white">{lossRate.toFixed(1)}%</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Taxa de Perda</div>
             </div>
           </div>

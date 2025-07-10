@@ -42,7 +42,7 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
               className="w-8 h-8 object-contain"
             />
           </div>
-          <span className="font-bold text-gray-800 dark:text-white text-lg">AlgaGymManager</span>
+          <span className="font-orbitron font-bold text-gray-800 dark:text-white text-lg">AlgaGymManager</span>
         </div>
         <div className="flex items-center space-x-2">
           <ThemeToggle />
@@ -86,7 +86,7 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
                 />
               </div>
               <div>
-                <span className="font-bold text-gray-800 dark:text-white text-lg">AlgaGymManager</span>
+                <span className="font-orbitron font-bold text-gray-800 dark:text-white text-lg">AlgaGymManager</span>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Sistema de Gestão</p>
               </div>
             </div>
@@ -138,7 +138,7 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                AlgaGymManager v2.0
+                <span className="font-orbitron">AlgaGymManager</span> v2.0
               </div>
             </div>
           </div>

@@ -101,7 +101,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     return (
       <div className="space-y-4 sm:space-y-6">
         <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-xl sm:rounded-2xl p-4 sm:p-8 text-white shadow-xl">
-          <h2 className="text-xl sm:text-3xl font-bold mb-2">Bem-vindo ao AlgaGymManager</h2>
+          <h2 className="text-xl sm:text-3xl font-bold mb-2">Bem-vindo ao <span className="font-orbitron">AlgaGymManager</span></h2>
           <p className="text-blue-100 text-sm sm:text-lg">Gerencie sua academia de forma eficiente e acompanhe o crescimento</p>
         </div>
         <div className="flex items-center justify-center py-12">
@@ -116,7 +116,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-xl sm:rounded-2xl p-4 sm:p-8 text-white shadow-xl">
-        <h2 className="text-xl sm:text-3xl font-bold mb-2">Bem-vindo ao AlgaGymManager</h2>
+        <h2 className="text-xl sm:text-3xl font-bold mb-2">Bem-vindo ao <span className="font-orbitron">AlgaGymManager</span></h2>
         <p className="text-blue-100 text-sm sm:text-lg">Gerencie sua academia de forma eficiente e acompanhe o crescimento</p>
       </div>
 

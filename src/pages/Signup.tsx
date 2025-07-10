@@ -113,7 +113,7 @@ const Signup = ({ onBackToLogin, onSignup }: SignupProps) => {
               Criar Conta
             </CardTitle>
             <CardDescription className="text-lg mt-2 text-gray-600 dark:text-gray-300">
-              Cadastre-se no AlgaGymManager
+              Cadastre-se no <span className="font-orbitron">AlgaGymManager</span>
             </CardDescription>
           </div>
         </CardHeader>

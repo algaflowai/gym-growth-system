@@ -165,7 +165,7 @@ const SettingsSection = () => {
             <span>Configurações do Sistema</span>
           </CardTitle>
           <CardDescription>
-            Configurações gerais do AlgaGymManager
+            Configurações gerais do <span className="font-orbitron">AlgaGymManager</span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

@@ -210,7 +210,7 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
               />
             </div>
             <div className="text-center sm:text-left">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white">AlgaGymManager</h1>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-orbitron font-bold text-gray-800 dark:text-white">AlgaGymManager</h1>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Sistema Completo de Gestão para Academias</p>
             </div>
             <div className="flex sm:absolute sm:top-6 sm:right-6">
@@ -327,7 +327,7 @@ const Login = ({ onLogin, onForgotPassword, onShowSignup }: LoginProps) => {
             {/* Features Section */}
             <div className="space-y-6 sm:space-y-8 order-1 lg:order-2">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-6 sm:mb-8 text-center">
-                Por que escolher o AlgaGymManager?
+                Por que escolher o <span className="font-orbitron">AlgaGymManager</span>?
               </h2>
               <div className="grid gap-4 sm:gap-6">
                 {features.map((feature, index) => {
