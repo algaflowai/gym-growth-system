@@ -28,15 +28,24 @@ export const useEnrollments = () => {
 
   // Função para calcular duração em dias baseada no tipo do plano
   const calculateDurationInDays = (duration: string): number => {
-    switch (duration) {
+    switch (duration.toLowerCase()) {
+      case 'diária':
+      case 'daily':
       case 'day':
-        return 1; // Plano diário é válido por 1 dia (24 horas)
+        return 0; // Plano diário vence no mesmo dia (data de fim = data de início)
+      case 'mensal':
+      case 'monthly':
       case 'month':
         return 30;
+      case 'trimestral':
+      case 'quarterly':
       case 'quarter':
         return 90;
+      case 'semestral':
       case 'semester':
         return 180;
+      case 'anual':
+      case 'yearly':
       case 'year':
         return 365;
       default:
@@ -193,14 +202,13 @@ export const useEnrollments = () => {
       const start = dayjs.tz(new Date(), BRAZIL_TZ).startOf('day');
       const startDate = start.format('YYYY-MM-DD');
       
-      // Extrair o tipo de duração do plan_id (assumindo formato como "day", "month", etc.)
-      const planDuration = enrollmentData.plan_id.split('-')[0]; // ex: "day-plan" -> "day"
-      
+      // Recalcular data de vencimento baseada no plano
       let endDate;
-      if (planDuration === 'day') {
-        // Para plano diário, vence exatamente em 1 dia (24 horas)
-        const expires = start.add(1, 'day').endOf('day');
-        endDate = expires.format('YYYY-MM-DD');
+      const durationInDays = calculateDurationInDays(enrollmentData.plan_name || enrollmentData.plan_id);
+      
+      if (durationInDays === 0) {
+        // Para plano diário, data de vencimento = data de início
+        endDate = startDate;
       } else {
         // Para outros planos, usar a data original do frontend mas ajustar para timezone
         const originalEnd = dayjs.tz(enrollmentData.end_date, BRAZIL_TZ);
@@ -316,10 +324,9 @@ export const useEnrollments = () => {
       const durationInDays = calculateDurationInDays(planDuration);
       let endDate;
 
-      if (planDuration === 'day') {
-        // Para plano diário, vence exatamente em 1 dia (24 horas)
-        const expires = start.add(1, 'day').endOf('day');
-        endDate = expires.toDate();
+      if (durationInDays === 0) {
+        // Para plano diário, data de vencimento = data de início
+        endDate = startDate;
       } else {
         // Para outros planos, adiciona os dias de duração
         const expires = start.add(durationInDays, 'day').endOf('day');

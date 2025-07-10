@@ -175,6 +175,11 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       const endDate = new Date();
       
       switch (selectedPlan.duration) {
+        case 'Diária':
+        case 'daily':
+          // For daily plans, end date is the same as start date
+          endDate.setTime(startDate.getTime());
+          break;
         case 'month':
           endDate.setMonth(endDate.getMonth() + 1);
           break;
@@ -327,6 +332,11 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       const endDate = new Date();
       
       switch (selectedPlan.duration) {
+        case 'Diária':
+        case 'daily':
+          // For daily plans, end date is the same as start date
+          endDate.setTime(startDate.getTime());
+          break;
         case 'month':
           endDate.setMonth(endDate.getMonth() + 1);
           break;

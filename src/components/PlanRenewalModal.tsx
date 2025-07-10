@@ -43,20 +43,29 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
 
     let endDate;
     
-    switch (planDuration) {
+    switch (planDuration.toLowerCase()) {
+      case 'diária':
+      case 'daily':
       case 'day':
-        // Para plano diário, vence em 24 horas
-        endDate = startDate.add(1, 'day').endOf('day');
+        // Para plano diário, a data de vencimento é igual à data de início
+        endDate = startDate.endOf('day');
         break;
+      case 'mensal':
+      case 'monthly':
       case 'month':
         endDate = startDate.add(30, 'day').endOf('day');
         break;
+      case 'trimestral':
+      case 'quarterly':
       case 'quarter':
         endDate = startDate.add(90, 'day').endOf('day');
         break;
+      case 'semestral':
       case 'semester':
         endDate = startDate.add(180, 'day').endOf('day');
         break;
+      case 'anual':
+      case 'yearly':
       case 'year':
         endDate = startDate.add(365, 'day').endOf('day');
         break;
