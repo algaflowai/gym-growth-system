@@ -45,9 +45,11 @@ const Index = () => {
         console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
+        const wasAuthenticated = isAuthenticated;
         setIsAuthenticated(!!session);
         
-        if (session) {
+        if (session && !wasAuthenticated) {
+          // Only redirect to dashboard on initial login, not when returning to tab
           setCurrentPage('dashboard');
           setAuthView('login');
         }
