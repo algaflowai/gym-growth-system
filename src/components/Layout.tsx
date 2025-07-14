@@ -42,7 +42,7 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
               className="w-8 h-8 object-contain"
             />
           </div>
-          <span className="font-orbitron font-bold text-gray-800 dark:text-white text-lg">AlgaGymManager</span>
+          <span className="font-orbitron font-bold text-gray-800 dark:text-white text-sm">AlgaGymManager</span>
         </div>
         <div className="flex items-center space-x-2">
           <ThemeToggle />
@@ -85,8 +85,8 @@ const Layout = ({ children, currentPage, onNavigate, onLogout }: LayoutProps) =>
                   className="w-10 h-10 object-contain"
                 />
               </div>
-              <div>
-                <span className="font-orbitron font-bold text-gray-800 dark:text-white text-lg">AlgaGymManager</span>
+              <div className="flex flex-col">
+                <span className="font-orbitron font-bold text-gray-800 dark:text-white text-sm leading-tight">AlgaGymManager</span>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Sistema de Gestão</p>
               </div>
             </div>

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,30 +24,61 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
   const [existingStudent, setExistingStudent] = useState<any>(null);
   const [showExistingStudentOption, setShowExistingStudentOption] = useState(false);
   
-  const [formData, setFormData] = useState({
-    // Dados Pessoais
-    name: '',
-    phone: '',
-    cpf: '',
-    rg: '',
-    email: '',
-    address: '',
-    city: '',
-    zipCode: '',
-    birthDate: '',
-    
-    // Dados de Matrícula
-    plan: '',
-    mainGoal: '',
-    notes: '',
-    
-    // Dados Médicos
-    healthIssues: '',
-    restrictions: '',
-    emergencyContact: ''
-  });
+  // Carregar dados salvos do localStorage na inicialização
+  const loadSavedFormData = () => {
+    try {
+      const saved = localStorage.getItem('algagym-new-enrollment-form');
+      if (saved) {
+        const parsedData = JSON.parse(saved);
+        return parsedData;
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados salvos:', error);
+    }
+    return {
+      // Dados Pessoais
+      name: '',
+      phone: '',
+      cpf: '',
+      rg: '',
+      email: '',
+      address: '',
+      city: '',
+      zipCode: '',
+      birthDate: '',
+      
+      // Dados de Matrícula
+      plan: '',
+      mainGoal: '',
+      notes: '',
+      
+      // Dados Médicos
+      healthIssues: '',
+      restrictions: '',
+      emergencyContact: ''
+    };
+  };
+  
+  const [formData, setFormData] = useState(loadSavedFormData);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Salvar dados no localStorage sempre que formData mudar
+  useEffect(() => {
+    const saveFormData = () => {
+      try {
+        localStorage.setItem('algagym-new-enrollment-form', JSON.stringify(formData));
+      } catch (error) {
+        console.error('Erro ao salvar dados do formulário:', error);
+      }
+    };
+    
+    // Só salva se pelo menos um campo estiver preenchido
+    const hasData = Object.values(formData).some(value => typeof value === 'string' && value.trim() !== '');
+    if (hasData) {
+      saveFormData();
+    }
+  }, [formData]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -211,11 +242,13 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
           description: `Nova matrícula criada para ${existingStudent.name}!`,
         });
 
-        // Reset form
-        setFormData({
+        // Reset form e limpar localStorage
+        const resetData = {
           name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
           plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
-        });
+        };
+        setFormData(resetData);
+        localStorage.removeItem('algagym-new-enrollment-form');
         setExistingStudent(null);
         setShowExistingStudentOption(false);
       }
@@ -372,11 +405,13 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
           description: `Matrícula de ${formData.name} criada com sucesso!`,
         });
 
-        // Reset form
-        setFormData({
+        // Reset form e limpar localStorage
+        const resetData = {
           name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
           plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
-        });
+        };
+        setFormData(resetData);
+        localStorage.removeItem('algagym-new-enrollment-form');
         setValidationErrors({});
         setExistingStudent(null);
         setShowExistingStudentOption(false);
@@ -693,10 +728,12 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
             variant="outline" 
             className="h-12 px-8"
             onClick={() => {
-              setFormData({
+              const resetData = {
                 name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
                 plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
-              });
+              };
+              setFormData(resetData);
+              localStorage.removeItem('algagym-new-enrollment-form');
               setValidationErrors({});
               setExistingStudent(null);
               setShowExistingStudentOption(false);
