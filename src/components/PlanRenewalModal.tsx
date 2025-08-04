@@ -80,12 +80,21 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
   };
 
   useEffect(() => {
-    if (selectedPlanId && enrollment) {
+    if (selectedPlanId && enrollment && activePlans.length > 0) {
       const selectedPlan = activePlans.find(plan => plan.id === selectedPlanId);
       if (selectedPlan) {
-        const { startDate, endDate } = calculateDates(selectedPlan.duration);
-        setNewStartDate(startDate);
-        setNewEndDate(endDate);
+        try {
+          const { startDate, endDate } = calculateDates(selectedPlan.duration);
+          setNewStartDate(startDate);
+          setNewEndDate(endDate);
+        } catch (error) {
+          console.error('Error calculating dates:', error);
+          toast({
+            title: "Erro",
+            description: "Erro ao calcular datas do plano.",
+            variant: "destructive"
+          });
+        }
       }
     }
   }, [selectedPlanId, enrollment, activePlans]);
