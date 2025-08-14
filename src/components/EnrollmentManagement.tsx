@@ -371,7 +371,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div className="space-y-2 flex-1">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-800 break-words">
+                          <h3 className="text-base sm:text-lg font-semibold text-white break-words">
                             {enrollment.student?.name || 'Nome não disponível'}
                           </h3>
                           {getStatusBadge(enrollment.status)}
