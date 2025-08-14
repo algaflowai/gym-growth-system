@@ -64,6 +64,11 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				'student-info': {
+					primary: 'hsl(var(--student-info-primary))',
+					secondary: 'hsl(var(--student-info-secondary))',
+					tertiary: 'hsl(var(--student-info-tertiary))'
 				}
 			},
 			borderRadius: {

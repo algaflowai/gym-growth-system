@@ -377,16 +377,16 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                           {getStatusBadge(enrollment.status)}
                         </div>
                         
-                        <div className="text-sm text-gray-600 space-y-1">
+                        <div className="text-sm text-student-info-secondary space-y-1">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
-                            <p className="break-words"><strong>Email:</strong> {enrollment.student?.email || 'N/A'}</p>
-                            <p><strong>Telefone:</strong> {enrollment.student?.phone || 'N/A'}</p>
+                            <p className="break-words"><strong className="text-muted-foreground">Email:</strong> <span className="text-student-info-primary">{enrollment.student?.email || 'N/A'}</span></p>
+                            <p><strong className="text-muted-foreground">Telefone:</strong> <span className="text-student-info-primary">{enrollment.student?.phone || 'N/A'}</span></p>
                           </div>
-                          <p><strong>Plano:</strong> {enrollment.plan_name} - R$ {enrollment.plan_price.toFixed(2)}</p>
+                          <p><strong className="text-muted-foreground">Plano:</strong> <span className="text-student-info-primary">{enrollment.plan_name} - R$ {enrollment.plan_price.toFixed(2)}</span></p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
-                            <p><strong>Início:</strong> {formatDate(enrollment.start_date)}</p>
+                            <p><strong className="text-muted-foreground">Início:</strong> <span className="text-student-info-primary">{formatDate(enrollment.start_date)}</span></p>
                             <p>
-                              <strong>Vencimento:</strong> {formatDate(enrollment.end_date)}
+                              <strong className="text-muted-foreground">Vencimento:</strong> <span className="text-student-info-primary">{formatDate(enrollment.end_date)}</span>
                               {daysUntilExpiry > 0 && (
                                 <span className="ml-2 text-orange-600 text-xs">
                                   ({daysUntilExpiry} dias)
@@ -399,7 +399,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                               )}
                             </p>
                           </div>
-                          <p className="text-xs text-gray-500"><strong>ID:</strong> {enrollment.id}</p>
+                          <p className="text-xs text-student-info-tertiary"><strong className="text-muted-foreground">ID:</strong> {enrollment.id}</p>
                         </div>
                       </div>
                     </div>

@@ -56,16 +56,16 @@ const StudentsManagement = () => {
               {student.status === 'active' ? 'Ativo' : 'Inativo'}
             </Badge>
           </div>
-          <CardDescription className="text-sm break-words">{student.email}</CardDescription>
+          <CardDescription className="text-sm break-words text-student-info-primary">{student.email}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 text-sm text-gray-600">
+          <div className="space-y-2 text-sm text-student-info-secondary">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <p><strong>CPF:</strong> {student.cpf}</p>
-              <p><strong>Telefone:</strong> {student.phone}</p>
+              <p><strong className="text-muted-foreground">CPF:</strong> <span className="text-student-info-primary">{student.cpf}</span></p>
+              <p><strong className="text-muted-foreground">Telefone:</strong> <span className="text-student-info-primary">{student.phone}</span></p>
             </div>
             {student.birth_date && (
-              <p><strong>Data de Nascimento:</strong> {formatDate(student.birth_date)}</p>
+              <p><strong className="text-muted-foreground">Data de Nascimento:</strong> <span className="text-student-info-primary">{formatDate(student.birth_date)}</span></p>
             )}
           </div>
           
