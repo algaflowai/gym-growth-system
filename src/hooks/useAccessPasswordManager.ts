@@ -46,7 +46,7 @@ export const useAccessPasswordManager = () => {
       setLoading(true);
 
       const { error } = await supabase
-        .rpc('update_encrypted_password', {
+        .rpc('update_access_password', {
           page_name: page,
           new_password: newPassword
         });

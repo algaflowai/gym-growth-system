@@ -316,6 +316,10 @@ export type Database = {
         Args: { _user_id?: string }
         Returns: boolean
       }
+      update_access_password: {
+        Args: { new_password: string; page_name: string }
+        Returns: undefined
+      }
       update_encrypted_password: {
         Args: { new_password: string; page_name: string }
         Returns: undefined
