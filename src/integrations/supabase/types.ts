@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_passwords: {
+        Row: {
+          created_at: string
+          id: string
+          page_name: string
+          password_hash: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_name: string
+          password_hash: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_name?: string
+          password_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       enrollment_history: {
         Row: {
           archived_at: string
@@ -220,6 +244,30 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string | null
         }
         Relationships: []
       }

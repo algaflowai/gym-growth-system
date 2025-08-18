@@ -5,7 +5,7 @@ import { DollarSign, TrendingUp, Calendar, CreditCard, TrendingDown, AlertTriang
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const FinancialSection = () => {
-  const { financialData, loading } = useFinancialData();
+  const { financialData, loading } = useFinancialData('mock-id', 'mock-user-id');
 
   if (loading) {
     return (
@@ -37,15 +37,21 @@ const FinancialSection = () => {
   }
 
   const {
-    monthlyRevenue,
-    totalRevenue,
-    monthlyGrowth,
-    activeSubscriptions,
-    monthlyLosses,
-    lossRate,
-    evolutionData,
-    lossAnalysisData
+    cards,
+    evolucao_financeira,
+    perdas_breakdown,
+    receitas_vs_perdas,
+    distribuicao_planos
   } = financialData;
+
+  const monthlyRevenue = cards?.receita_mensal || 0;
+  const totalRevenue = cards?.receita_total || 0;
+  const monthlyGrowth = cards?.crescimento_mensal || 0;
+  const activeSubscriptions = cards?.assinaturas_ativas || 0;
+  const monthlyLosses = cards?.perdas_mensais || 0;
+  const lossRate = cards?.taxa_perda || 0;
+  const evolutionData = evolucao_financeira || [];
+  const lossAnalysisData = perdas_breakdown || [];
 
   // Mock data para os gráficos que ainda não têm implementação real
   const monthlyData = evolutionData.map(item => ({

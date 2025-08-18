@@ -1,80 +1,38 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Settings, User, Bell, Shield, Database, Lock, KeyRound } from 'lucide-react';
+import { Settings, Bell, Database, KeyRound } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { usePasswordManager } from '@/hooks/usePasswordManager';
+import { useAccessPasswordManager } from '@/hooks/useAccessPasswordManager';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 
 const SettingsSection = () => {
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
   const [restrictedPasswordForm, setRestrictedPasswordForm] = useState({
     financePassword: '',
     configPassword: ''
   });
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isUpdatingRestrictedPasswords, setIsUpdatingRestrictedPasswords] = useState(false);
+  const [systemForm, setSystemForm] = useState({
+    gym_name: '',
+    gym_email: '',
+    gym_phone: '',
+    gym_address: ''
+  });
 
-  const { updatePassword } = usePasswordManager();
+  const { updatePassword } = useAccessPasswordManager();
+  const { settings, updateSettings, loading: settingsLoading } = useSystemSettings();
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!passwordForm.currentPassword) {
-      toast({
-        title: "Erro",
-        description: "A senha atual é obrigatória.",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    if (settings) {
+      setSystemForm(settings);
     }
+  }, [settings]);
 
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast({
-        title: "Erro",
-        description: "A nova senha e a confirmação não coincidem.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      toast({
-        title: "Erro",
-        description: "A nova senha deve ter pelo menos 6 caracteres.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsChangingPassword(true);
-    
-    // Simular verificação da senha atual
-    setTimeout(() => {
-      if (passwordForm.currentPassword === 'admin') {
-        toast({
-          title: "Sucesso",
-          description: "Senha alterada com sucesso!",
-        });
-        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      } else {
-        toast({
-          title: "Erro",
-          description: "Senha atual incorreta.",
-          variant: "destructive",
-        });
-      }
-      setIsChangingPassword(false);
-    }, 1500);
-  };
 
   const handleRestrictedPasswordsUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,11 +101,8 @@ const SettingsSection = () => {
     }
   };
 
-  const handleSaveSettings = () => {
-    toast({
-      title: "Sucesso",
-      description: "Configurações salvas com sucesso!",
-    });
+  const handleSaveSettings = async () => {
+    await updateSettings(systemForm);
   };
 
   return (
@@ -175,7 +130,8 @@ const SettingsSection = () => {
               <Input
                 id="gymName"
                 placeholder="AlgaGym Academia"
-                defaultValue="AlgaGym Academia"
+                value={systemForm.gym_name}
+                onChange={(e) => setSystemForm(prev => ({ ...prev, gym_name: e.target.value }))}
                 className="h-12"
               />
             </div>
@@ -185,7 +141,8 @@ const SettingsSection = () => {
               <Input
                 id="gymPhone"
                 placeholder="(11) 99999-9999"
-                defaultValue="(11) 99999-9999"
+                value={systemForm.gym_phone}
+                onChange={(e) => setSystemForm(prev => ({ ...prev, gym_phone: e.target.value }))}
                 className="h-12"
               />
             </div>
@@ -196,7 +153,8 @@ const SettingsSection = () => {
                 id="gymEmail"
                 type="email"
                 placeholder="contato@algagym.com"
-                defaultValue="contato@algagym.com"
+                value={systemForm.gym_email}
+                onChange={(e) => setSystemForm(prev => ({ ...prev, gym_email: e.target.value }))}
                 className="h-12"
               />
             </div>
@@ -206,7 +164,8 @@ const SettingsSection = () => {
               <Input
                 id="gymAddress"
                 placeholder="Rua das Academias, 123"
-                defaultValue="Rua das Academias, 123"
+                value={systemForm.gym_address}
+                onChange={(e) => setSystemForm(prev => ({ ...prev, gym_address: e.target.value }))}
                 className="h-12"
               />
             </div>
@@ -215,133 +174,15 @@ const SettingsSection = () => {
           <div className="flex justify-end pt-4">
             <Button 
               onClick={handleSaveSettings}
+              disabled={settingsLoading}
               className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
             >
-              Salvar Configurações
+              {settingsLoading ? 'Salvando...' : 'Salvar Configurações'}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* User Settings */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-xl">
-            <User className="h-5 w-5" />
-            <span>Configurações do Usuário</span>
-          </CardTitle>
-          <CardDescription>
-            Gerencie sua conta e preferências
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="userName">Nome do Usuário</Label>
-              <Input
-                id="userName"
-                placeholder="Administrador"
-                defaultValue="Administrador"
-                className="h-12"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="userEmail">Email do Usuário</Label>
-              <Input
-                id="userEmail"
-                type="email"
-                placeholder="admin@algagym.com"
-                defaultValue="admin@algagym.com"
-                className="h-12"
-              />
-            </div>
-          </div>
-          
-          <div className="flex justify-end pt-4">
-            <Button 
-              onClick={handleSaveSettings}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-            >
-              Atualizar Perfil
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Password Change Section */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-xl">
-            <Lock className="h-5 w-5" />
-            <span>Alterar Senha de Login</span>
-          </CardTitle>
-          <CardDescription>
-            Altere sua senha de acesso ao sistema (requer senha atual)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handlePasswordChange} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword">Senha Atual *</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  required
-                  className="h-12"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">Nova Senha *</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                  required
-                  className="h-12"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Nova Senha *</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  required
-                  className="h-12"
-                />
-              </div>
-            </div>
-            
-            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Atenção:</strong> Para alterar sua senha, você deve inserir sua senha atual. 
-                A nova senha deve ter pelo menos 6 caracteres.
-              </p>
-            </div>
-            
-            <div className="flex justify-end">
-              <Button 
-                type="submit"
-                disabled={isChangingPassword}
-                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
-              >
-                {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
 
       {/* Restricted Areas Password Management */}
       <Card className="border-0 shadow-lg">
@@ -479,20 +320,6 @@ const SettingsSection = () => {
             </Button>
           </div>
           
-          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <div className="font-medium text-yellow-800 dark:text-yellow-200">Área de Risco</div>
-            <div className="text-sm text-yellow-600 dark:text-yellow-300 mt-1">
-              As ações abaixo são irreversíveis. Use com cautela.
-            </div>
-            <div className="mt-4 space-x-2">
-              <Button variant="destructive" size="sm">
-                Limpar Cache do Sistema
-              </Button>
-              <Button variant="destructive" size="sm">
-                Reset Configurações
-              </Button>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
