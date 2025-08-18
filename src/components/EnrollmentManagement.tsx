@@ -10,6 +10,7 @@ import { useGlobalStudents } from '@/hooks/useGlobalStudents';
 import { Plan } from '@/pages/Index';
 import StudentEditModal from './StudentEditModal';
 import PlanRenewalModal from './PlanRenewalModal';
+import StudentReactivationModal from './StudentReactivationModal';
 import { useToast } from '@/hooks/use-toast';
 
 interface EnrollmentManagementProps {
@@ -17,7 +18,7 @@ interface EnrollmentManagementProps {
 }
 
 const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
-  const { enrollments, loading, deleteEnrollment, updateEnrollment, renewEnrollment, fetchEnrollments } = useEnrollments();
+  const { enrollments, loading, deleteEnrollment, updateEnrollment, renewEnrollment, reactivateStudent, fetchEnrollments } = useEnrollments();
   const { updateStudent } = useGlobalStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -25,6 +26,8 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [showRenewalModal, setShowRenewalModal] = useState(false);
+  const [selectedStudentForReactivation, setSelectedStudentForReactivation] = useState(null);
+  const [showReactivationModal, setShowReactivationModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -98,6 +101,22 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     if (success) {
       setShowRenewalModal(false);
       setSelectedEnrollment(null);
+      await fetchEnrollments();
+    }
+    return success;
+  };
+
+  const handleReactivationConfirm = async (
+    studentId: string,
+    planId: string,
+    planName: string,
+    planPrice: number,
+    duration: string
+  ) => {
+    const success = await reactivateStudent(studentId, planId, planName, planPrice, duration);
+    if (success) {
+      setShowReactivationModal(false);
+      setSelectedStudentForReactivation(null);
       await fetchEnrollments();
     }
     return success;
@@ -199,49 +218,32 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
   };
 
   const handleReactivate = async (id: string, studentName: string) => {
-    const confirmed = window.confirm(`Tem certeza que deseja reativar a matrícula de ${studentName}?`);
-    
-    if (!confirmed) {
+    // Encontrar a matrícula e o aluno
+    const enrollment = enrollments.find(e => e.id === id);
+    if (!enrollment?.student) {
+      toast({
+        title: "Erro",
+        description: "Dados do aluno não encontrados.",
+        variant: "destructive",
+      });
       return;
     }
 
-    try {
-      const success = await updateEnrollment(id, { status: 'active' });
-      
-      if (success) {
-        // Also update the student status to active
-        const enrollment = enrollments.find(e => e.id === id);
-        if (enrollment?.student_id) {
-          await updateStudent(enrollment.student_id, { status: 'active' });
-        }
-        
-        toast({
-          title: "Matrícula reativada",
-          description: `A matrícula de ${studentName} foi reativada com sucesso.`,
-        });
-        
-        await fetchEnrollments();
-      }
-    } catch (error) {
-      console.error('Erro ao reativar matrícula:', error);
-      toast({
-        title: "Erro ao reativar",
-        description: "Não foi possível reativar a matrícula. Tente novamente.",
-        variant: "destructive",
-      });
-    }
+    // Abrir modal de reativação com seleção de plano
+    setSelectedStudentForReactivation(enrollment.student);
+    setShowReactivationModal(true);
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Ativo</Badge>;
+        return <Badge className="bg-green-200 text-green-900 font-bold hover:bg-green-200">Ativo</Badge>;
       case 'inactive':
-        return <Badge variant="secondary">Inativo</Badge>;
+        return <Badge className="bg-gray-200 text-gray-900 font-bold hover:bg-gray-200">Inativo</Badge>;
       case 'expired':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Expirado</Badge>;
+        return <Badge className="bg-red-200 text-red-900 font-bold hover:bg-red-200">Expirado</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge className="bg-gray-200 text-gray-900 font-bold hover:bg-gray-200">{status}</Badge>;
     }
   };
 
@@ -251,6 +253,21 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     const diffTime = expiry.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+
+  const shouldShowRenewButton = (enrollment: any) => {
+    const daysUntilExpiry = getDaysUntilExpiry(enrollment.end_date);
+    const isDailyPlan = enrollment.plan_name?.toLowerCase().includes('diária') || 
+                       enrollment.plan_name?.toLowerCase().includes('daily') ||
+                       enrollment.plan_id?.toLowerCase().includes('day');
+    
+    // Para planos diários, sempre mostrar o botão de renovação
+    if (isDailyPlan) {
+      return true;
+    }
+    
+    // Para outros planos, mostrar apenas quando faltar 7 dias ou menos para vencer
+    return daysUntilExpiry <= 7;
   };
 
   const getExpiryWarning = (endDate: string) => {
@@ -278,7 +295,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-green-700 truncate">Ativas</CardTitle>
+            <CardTitle className="text-sm sm:text-base lg:text-lg text-green-900 truncate">Ativas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-800">{stats.active}</div>
@@ -287,7 +304,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
         
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-gray-700 truncate">Inativas</CardTitle>
+            <CardTitle className="text-sm sm:text-base lg:text-lg text-gray-900 truncate">Inativas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">{stats.inactive}</div>
@@ -296,7 +313,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
 
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-red-700 truncate">Expiradas</CardTitle>
+            <CardTitle className="text-sm sm:text-base lg:text-lg text-red-900 truncate">Expiradas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-red-800">{stats.expired}</div>
@@ -305,7 +322,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
         
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-700 truncate">Total</CardTitle>
+            <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-900 truncate">Total</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-800">{stats.total}</div>
@@ -316,7 +333,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
       {/* Search and Filter Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">Buscar Matrículas</CardTitle>
+          <CardTitle className="text-lg sm:text-xl text-gray-900">Buscar Matrículas</CardTitle>
           <CardDescription className="text-sm">
             Busque por nome do aluno, email, telefone ou plano
           </CardDescription>
@@ -350,10 +367,8 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
       {/* Enrollments List */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">Lista de Matrículas</CardTitle>
-          <CardDescription className="text-sm">
-            {filteredEnrollments.length} matrícula(s) encontrada(s)
-          </CardDescription>
+          <CardTitle className="text-lg sm:text-xl text-gray-900">Lista de Matrículas</CardTitle>
+          <CardDescription className="text-sm text-gray-900">{filteredEnrollments.length} matrícula(s) encontrada(s)</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -371,35 +386,35 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div className="space-y-2 flex-1">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <h3 className="text-base sm:text-lg font-semibold text-white break-words">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 break-words">
                             {enrollment.student?.name || 'Nome não disponível'}
                           </h3>
                           {getStatusBadge(enrollment.status)}
                         </div>
                         
-                        <div className="text-sm text-student-info-secondary space-y-1">
+                        <div className="text-sm text-gray-900 space-y-1">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
-                            <p className="break-words"><strong className="text-muted-foreground">Email:</strong> <span className="text-student-info-primary">{enrollment.student?.email || 'N/A'}</span></p>
-                            <p><strong className="text-muted-foreground">Telefone:</strong> <span className="text-student-info-primary">{enrollment.student?.phone || 'N/A'}</span></p>
+                            <p><strong className="text-gray-900">Email:</strong> <span className="text-gray-900">{enrollment.student?.email || 'N/A'}</span></p>
+                            <p><strong className="text-gray-900">Telefone:</strong> <span className="text-gray-900">{enrollment.student?.phone || 'N/A'}</span></p>
                           </div>
-                          <p><strong className="text-muted-foreground">Plano:</strong> <span className="text-student-info-primary">{enrollment.plan_name} - R$ {enrollment.plan_price.toFixed(2)}</span></p>
+                          <p><strong className="text-gray-900">Plano:</strong> <span className="text-gray-900">{enrollment.plan_name} - R$ {enrollment.plan_price.toFixed(2)}</span></p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
-                            <p><strong className="text-muted-foreground">Início:</strong> <span className="text-student-info-primary">{formatDate(enrollment.start_date)}</span></p>
+                            <p><strong className="text-gray-900">Início:</strong> <span className="text-gray-900">{formatDate(enrollment.start_date)}</span></p>
                             <p>
-                              <strong className="text-muted-foreground">Vencimento:</strong> <span className="text-student-info-primary">{formatDate(enrollment.end_date)}</span>
+                              <strong className="text-gray-900">Vencimento:</strong> <span className="text-gray-900">{formatDate(enrollment.end_date)}</span>
                               {daysUntilExpiry > 0 && (
-                                <span className="ml-2 text-orange-600 text-xs">
+                                <span className="ml-2 text-orange-700 text-xs">
                                   ({daysUntilExpiry} dias)
                                 </span>
                               )}
                               {daysUntilExpiry <= 0 && (
-                                <span className="ml-2 text-red-600 font-semibold text-xs">
+                                <span className="ml-2 text-red-700 font-semibold text-xs">
                                   (Vencido há {Math.abs(daysUntilExpiry)} dias)
                                 </span>
                               )}
                             </p>
                           </div>
-                          <p className="text-xs text-student-info-tertiary"><strong className="text-muted-foreground">ID:</strong> {enrollment.id}</p>
+                          <p className="text-xs text-gray-900"><strong className="text-gray-900">ID:</strong> {enrollment.id}</p>
                         </div>
                       </div>
                     </div>
@@ -417,7 +432,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                         <span className="hidden sm:inline">Editar</span>
                       </Button>
 
-                      {(enrollment.status === 'active' || enrollment.status === 'expired') && (
+                      {(enrollment.status === 'active' || enrollment.status === 'expired') && shouldShowRenewButton(enrollment) && (
                         <Button
                           size="sm"
                           variant="outline"
@@ -510,6 +525,17 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
           setSelectedEnrollment(null);
         }}
         onRenew={handleRenewalConfirm}
+      />
+
+      <StudentReactivationModal
+        student={selectedStudentForReactivation}
+        plans={plans}
+        isOpen={showReactivationModal}
+        onClose={() => {
+          setShowReactivationModal(false);
+          setSelectedStudentForReactivation(null);
+        }}
+        onReactivate={handleReactivationConfirm}
       />
     </div>
   );

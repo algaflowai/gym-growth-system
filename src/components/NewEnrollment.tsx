@@ -208,8 +208,8 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       switch (selectedPlan.duration) {
         case 'Diária':
         case 'daily':
-          // For daily plans, end date is the same as start date
-          endDate.setTime(startDate.getTime());
+          // For daily plans, end date is start date + 1 day
+          endDate.setDate(startDate.getDate() + 1);
           break;
         case 'month':
           endDate.setMonth(endDate.getMonth() + 1);
@@ -367,8 +367,8 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       switch (selectedPlan.duration) {
         case 'Diária':
         case 'daily':
-          // For daily plans, end date is the same as start date
-          endDate.setTime(startDate.getTime());
+          // For daily plans, end date is start date + 1 day
+          endDate.setDate(startDate.getDate() + 1);
           break;
         case 'month':
           endDate.setMonth(endDate.getMonth() + 1);
@@ -448,8 +448,8 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Nova Matrícula</h2>
-        <p className="text-gray-600 dark:text-gray-400 text-lg">Preencha os dados do novo aluno</p>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Nova Matrícula</h2>
+        <p className="text-lg text-gray-900 dark:text-gray-200">Preencha os dados do novo aluno</p>
       </div>
 
       {showExistingStudentOption && existingStudent && (
@@ -493,7 +493,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         <Card className="border-0 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-t-lg">
             <CardTitle className="flex items-center space-x-3">
-              <span className="bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">1</span>
+              <span className="bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base font-bold">1</span>
               <span className="text-xl">Dados Pessoais</span>
             </CardTitle>
             <CardDescription className="text-base">Informações básicas do aluno</CardDescription>
@@ -510,7 +510,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 placeholder="Digite o nome completo"
               />
               {validationErrors.name && (
-                <p className="text-red-500 text-sm">{validationErrors.name}</p>
+                <p className="text-red-600 text-base font-semibold">{validationErrors.name}</p>
               )}
             </div>
             
@@ -525,7 +525,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 className={`h-12 ${validationErrors.phone ? 'border-red-500' : ''}`}
               />
               {validationErrors.phone && (
-                <p className="text-red-500 text-sm">{validationErrors.phone}</p>
+                <p className="text-red-600 text-base font-semibold">{validationErrors.phone}</p>
               )}
             </div>
             
@@ -540,7 +540,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 className={`h-12 ${validationErrors.cpf ? 'border-red-500' : ''}`}
               />
               {validationErrors.cpf && (
-                <p className="text-red-500 text-sm">{validationErrors.cpf}</p>
+                <p className="text-red-600 text-base font-semibold">{validationErrors.cpf}</p>
               )}
             </div>
             
@@ -567,7 +567,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 placeholder="email@exemplo.com"
               />
               {validationErrors.email && (
-                <p className="text-red-500 text-sm">{validationErrors.email}</p>
+                <p className="text-red-600 text-base font-semibold">{validationErrors.email}</p>
               )}
             </div>
             
@@ -621,7 +621,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         <Card className="border-0 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-t-lg">
             <CardTitle className="flex items-center space-x-3">
-              <span className="bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">2</span>
+              <span className="bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base font-bold">2</span>
               <span className="text-xl">Dados de Matrícula</span>
             </CardTitle>
             <CardDescription className="text-base">Informações sobre o plano e objetivos</CardDescription>
@@ -639,13 +639,13 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                     <RadioGroupItem value={plan.id} id={plan.id} />
                     <Label htmlFor={plan.id} className="cursor-pointer flex-1">
                       <div className="font-medium">{plan.name}</div>
-                      <div className="text-green-600 font-bold">R$ {plan.price}</div>
+                      <div className="font-bold text-lg text-gray-900 dark:text-white">R$ {plan.price}</div>
                     </Label>
                   </div>
                 ))}
               </RadioGroup>
               {validationErrors.plan && (
-                <p className="text-red-500 text-sm">{validationErrors.plan}</p>
+                <p className="text-red-600 text-base font-semibold">{validationErrors.plan}</p>
               )}
             </div>
             
@@ -678,7 +678,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         <Card className="border-0 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-t-lg">
             <CardTitle className="flex items-center space-x-3">
-              <span className="bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">3</span>
+              <span className="bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base font-bold">3</span>
               <span className="text-xl">Dados Médicos</span>
             </CardTitle>
             <CardDescription className="text-base">Informações importantes para a segurança do aluno</CardDescription>

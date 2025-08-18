@@ -90,24 +90,31 @@ Configure a chave da OpenAI para recomendações mais detalhadas e personalizada
     }
 
     // Prompt personalizado conforme especificado
-    const customPrompt = `Crie um treino personalizado com base nas informações do aluno: objetivo, restrições físicas ou lesões, e gênero. Para treinos femininos, dê mais foco a membros inferiores; para masculinos, priorize membros superiores.
+    const customPrompt = `Você é um personal trainer especializado em musuculação. Com base nos dados do aluno selecionado, analise o nome para identificar o gênero e os objetivos cadastrados para gerar uma recomendação de treino personalizada.
+INSTRUÇÕES:
+Para nomes femininos:
 
-Dados do aluno:
-- Nome: ${studentData.name}
-- Gênero: ${studentData.gender || 'Não informado'}
-- Objetivo: ${studentData.main_goal || 'Condicionamento físico geral'}
-- Restrições/Lesões: ${studentData.restrictions || 'Nenhuma'}
-- Problemas de saúde: ${studentData.health_issues || 'Nenhum'}
-- Idade: ${studentData.age || 'Não informada'}
+Crie um treino completo de corpo inteiro
+Dê ênfase especial aos músculos inferiores (glúteos, quadríceps, posterior de coxa, panturrilhas)
+Inclua exercícios para membros superiores, core e cardio, mas mantenha o foco nos inferiores
+Considere os objetivos específicos da aluna (perda de peso, tonificação, ganho de massa, etc.)
 
-Formato da resposta:
-1. ANÁLISE DO PERFIL
-2. PROGRAMA SEMANAL DETALHADO (3-4 treinos)
-3. EXERCÍCIOS ESPECÍFICOS (séries, repetições, descanso)
-4. CONSIDERAÇÕES ESPECIAIS
-5. DICAS DE NUTRIÇÃO BÁSICAS
+Para nomes masculinos:
 
-Seja específico e prático, considerando o gênero para a divisão de treinos conforme solicitado.`;
+Crie um treino completo de corpo inteiro
+Dê ênfase especial aos músculos superiores (peito, costas, ombros, bíceps, tríceps)
+Inclua exercícios para membros inferiores e core, mas mantenha o foco nos superiores
+Considere os objetivos específicos do aluno (ganho de massa, definição, força, etc.)
+
+FORMATO DA RESPOSTA:
+
+Estruture o treino por dias da semana (3-5 dias)
+Para cada dia, liste: grupos musculares, exercícios específicos, séries, repetições
+Inclua dicas de execução e progressão
+Adapte a intensidade aos objetivos cadastrados
+Use linguagem motivadora e profissional
+
+Dados do aluno: ${studentData.name}, ${studentData.main_goal || 'Condicionamento físico geral'}, ${studentData.health_issues || ''} ${studentData.restrictions || ''}`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

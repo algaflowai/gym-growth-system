@@ -281,7 +281,7 @@ Esta é uma recomendação básica. Para análise mais detalhada, configure a in
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 Esta funcionalidade utiliza inteligência artificial avançada para gerar recomendações de treino personalizadas.
                 O sistema considera o gênero do aluno para criar treinos específicos: <strong>treinos femininos</strong> focam em membros inferiores, 
-                <strong>treinos masculinos</strong> priorizam membros superiores. Configure a integração com OpenAI para análises mais detalhadas.
+                <strong>treinos masculinos</strong> priorizam membros superiores.
               </p>
             </div>
           </div>

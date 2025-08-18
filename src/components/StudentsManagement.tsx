@@ -22,8 +22,8 @@ const StudentsManagement = () => {
     (student.phone && student.phone.includes(searchTerm))
   );
 
+  // Mostrar apenas alunos ativos na página de alunos
   const activeStudents = filteredStudents.filter(student => student.status === 'active');
-  const inactiveStudents = filteredStudents.filter(student => student.status === 'inactive');
 
   const handleViewStudent = (student: Student) => {
     setSelectedStudent(student);
@@ -31,7 +31,7 @@ const StudentsManagement = () => {
   };
 
   const getStatusColor = (status: string) => {
-    return status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+    return status === 'active' ? 'bg-green-200 text-green-900' : 'bg-red-200 text-red-900';
   };
 
   const getStatusIcon = (status: string) => {
@@ -50,22 +50,22 @@ const StudentsManagement = () => {
       <Card key={student.id} className="hover:shadow-md transition-shadow">
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <CardTitle className="text-base sm:text-lg break-words">{student.name}</CardTitle>
-            <Badge className={`${getStatusColor(student.status)} w-fit`}>
+            <CardTitle className="text-base sm:text-lg break-words text-gray-900 dark:text-white">{student.name}</CardTitle>
+            <Badge className={`${getStatusColor(student.status)} w-fit font-bold`}>
               <StatusIcon className="w-3 h-3 mr-1" />
               {student.status === 'active' ? 'Ativo' : 'Inativo'}
             </Badge>
           </div>
-          <CardDescription className="text-sm break-words text-student-info-primary">{student.email}</CardDescription>
+          <CardDescription className="text-sm break-words text-gray-900 dark:text-gray-200">{student.email}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm text-student-info-secondary">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <p><strong className="text-muted-foreground">CPF:</strong> <span className="text-student-info-primary">{student.cpf}</span></p>
-              <p><strong className="text-muted-foreground">Telefone:</strong> <span className="text-student-info-primary">{student.phone}</span></p>
+              <p><strong className="text-gray-900 dark:text-white">CPF:</strong> <span className="text-gray-900 dark:text-white">{student.cpf}</span></p>
+              <p><strong className="text-gray-900 dark:text-white">Telefone:</strong> <span className="text-gray-900 dark:text-white">{student.phone}</span></p>
             </div>
             {student.birth_date && (
-              <p><strong className="text-muted-foreground">Data de Nascimento:</strong> <span className="text-student-info-primary">{formatDate(student.birth_date)}</span></p>
+              <p><strong className="text-gray-900 dark:text-white">Data de Nascimento:</strong> <span className="text-gray-900 dark:text-white">{formatDate(student.birth_date)}</span></p>
             )}
           </div>
           
@@ -114,7 +114,7 @@ const StudentsManagement = () => {
       {/* Active Students */}
       <div>
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
-          Alunos Ativos ({activeStudents.length})
+          Alunos ({activeStudents.length})
         </h2>
         {activeStudents.length === 0 ? (
           <Card>
@@ -128,18 +128,6 @@ const StudentsManagement = () => {
           </div>
         )}
       </div>
-
-      {/* Inactive Students */}
-      {inactiveStudents.length > 0 && (
-        <div>
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
-            Alunos Inativos ({inactiveStudents.length})
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {inactiveStudents.map(renderStudentCard)}
-          </div>
-        </div>
-      )}
 
       {/* Modals */}
       <StudentViewModal

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,21 +5,21 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, CreditCardIcon } from 'lucide-react';
+import { CalendarIcon, CreditCardIcon, UserCheck } from 'lucide-react';
 import { Plan } from '@/pages/Index';
-import { Enrollment } from '@/hooks/useEnrollments';
+import { Student } from '@/hooks/useStudents';
 import { toast } from '@/hooks/use-toast';
 import dayjs, { BRAZIL_TZ, formatBrazilianDate } from '@/lib/dayjs';
 
-interface PlanRenewalModalProps {
-  enrollment: Enrollment | null;
+interface StudentReactivationModalProps {
+  student: Student | null;
   plans: Plan[];
   isOpen: boolean;
   onClose: () => void;
-  onRenew: (enrollmentId: string, planId: string, planName: string, planPrice: number, duration: string) => Promise<boolean>;
+  onReactivate: (studentId: string, planId: string, planName: string, planPrice: number, duration: string) => Promise<boolean>;
 }
 
-const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanRenewalModalProps) => {
+const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivate }: StudentReactivationModalProps) => {
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const [newStartDate, setNewStartDate] = useState<string>('');
   const [newEndDate, setNewEndDate] = useState<string>('');
@@ -34,12 +33,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
 
   const calculateDates = (planDuration: string) => {
     const currentDate = dayjs.tz(new Date(), BRAZIL_TZ);
-    const enrollmentEndDate = dayjs.tz(enrollment?.end_date || '', BRAZIL_TZ);
-    
-    // Se o plano já expirou, usa a data atual. Senão, usa o dia seguinte ao término
-    const startDate = enrollmentEndDate.isBefore(currentDate) 
-      ? currentDate.startOf('day')
-      : enrollmentEndDate.add(1, 'day').startOf('day');
+    const startDate = currentDate.startOf('day');
 
     let endDate;
     
@@ -80,7 +74,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
   };
 
   useEffect(() => {
-    if (selectedPlanId && enrollment && activePlans.length > 0) {
+    if (selectedPlanId && activePlans.length > 0) {
       const selectedPlan = activePlans.find(plan => plan.id === selectedPlanId);
       if (selectedPlan) {
         try {
@@ -97,13 +91,13 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
         }
       }
     }
-  }, [selectedPlanId, enrollment, activePlans]);
+  }, [selectedPlanId, activePlans]);
 
-  const handleRenew = async () => {
-    if (!selectedPlanId || !enrollment) {
+  const handleReactivate = async () => {
+    if (!selectedPlanId || !student) {
       toast({
         title: "Erro",
-        description: "Selecione um plano para renovação.",
+        description: "Selecione um plano para reativação.",
         variant: "destructive"
       });
       return;
@@ -122,8 +116,8 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
     setIsSubmitting(true);
     
     try {
-      const success = await onRenew(
-        enrollment.id,
+      const success = await onReactivate(
+        student.id,
         selectedPlan.id,
         selectedPlan.name,
         selectedPlan.price,
@@ -132,8 +126,8 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
 
       if (success) {
         toast({
-          title: "Plano renovado!",
-          description: `O plano ${selectedPlan.name} foi renovado com sucesso.`,
+          title: "Aluno reativado!",
+          description: `${student.name} foi reativado com o plano ${selectedPlan.name}.`,
         });
         onClose();
         setSelectedPlanId('');
@@ -141,7 +135,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Erro inesperado ao renovar o plano.",
+        description: "Erro inesperado ao reativar o aluno.",
         variant: "destructive"
       });
     } finally {
@@ -160,72 +154,59 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-200 text-green-900 font-bold hover:bg-green-200">Ativo</Badge>;
-      case 'inactive':
-        return <Badge className="bg-gray-200 text-gray-900 font-bold hover:bg-gray-200">Inativo</Badge>;
-      case 'expired':
-        return <Badge className="bg-red-200 text-red-900 font-bold hover:bg-red-200">Expirado</Badge>;
-      default:
-        return <Badge className="bg-gray-200 text-gray-900 font-bold hover:bg-gray-200">{status}</Badge>;
-    }
-  };
-
-  if (!enrollment) return null;
+  if (!student) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-0">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg text-gray-900 dark:text-white">
-            <CreditCardIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-            Renovar Plano
+            <UserCheck className="h-4 w-4 sm:h-5 sm:w-5" />
+            Reativar Aluno
           </DialogTitle>
           <DialogDescription className="text-base text-gray-800 dark:text-gray-200">
-            Selecione um novo plano para renovar a matrícula do aluno
+            Selecione um plano para reativar a matrícula do aluno
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 sm:space-y-6">
-          {/* Informações do Plano Atual */}
+          {/* Informações do Aluno */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base sm:text-lg">Plano Atual</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Aluno</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="font-bold text-lg sm:text-xl break-words text-gray-900 dark:text-white">{enrollment.student?.name}</span>
-                {getStatusBadge(enrollment.status)}
+                <span className="font-bold text-lg sm:text-xl break-words text-gray-900 dark:text-white">{student.name}</span>
+                <Badge className="bg-gray-200 text-gray-900 font-bold hover:bg-gray-200">Inativo</Badge>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base">
                 <div>
-                  <span className="text-gray-900 dark:text-white font-semibold">Plano:</span>
-                  <p className="font-medium text-gray-900 dark:text-white">{enrollment.plan_name}</p>
+                  <span className="text-gray-900 dark:text-white font-semibold">Email:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{student.email}</p>
                 </div>
                 <div>
-                  <span className="text-gray-900 dark:text-white font-semibold">Valor:</span>
-                  <p className="font-medium text-gray-900 dark:text-white">R$ {enrollment.plan_price.toFixed(2)}</p>
+                  <span className="text-gray-900 dark:text-white font-semibold">Telefone:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{student.phone}</p>
                 </div>
                 <div>
-                  <span className="text-gray-900 dark:text-white font-semibold">Data de Início:</span>
-                  <p className="font-medium text-gray-900 dark:text-white">{formatDate(enrollment.start_date)}</p>
+                  <span className="text-gray-900 dark:text-white font-semibold">CPF:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{student.cpf}</p>
                 </div>
                 <div>
-                  <span className="text-gray-900 dark:text-white font-semibold">Data de Término:</span>
-                  <p className="font-medium text-gray-900 dark:text-white">{formatDate(enrollment.end_date)}</p>
+                  <span className="text-gray-900 dark:text-white font-semibold">Status:</span>
+                  <p className="font-bold text-red-700 dark:text-red-400">Inativo</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Seleção do Novo Plano */}
+          {/* Seleção do Plano */}
           <div className="space-y-4">
-            <Label htmlFor="plan-select" className="text-base font-bold text-gray-900 dark:text-white">Selecionar Novo Plano</Label>
+            <Label htmlFor="plan-select" className="text-base font-bold text-gray-900 dark:text-white">Selecionar Plano</Label>
             <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Escolha um plano para renovação" />
+                <SelectValue placeholder="Escolha um plano para reativação" />
               </SelectTrigger>
               <SelectContent>
                 {activePlans.map((plan) => (
@@ -246,17 +227,17 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
               <CardHeader>
                 <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                   <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                  Preview da Renovação
+                  Preview da Reativação
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base">
                   <div>
-                    <span className="text-gray-900 dark:text-white font-semibold">Nova Data de Início:</span>
+                    <span className="text-gray-900 dark:text-white font-semibold">Data de Início:</span>
                     <p className="font-medium text-gray-900 dark:text-white">{formatDate(newStartDate)}</p>
                   </div>
                   <div>
-                    <span className="text-gray-900 dark:text-white font-semibold">Nova Data de Término:</span>
+                    <span className="text-gray-900 dark:text-white font-semibold">Data de Término:</span>
                     <p className="font-medium text-gray-900 dark:text-white">{formatDate(newEndDate)}</p>
                   </div>
                   <div>
@@ -288,11 +269,11 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
               Cancelar
             </Button>
             <Button 
-              onClick={handleRenew}
+              onClick={handleReactivate}
               disabled={!selectedPlanId || isSubmitting}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 w-full sm:w-auto"
+              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 w-full sm:w-auto"
             >
-              {isSubmitting ? 'Renovando...' : 'Confirmar Renovação'}
+              {isSubmitting ? 'Reativando...' : 'Confirmar Reativação'}
             </Button>
           </div>
         </div>
@@ -301,4 +282,4 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
   );
 };
 
-export default PlanRenewalModal;
+export default StudentReactivationModal;

@@ -32,7 +32,7 @@ export const useEnrollments = () => {
       case 'diária':
       case 'daily':
       case 'day':
-        return 0; // Plano diário vence no mesmo dia (data de fim = data de início)
+        return 1; // Plano diário vence em 24 horas (1 dia)
       case 'mensal':
       case 'monthly':
       case 'month':
@@ -206,9 +206,11 @@ export const useEnrollments = () => {
       let endDate;
       const durationInDays = calculateDurationInDays(enrollmentData.plan_name || enrollmentData.plan_id);
       
-      if (durationInDays === 0) {
-        // Para plano diário, data de vencimento = data de início
-        endDate = startDate;
+      if (durationInDays === 1 && (enrollmentData.plan_name?.toLowerCase().includes('diária') || 
+                                   enrollmentData.plan_name?.toLowerCase().includes('daily') || 
+                                   enrollmentData.plan_id?.toLowerCase().includes('day'))) {
+        // Para plano diário, data de vencimento = data de início + 1 dia
+        endDate = dayjs.tz(startDate, BRAZIL_TZ).add(1, 'day').format('YYYY-MM-DD');
       } else {
         // Para outros planos, usar a data original do frontend mas ajustar para timezone
         const originalEnd = dayjs.tz(enrollmentData.end_date, BRAZIL_TZ);
@@ -253,6 +255,103 @@ export const useEnrollments = () => {
         variant: "destructive",
       });
       return null;
+    }
+  };
+
+  const reactivateStudent = async (
+    studentId: string,
+    planId: string,
+    planName: string,
+    planPrice: number,
+    planDuration: string
+  ) => {
+    try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para reativar um aluno.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Calcula as novas datas - sempre iniciando hoje no timezone brasileiro
+      const start = dayjs.tz(new Date(), BRAZIL_TZ).startOf('day');
+      const startDate = start.toDate();
+
+      const durationInDays = calculateDurationInDays(planDuration);
+      let endDate;
+
+      if (durationInDays === 1 && (planDuration.toLowerCase().includes('diária') || 
+                                   planDuration.toLowerCase().includes('daily') || 
+                                   planDuration.toLowerCase().includes('day'))) {
+        // Para plano diário, data de vencimento = data de início + 1 dia
+        const expires = start.add(1, 'day').endOf('day');
+        endDate = expires.toDate();
+      } else {
+        // Para outros planos, adiciona os dias de duração
+        const expires = start.add(durationInDays, 'day').endOf('day');
+        endDate = expires.toDate();
+      }
+
+      // Criar nova matrícula para o aluno reativado
+      const { data, error } = await supabase
+        .from('enrollments')
+        .insert([{
+          student_id: studentId,
+          plan_id: planId,
+          plan_name: planName,
+          plan_price: planPrice,
+          start_date: dayjs.tz(startDate, BRAZIL_TZ).format('YYYY-MM-DD'),
+          end_date: dayjs.tz(endDate, BRAZIL_TZ).format('YYYY-MM-DD'),
+          status: 'active' as EnrollmentStatus,
+          user_id: user.id
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating reactivation enrollment:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível reativar o aluno.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Atualizar status do aluno para ativo
+      const { error: studentUpdateError } = await supabase
+        .from('students')
+        .update({ status: 'active' })
+        .eq('id', studentId);
+
+      if (studentUpdateError) {
+        console.error('Error updating student status:', studentUpdateError);
+        toast({
+          title: "Aviso",
+          description: "Aluno reativado, mas houve erro ao atualizar o status.",
+          variant: "destructive",
+        });
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Aluno reativado com sucesso!",
+      });
+
+      await fetchEnrollments();
+      return true;
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao reativar o aluno.",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -324,9 +423,12 @@ export const useEnrollments = () => {
       const durationInDays = calculateDurationInDays(planDuration);
       let endDate;
 
-      if (durationInDays === 0) {
-        // Para plano diário, data de vencimento = data de início
-        endDate = startDate;
+      if (durationInDays === 1 && (planDuration.toLowerCase().includes('diária') || 
+                                   planDuration.toLowerCase().includes('daily') || 
+                                   planDuration.toLowerCase().includes('day'))) {
+        // Para plano diário, data de vencimento = data de início + 1 dia
+        const expires = start.add(1, 'day').endOf('day');
+        endDate = expires.toDate();
       } else {
         // Para outros planos, adiciona os dias de duração
         const expires = start.add(durationInDays, 'day').endOf('day');
@@ -551,6 +653,7 @@ export const useEnrollments = () => {
     fetchEnrollments,
     createEnrollment,
     renewEnrollment,
+    reactivateStudent,
     updateEnrollment,
     deleteEnrollment,
   };
