@@ -23,13 +23,23 @@ export const useAccessPasswordManager = () => {
         .from('access_passwords')
         .select('password_hash')
         .eq('page_name', page)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
+      if (error) {
         console.error('❌ Erro ao buscar senha no DB:', error);
         toast({
           title: "Erro",
-          description: "Erro ao verificar senha no banco de dados.",
+          description: `Erro ao verificar senha: ${error.message}`,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (!data) {
+        console.error('❌ Nenhuma senha encontrada para a página:', page);
+        toast({
+          title: "Erro",
+          description: "Senha não encontrada para esta página.",
           variant: "destructive",
         });
         return false;
