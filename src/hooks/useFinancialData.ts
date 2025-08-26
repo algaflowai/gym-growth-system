@@ -24,10 +24,13 @@ export const useFinancialData = (academia_id: string, user_id: string) => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/get-financial-dashboard`,
+        `https://wuuzmuxyiessejxsrzjl.supabase.co/functions/v1/get-financial-dashboard`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1dXptdXh5aWVzc2VqeHNyempsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0OTI4ODQsImV4cCI6MjA2NTA2ODg4NH0.UfQg8NH5S7T5V8Ro7BEDLYYF-4t6y5AbGYjUZwcnpE8`
+          },
           body: JSON.stringify({ academia_id, user_id }),
         }
       );
