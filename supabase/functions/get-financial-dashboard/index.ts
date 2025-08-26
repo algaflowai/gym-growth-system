@@ -18,9 +18,9 @@ serve(async (req) => {
 
   try {
     const { academia_id, user_id } = await req.json();
-    if (!academia_id || !user_id) {
+    if (!user_id) {
       return new Response(
-        JSON.stringify({ error: 'academia_id e user_id são obrigatórios' }),
+        JSON.stringify({ error: 'user_id é obrigatório' }),
         {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -28,25 +28,25 @@ serve(async (req) => {
       );
     }
 
-    // Buscar alunos ativos
+    // Buscar alunos do usuário
     const studentsRes = await fetch(
-      `${Deno.env.get('SUPABASE_URL')}/rest/v1/students?status=eq.active&academia_id=eq.${academia_id}`,
+      `${Deno.env.get('SUPABASE_URL')}/rest/v1/students?user_id=eq.${user_id}&status=eq.active`,
       {
         headers: {
           apikey: Deno.env.get('SUPABASE_ANON_KEY'),
-          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE')}`,
+          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
         },
       }
     );
     const students = await studentsRes.json();
 
-    // Buscar matrículas
+    // Buscar matrículas do usuário
     const enrollmentsRes = await fetch(
-      `${Deno.env.get('SUPABASE_URL')}/rest/v1/enrollments?academia_id=eq.${academia_id}`,
+      `${Deno.env.get('SUPABASE_URL')}/rest/v1/enrollments?user_id=eq.${user_id}`,
       {
         headers: {
           apikey: Deno.env.get('SUPABASE_ANON_KEY'),
-          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE')}`,
+          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
         },
       }
     );
