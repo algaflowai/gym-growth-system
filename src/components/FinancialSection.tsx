@@ -53,30 +53,34 @@ const FinancialSection = () => {
     evolucao_financeira,
     perdas_breakdown,
     receitas_vs_perdas,
-    distribuicao_planos
+    distribuicao_planos,
+    metricas_adicionais
   } = financialData;
 
-  const monthlyRevenue = cards?.receita_mensal || 0;
-  const totalRevenue = cards?.receita_total || 0;
-  const monthlyGrowth = cards?.crescimento_mensal || 0;
-  const activeSubscriptions = cards?.assinaturas_ativas || 0;
-  const monthlyLosses = cards?.perdas_mensais || 0;
-  const lossRate = cards?.taxa_perda || 0;
+  const monthlyRevenue = cards?.receita_mensal?.valor || 0;
+  const totalRevenue = cards?.receita_total?.valor || 0;
+  const monthlyGrowth = cards?.receita_mensal?.crescimento || 0;
+  const activeSubscriptions = cards?.assinaturas_ativas?.valor || 0;
+  const monthlyLosses = cards?.perdas_mensais?.valor || 0;
+  const lossRate = cards?.perdas_mensais?.percentual || 0;
   const evolutionData = evolucao_financeira || [];
   const lossAnalysisData = perdas_breakdown || [];
+  const revenueVsLossesData = receitas_vs_perdas || [];
+  const planDistributionData = distribuicao_planos || [];
 
-  // Mock data para os gráficos que ainda não têm implementação real
-  const monthlyData = evolutionData.map(item => ({
-    month: item.month,
-    revenue: item.value,
-    losses: Math.round(item.value * (lossRate / 100))
+  // Dados formatados para os gráficos
+  const monthlyData = revenueVsLossesData.map(item => ({
+    month: item.mes,
+    revenue: item.receita,
+    losses: item.perdas
   }));
 
-  const planData = [
-    { name: 'Mensal', value: Math.round(activeSubscriptions * 0.45), revenue: Math.round(monthlyRevenue * 0.45), color: '#2563eb' },
-    { name: 'Trimestral', value: Math.round(activeSubscriptions * 0.30), revenue: Math.round(monthlyRevenue * 0.30), color: '#16a34a' },
-    { name: 'Anual', value: Math.round(activeSubscriptions * 0.25), revenue: Math.round(monthlyRevenue * 0.25), color: '#dc2626' },
-  ];
+  const planData = planDistributionData.map(plan => ({
+    name: plan.plano,
+    value: plan.assinantes,
+    revenue: plan.receita,
+    color: plan.cor === 'blue' ? '#2563eb' : plan.cor === 'green' ? '#16a34a' : '#dc2626'
+  }));
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -166,7 +170,7 @@ const FinancialSection = () => {
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={evolutionData}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-                <XAxis dataKey="month" className="text-gray-600 dark:text-gray-400" />
+                <XAxis dataKey="mes" className="text-gray-600 dark:text-gray-400" />
                 <YAxis className="text-gray-600 dark:text-gray-400" />
                 <Tooltip 
                   formatter={(value) => [`R$ ${Number(value).toLocaleString()}`, 'Receita']}
@@ -178,7 +182,7 @@ const FinancialSection = () => {
                 />
                 <Area 
                   type="monotone" 
-                  dataKey="value" 
+                  dataKey="receita" 
                   stroke="#2563eb" 
                   fill="url(#colorRevenue)"
                   strokeWidth={3}
@@ -213,13 +217,13 @@ const FinancialSection = () => {
                     innerRadius={40}
                     outerRadius={80}
                     paddingAngle={5}
-                    dataKey="value"
+                    dataKey="percentual"
                   >
                     {lossAnalysisData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={entry.cor === 'red' ? '#dc2626' : entry.cor === 'orange' ? '#ea580c' : entry.cor === 'blue' ? '#2563eb' : '#6b7280'} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`${value}%`, 'Percentual']} />
+                  <Tooltip formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Percentual']} />
                 </PieChart>
               </ResponsiveContainer>
               
@@ -229,18 +233,18 @@ const FinancialSection = () => {
                     <div className="flex items-center space-x-3">
                       <div 
                         className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: loss.color }}
+                        style={{ backgroundColor: loss.cor === 'red' ? '#dc2626' : loss.cor === 'orange' ? '#ea580c' : loss.cor === 'blue' ? '#2563eb' : '#6b7280' }}
                       ></div>
                       <div>
-                        <div className="font-medium">{loss.category}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">{loss.value}%</div>
+                        <div className="font-medium">{loss.categoria}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">{loss.percentual.toFixed(1)}%</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-red-600">-R$ {loss.amount.toLocaleString()}</div>
+                      <div className="font-bold text-red-600">-R$ {loss.valor.toLocaleString()}</div>
                     </div>
                   </div>
-                ))}
+                ))}     
               </div>
             </div>
           </CardContent>
@@ -342,22 +346,22 @@ const FinancialSection = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-xl">
-              <div className="text-2xl font-bold text-gray-800 dark:text-white">R$ 292</div>
+              <div className="text-2xl font-bold text-gray-800 dark:text-white">R$ {metricas_adicionais?.ticket_medio?.toFixed(0) || '0'}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Ticket Médio</div>
             </div>
             
             <div className="text-center p-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl">
-              <div className="text-2xl font-bold text-gray-800 dark:text-white">94.2%</div>
+              <div className="text-2xl font-bold text-gray-800 dark:text-white">{metricas_adicionais?.taxa_retencao?.toFixed(1) || '0'}%</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Taxa de Retenção</div>
             </div>
             
             <div className="text-center p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl">
-              <div className="text-2xl font-bold text-gray-800 dark:text-white">23</div>
+              <div className="text-2xl font-bold text-gray-800 dark:text-white">{metricas_adicionais?.novos_clientes_mes || 0}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Novos Clientes/Mês</div>
             </div>
 
             <div className="text-center p-6 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl">
-              <div className="text-2xl font-bold text-gray-800 dark:text-white">{lossRate.toFixed(1)}%</div>
+              <div className="text-2xl font-bold text-gray-800 dark:text-white">{metricas_adicionais?.taxa_perda?.toFixed(1) || '0'}%</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Taxa de Perda</div>
             </div>
           </div>

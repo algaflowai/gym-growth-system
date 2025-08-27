@@ -2,12 +2,22 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
 export interface FinancialDashboard {
-  cards: any;
-  evolucao_financeira: any;
-  receitas_vs_perdas: any;
-  perdas_breakdown: any;
-  distribuicao_planos: any;
-  metricas_adicionais: any;
+  cards: {
+    receita_mensal: { valor: number; crescimento: number; cor: string };
+    receita_total: { valor: number; tendencia: string };
+    perdas_mensais: { valor: number; percentual: number; cor: string };
+    assinaturas_ativas: { valor: number };
+  };
+  evolucao_financeira: Array<{ mes: string; receita: number }>;
+  receitas_vs_perdas: Array<{ mes: string; receita: number; perdas: number }>;
+  perdas_breakdown: Array<{ categoria: string; valor: number; percentual: number; cor: string }>;
+  distribuicao_planos: Array<{ plano: string; assinantes: number; receita: number; cor: string }>;
+  metricas_adicionais: {
+    ticket_medio: number;
+    taxa_retencao: number;
+    novos_clientes_mes: number;
+    taxa_perda: number;
+  };
 }
 
 export const useFinancialData = (academia_id: string, user_id: string) => {
