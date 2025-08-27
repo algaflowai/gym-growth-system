@@ -99,12 +99,7 @@ export const useAccessPasswordManager = () => {
         } else {
           console.log(`✅ Resultado verificação padrão (${defaultPass}):`, verifyResult3);
           if (verifyResult3) {
-            console.log(`🎉 Senha padrão ${defaultPass} funcionou! Use esta senha.`);
-            toast({
-              title: "Dica",
-              description: `Use a senha: ${defaultPass}`,
-              variant: "default",
-            });
+            console.log(`🎉 Senha padrão ${defaultPass} funcionou!`);
             return false; // Retorna false para que o usuário digite a senha correta
           }
         }
