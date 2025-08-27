@@ -304,10 +304,10 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
         
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-gray-900 truncate">Inativas</CardTitle>
+            <CardTitle className="text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white truncate">Inativas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">{stats.inactive}</div>
+            <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">{stats.inactive}</div>
           </CardContent>
         </Card>
 
@@ -333,8 +333,8 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
       {/* Search and Filter Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg sm:text-xl text-gray-900">Buscar Matrículas</CardTitle>
-          <CardDescription className="text-sm">
+          <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">Buscar Matrículas</CardTitle>
+          <CardDescription className="text-sm dark:text-gray-300">
             Busque por nome do aluno, email, telefone ou plano
           </CardDescription>
         </CardHeader>
@@ -367,8 +367,8 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
       {/* Enrollments List */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg sm:text-xl text-gray-900">Lista de Matrículas</CardTitle>
-          <CardDescription className="text-sm text-gray-900">{filteredEnrollments.length} matrícula(s) encontrada(s)</CardDescription>
+          <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">Lista de Matrículas</CardTitle>
+          <CardDescription className="text-sm text-gray-900 dark:text-gray-300">{filteredEnrollments.length} matrícula(s) encontrada(s)</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -386,36 +386,36 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div className="space-y-2 flex-1">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 break-words">
-                            {enrollment.student?.name || 'Nome não disponível'}
-                          </h3>
+                           <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white break-words">
+                             {enrollment.student?.name || 'Nome não disponível'}
+                           </h3>
                           {getStatusBadge(enrollment.status)}
                         </div>
                         
-                        <div className="text-sm text-gray-900 space-y-1">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
-                            <p><strong className="text-gray-900">Email:</strong> <span className="text-gray-900">{enrollment.student?.email || 'N/A'}</span></p>
-                            <p><strong className="text-gray-900">Telefone:</strong> <span className="text-gray-900">{enrollment.student?.phone || 'N/A'}</span></p>
-                          </div>
-                          <p><strong className="text-gray-900">Plano:</strong> <span className="text-gray-900">{enrollment.plan_name} - R$ {enrollment.plan_price.toFixed(2)}</span></p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
-                            <p><strong className="text-gray-900">Início:</strong> <span className="text-gray-900">{formatDate(enrollment.start_date)}</span></p>
-                            <p>
-                              <strong className="text-gray-900">Vencimento:</strong> <span className="text-gray-900">{formatDate(enrollment.end_date)}</span>
-                              {daysUntilExpiry > 0 && (
-                                <span className="ml-2 text-orange-700 text-xs">
-                                  ({daysUntilExpiry} dias)
-                                </span>
-                              )}
-                              {daysUntilExpiry <= 0 && (
-                                <span className="ml-2 text-red-700 font-semibold text-xs">
-                                  (Vencido há {Math.abs(daysUntilExpiry)} dias)
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                          <p className="text-xs text-gray-900"><strong className="text-gray-900">ID:</strong> {enrollment.id}</p>
-                        </div>
+                         <div className="text-sm text-gray-900 dark:text-white space-y-1">
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
+                             <p><strong className="text-gray-900 dark:text-white">Email:</strong> <span className="text-gray-900 dark:text-white">{enrollment.student?.email || 'N/A'}</span></p>
+                             <p><strong className="text-gray-900 dark:text-white">Telefone:</strong> <span className="text-gray-900 dark:text-white">{enrollment.student?.phone || 'N/A'}</span></p>
+                           </div>
+                           <p><strong className="text-gray-900 dark:text-white">Plano:</strong> <span className="text-gray-900 dark:text-white">{enrollment.plan_name} - R$ {enrollment.plan_price.toFixed(2)}</span></p>
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
+                             <p><strong className="text-gray-900 dark:text-white">Início:</strong> <span className="text-gray-900 dark:text-white">{formatDate(enrollment.start_date)}</span></p>
+                             <p>
+                               <strong className="text-gray-900 dark:text-white">Vencimento:</strong> <span className="text-gray-900 dark:text-white">{formatDate(enrollment.end_date)}</span>
+                               {daysUntilExpiry > 0 && (
+                                 <span className="ml-2 text-orange-700 text-xs">
+                                   ({daysUntilExpiry} dias)
+                                 </span>
+                               )}
+                               {daysUntilExpiry <= 0 && (
+                                 <span className="ml-2 text-red-700 font-semibold text-xs">
+                                   (Vencido há {Math.abs(daysUntilExpiry)} dias)
+                                 </span>
+                               )}
+                             </p>
+                           </div>
+                           <p className="text-xs text-gray-900 dark:text-gray-300"><strong className="text-gray-900 dark:text-white">ID:</strong> {enrollment.id}</p>
+                         </div>
                       </div>
                     </div>
                     

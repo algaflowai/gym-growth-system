@@ -96,7 +96,7 @@ const StudentsManagement = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">Gerenciamento de Alunos</h1>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">Gerenciamento de Alunos</h1>
       </div>
 
       <div className="flex gap-4 items-center">
@@ -113,12 +113,12 @@ const StudentsManagement = () => {
 
       {/* Active Students */}
       <div>
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-4">
           Alunos ({activeStudents.length})
         </h2>
         {activeStudents.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-8 text-gray-500">
+            <CardContent className="text-center py-8 text-gray-500 dark:text-gray-400">
               Nenhum aluno ativo encontrado.
             </CardContent>
           </Card>

@@ -161,8 +161,8 @@ const FinancialSection = () => {
         {/* Financial Evolution Line Chart */}
         <Card className="border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl">Evolução Financeira</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl text-gray-900 dark:text-white">Evolução Financeira</CardTitle>
+            <CardDescription className="dark:text-gray-300">
               Tendência de crescimento da receita
             </CardDescription>
           </CardHeader>
@@ -201,8 +201,8 @@ const FinancialSection = () => {
         {/* Loss Analysis Pie Chart */}
         <Card className="border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl">Análise de Perdas</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl text-gray-900 dark:text-white">Análise de Perdas</CardTitle>
+            <CardDescription className="dark:text-gray-300">
               Principais fontes de perdas financeiras
             </CardDescription>
           </CardHeader>
@@ -236,7 +236,7 @@ const FinancialSection = () => {
                         style={{ backgroundColor: loss.cor === 'red' ? '#dc2626' : loss.cor === 'orange' ? '#ea580c' : loss.cor === 'blue' ? '#2563eb' : '#6b7280' }}
                       ></div>
                       <div>
-                        <div className="font-medium">{loss.categoria}</div>
+                        <div className="font-medium text-gray-900 dark:text-white">{loss.categoria}</div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">{loss.percentual.toFixed(1)}%</div>
                       </div>
                     </div>
@@ -254,8 +254,8 @@ const FinancialSection = () => {
       {/* Revenue vs Losses Comparison */}
       <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="text-xl">Receitas vs Perdas</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl text-gray-900 dark:text-white">Receitas vs Perdas</CardTitle>
+          <CardDescription className="dark:text-gray-300">
             Comparativo mensal entre receitas e perdas
           </CardDescription>
         </CardHeader>
@@ -286,8 +286,8 @@ const FinancialSection = () => {
       {/* Plans Distribution Chart */}
       <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="text-xl">Distribuição por Planos</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl text-gray-900 dark:text-white">Distribuição por Planos</CardTitle>
+          <CardDescription className="dark:text-gray-300">
             Receita e quantidade de assinantes por plano
           </CardDescription>
         </CardHeader>
@@ -321,7 +321,7 @@ const FinancialSection = () => {
                       style={{ backgroundColor: plan.color }}
                     ></div>
                     <div>
-                      <div className="font-medium">{plan.name}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{plan.name}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">{plan.value} assinantes</div>
                     </div>
                   </div>
@@ -338,8 +338,8 @@ const FinancialSection = () => {
       {/* Additional Financial Metrics */}
       <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="text-xl">Métricas Adicionais</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl text-gray-900 dark:text-white">Métricas Adicionais</CardTitle>
+          <CardDescription className="dark:text-gray-300">
             Outras informações financeiras importantes
           </CardDescription>
         </CardHeader>
