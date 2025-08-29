@@ -8,9 +8,7 @@ export const useRestrictedAccess = () => {
   const [settingsPasswordSet, setSettingsPasswordSet] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Senhas padrão - em produção, essas devem ser configuráveis pelo administrador
-  const DEFAULT_FINANCIAL_PASSWORD = 'financeiro123';
-  const DEFAULT_SETTINGS_PASSWORD = 'configuracao123';
+  // Security: Default passwords removed for production security
 
   const checkPasswordStatus = async () => {
     try {
@@ -36,11 +34,15 @@ export const useRestrictedAccess = () => {
   };
 
   const validateFinancialPassword = (password: string): boolean => {
-    return password === DEFAULT_FINANCIAL_PASSWORD;
+    // Security: Password validation moved to server-side
+    console.warn('Client-side password validation deprecated for security');
+    return false;
   };
 
   const validateSettingsPassword = (password: string): boolean => {
-    return password === DEFAULT_SETTINGS_PASSWORD;
+    // Security: Password validation moved to server-side
+    console.warn('Client-side password validation deprecated for security');
+    return false;
   };
 
   const setFinancialPasswordStatus = async (status: boolean) => {
@@ -87,9 +89,6 @@ export const useRestrictedAccess = () => {
     validateSettingsPassword,
     setFinancialPasswordStatus,
     setSettingsPasswordStatus,
-    defaultPasswords: {
-      financial: DEFAULT_FINANCIAL_PASSWORD,
-      settings: DEFAULT_SETTINGS_PASSWORD,
-    },
+    // Security: Default passwords removed from client-side code
   };
 };

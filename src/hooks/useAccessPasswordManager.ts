@@ -9,15 +9,10 @@ export const useAccessPasswordManager = () => {
     try {
       setLoading(true);
       
-      console.log('🔍 DEBUG: Iniciando verificação de senha');
-      console.log('📄 Página:', page);
-      console.log('🔑 Senha digitada (length):', enteredPassword.length);
-      console.log('🔑 Senha digitada (bytes):', Array.from(enteredPassword).map(c => c.charCodeAt(0)));
-      console.log('🔑 Senha digitada (trimmed):', enteredPassword.trim());
+      // Security: Removed debug logging of sensitive data
       
-      // Limpar a senha de caracteres invisíveis
+      // Clean password of invisible characters
       const cleanPassword = enteredPassword.trim().replace(/[\u200B-\u200D\uFEFF]/g, '');
-      console.log('🧹 Senha limpa:', cleanPassword);
       
       const { data, error } = await supabase
         .from('access_passwords')
@@ -26,17 +21,16 @@ export const useAccessPasswordManager = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Erro ao buscar senha no DB:', error);
+        console.error('Error querying password:', error);
         toast({
           title: "Erro",
-          description: `Erro ao verificar senha: ${error.message}`,
+          description: "Erro ao verificar senha.",
           variant: "destructive",
         });
         return false;
       }
 
       if (!data) {
-        console.error('❌ Nenhuma senha encontrada para a página:', page);
         toast({
           title: "Erro",
           description: "Senha não encontrada para esta página.",
@@ -45,76 +39,36 @@ export const useAccessPasswordManager = () => {
         return false;
       }
 
-      console.log('🗄️ Hash encontrado no DB:', data.password_hash);
-      console.log('🗄️ Hash length:', data.password_hash.length);
-
-      // Testar primeiro com a senha original
-      console.log('🧪 Testando senha original...');
-      const { data: verifyResult1, error: verifyError1 } = await supabase
-        .rpc('verify_password', {
-          stored_hash: data.password_hash,
-          password_input: enteredPassword
-        });
-
-      if (verifyError1) {
-        console.error('❌ Erro na verificação 1:', verifyError1);
-      } else {
-        console.log('✅ Resultado verificação 1:', verifyResult1);
-        if (verifyResult1) {
-          console.log('🎉 Senha original funcionou!');
-          return true;
-        }
-      }
-
-      // Testar com a senha limpa
-      console.log('🧪 Testando senha limpa...');
-      const { data: verifyResult2, error: verifyError2 } = await supabase
+      // Verify password using secure RPC function
+      const { data: verifyResult, error: verifyError } = await supabase
         .rpc('verify_password', {
           stored_hash: data.password_hash,
           password_input: cleanPassword
         });
 
-      if (verifyError2) {
-        console.error('❌ Erro na verificação 2:', verifyError2);
-      } else {
-        console.log('✅ Resultado verificação 2:', verifyResult2);
-        if (verifyResult2) {
-          console.log('🎉 Senha limpa funcionou!');
-          return true;
-        }
+      if (verifyError) {
+        console.error('Error verifying password:', verifyError);
+        toast({
+          title: "Erro",
+          description: "Erro ao verificar senha.",
+          variant: "destructive",
+        });
+        return false;
       }
 
-      // Testar senhas padrão conhecidas como fallback
-      const defaultPasswords = ['financeiro123', 'configuracao123'];
-      for (const defaultPass of defaultPasswords) {
-        console.log(`🧪 Testando senha padrão: ${defaultPass}`);
-        const { data: verifyResult3, error: verifyError3 } = await supabase
-          .rpc('verify_password', {
-            stored_hash: data.password_hash,
-            password_input: defaultPass
-          });
-
-        if (verifyError3) {
-          console.error(`❌ Erro na verificação padrão (${defaultPass}):`, verifyError3);
-        } else {
-          console.log(`✅ Resultado verificação padrão (${defaultPass}):`, verifyResult3);
-          if (verifyResult3) {
-            console.log(`🎉 Senha padrão ${defaultPass} funcionou!`);
-            return false; // Retorna false para que o usuário digite a senha correta
-          }
-        }
+      if (verifyResult) {
+        return true;
       }
 
-      console.log('❌ Nenhuma verificação de senha funcionou');
       toast({
         title: "Erro",
-        description: "Senha incorreta. Verifique se está digitando corretamente.",
+        description: "Senha incorreta.",
         variant: "destructive",
       });
       
       return false;
     } catch (error) {
-      console.error('💥 Erro inesperado:', error);
+      console.error('Unexpected error:', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao verificar senha.",

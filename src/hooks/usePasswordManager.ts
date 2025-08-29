@@ -13,20 +13,21 @@ export interface AccessPassword {
 export const usePasswordManager = () => {
   const [loading, setLoading] = useState(false);
 
-  // Since access control was removed, always return true for password verification
+  // Deprecated: Use useAccessPasswordManager instead for secure password handling
   const verifyPassword = async (page: string, enteredPassword: string): Promise<boolean> => {
-    console.log('Password verification skipped - access control removed');
-    return true;
+    console.warn('usePasswordManager is deprecated - use useAccessPasswordManager instead');
+    return false;
   };
 
-  // Since access control was removed, always return true for password updates
+  // Deprecated: Use server-side password management instead
   const updatePassword = async (page: string, newPassword: string): Promise<boolean> => {
-    console.log('Password update skipped - access control removed');
+    console.warn('usePasswordManager is deprecated - use server-side management instead');
     toast({
-      title: "Informação",
-      description: "Sistema de controle de acesso foi removido.",
+      title: "Aviso",
+      description: "Use o sistema de gerenciamento de senhas do administrador.",
+      variant: "destructive",
     });
-    return true;
+    return false;
   };
 
   return {
