@@ -110,7 +110,7 @@ export type Database = {
           status: string
           student_id: string
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -123,7 +123,7 @@ export type Database = {
           status?: string
           student_id: string
           updated_at?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -136,7 +136,7 @@ export type Database = {
           status?: string
           student_id?: string
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -196,7 +196,7 @@ export type Database = {
           rg: string | null
           status: string
           updated_at: string
-          user_id: string | null
+          user_id: string
           zip_code: string | null
         }
         Insert: {
@@ -219,7 +219,7 @@ export type Database = {
           rg?: string | null
           status?: string
           updated_at?: string
-          user_id?: string | null
+          user_id: string
           zip_code?: string | null
         }
         Update: {
@@ -242,7 +242,7 @@ export type Database = {
           rg?: string | null
           status?: string
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
           zip_code?: string | null
         }
         Relationships: []
@@ -300,6 +300,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_admin_role: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       get_current_user_id: {
         Args: Record<PropertyKey, never>
         Returns: string
