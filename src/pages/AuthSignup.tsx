@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { sanitizeEmail, sanitizeName, validateInput, validatePassword, logSecurityEvent, authRateLimiter } from '@/utils/security';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const AuthSignup = () => {
   const navigate = useNavigate();
@@ -16,26 +18,84 @@ const AuthSignup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
+  const handlePasswordChange = (newPassword: string) => {
+    setPassword(newPassword);
+    const validation = validatePassword(newPassword);
+    setPasswordErrors(validation.errors);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Input validation and sanitization
+    const sanitizedEmail = sanitizeEmail(email);
+    const sanitizedName = sanitizeName(name);
+    
+    if (!validateInput.email(sanitizedEmail)) {
+      toast({
+        title: "Email inválido",
+        description: "Por favor, insira um email válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!validateInput.name(sanitizedName)) {
+      toast({
+        title: "Nome inválido",
+        description: "O nome deve ter entre 2 e 100 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Password validation
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      toast({
+        title: "Senha inválida",
+        description: passwordValidation.errors[0],
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Rate limiting
+    const clientId = `signup_${sanitizedEmail}`;
+    if (!authRateLimiter.isAllowed(clientId, 3, 60 * 60 * 1000)) { // 3 attempts per hour
+      toast({
+        title: "Muitas tentativas",
+        description: "Aguarde antes de tentar criar outra conta.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
-        email,
+        email: sanitizedEmail,
         password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            name: name
+            name: sanitizedName
           }
         }
       });
 
       if (error) {
+        await logSecurityEvent('signup_failed', {
+          email: sanitizedEmail,
+          error: error.message,
+          timestamp: new Date().toISOString()
+        });
+        
         if (error.message.includes('User already registered')) {
           toast({
             title: "Usuário já cadastrado",
@@ -50,6 +110,13 @@ const AuthSignup = () => {
           });
         }
       } else {
+        await logSecurityEvent('signup_success', {
+          email: sanitizedEmail,
+          timestamp: new Date().toISOString()
+        });
+        
+        authRateLimiter.reset(clientId);
+        
         toast({
           title: "Cadastro realizado!",
           description: "Verifique seu e-mail para confirmar sua conta.",
@@ -58,6 +125,13 @@ const AuthSignup = () => {
       }
     } catch (error) {
       console.error('Erro no cadastro:', error);
+      
+      await logSecurityEvent('signup_error', {
+        email: sanitizedEmail,
+        error: String(error),
+        timestamp: new Date().toISOString()
+      });
+      
       toast({
         title: "Erro",
         description: "Ocorreu um erro inesperado. Tente novamente.",
@@ -151,11 +225,23 @@ const AuthSignup = () => {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
                   className="h-12 text-base border-2 focus:border-green-500 transition-all duration-200"
                 />
+                {passwordErrors.length > 0 && (
+                  <Alert variant="destructive" className="mt-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <ul className="list-disc list-inside space-y-1">
+                        {passwordErrors.map((error, index) => (
+                          <li key={index} className="text-sm">{error}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
               
               <Button

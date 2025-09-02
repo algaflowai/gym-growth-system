@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import ForgotPassword from '@/components/ForgotPassword';
+import { sanitizeEmail, validateInput, logSecurityEvent, authRateLimiter } from '@/utils/security';
 
 const AuthLogin = () => {
   const navigate = useNavigate();
@@ -108,21 +109,58 @@ const AuthLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Input validation and sanitization
+    const sanitizedEmail = sanitizeEmail(email);
+    
+    if (!validateInput.email(sanitizedEmail) || !password) {
+      toast({
+        title: "Dados inválidos",
+        description: "Por favor, verifique seu email e senha.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Rate limiting
+    const clientId = `login_${sanitizedEmail}`;
+    if (!authRateLimiter.isAllowed(clientId, 5, 15 * 60 * 1000)) { // 5 attempts per 15 minutes
+      toast({
+        title: "Muitas tentativas",
+        description: "Aguarde alguns minutos antes de tentar novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: sanitizedEmail,
         password,
       });
 
       if (error) {
+        await logSecurityEvent('login_failed', {
+          email: sanitizedEmail,
+          error: error.message,
+          timestamp: new Date().toISOString()
+        });
+        
         toast({
           title: "Erro no login",
           description: error.message,
           variant: "destructive",
         });
       } else {
+        authRateLimiter.reset(clientId);
+        
+        await logSecurityEvent('login_success', {
+          email: sanitizedEmail,
+          timestamp: new Date().toISOString()
+        }, data.user?.id);
+        
         toast({
           title: "Login realizado com sucesso!",
           description: "Bem-vindo ao AlgaGymManager",
@@ -131,6 +169,13 @@ const AuthLogin = () => {
       }
     } catch (error) {
       console.error('Erro no login:', error);
+      
+      await logSecurityEvent('login_error', {
+        email: sanitizedEmail,
+        error: String(error),
+        timestamp: new Date().toISOString()
+      });
+      
       toast({
         title: "Erro inesperado",
         description: "Tente novamente em alguns instantes",
