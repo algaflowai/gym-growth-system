@@ -148,6 +148,36 @@ export type Database = {
           },
         ]
       }
+      security_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       settings: {
         Row: {
           created_at: string
@@ -304,6 +334,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      cleanup_old_security_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_current_user_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -316,9 +350,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      initialize_first_admin: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
       is_admin: {
         Args: { _user_id?: string }
         Returns: boolean
+      }
+      log_security_event: {
+        Args: {
+          action_type: string
+          event_details?: Json
+          target_user_id?: string
+        }
+        Returns: undefined
       }
       update_access_password: {
         Args: { new_password: string; page_name: string }

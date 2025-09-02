@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useSecurityLogger } from './useSecurityLogger';
+import { useInputSanitizer } from './useInputSanitizer';
 
 export const useAccessPasswordManager = () => {
   const [loading, setLoading] = useState(false);
+  const { logPasswordVerification } = useSecurityLogger();
+  const { sanitizeText } = useInputSanitizer();
 
   const verifyPassword = async (page: string, enteredPassword: string): Promise<boolean> => {
     try {
@@ -11,8 +15,8 @@ export const useAccessPasswordManager = () => {
       
       // Security: Removed debug logging of sensitive data
       
-      // Clean password of invisible characters
-      const cleanPassword = enteredPassword.trim().replace(/[\u200B-\u200D\uFEFF]/g, '');
+      // Clean and sanitize password
+      const cleanPassword = sanitizeText(enteredPassword.trim().replace(/[\u200B-\u200D\uFEFF]/g, ''));
       
       const { data, error } = await supabase
         .from('access_passwords')
@@ -57,8 +61,11 @@ export const useAccessPasswordManager = () => {
       }
 
       if (verifyResult) {
+        await logPasswordVerification(page, true);
         return true;
       }
+
+      await logPasswordVerification(page, false);
 
       toast({
         title: "Erro",
