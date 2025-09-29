@@ -366,6 +366,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      sync_student_status: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_access_password: {
         Args: { new_password: string; page_name: string }
         Returns: undefined

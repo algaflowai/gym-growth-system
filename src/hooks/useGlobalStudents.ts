@@ -60,6 +60,13 @@ export const useGlobalStudents = () => {
         return;
       }
 
+      // Sincroniza o status dos alunos baseado nas matrículas ativas
+      try {
+        await supabase.rpc('sync_student_status');
+      } catch (syncError) {
+        console.warn('Warning: Could not sync student status:', syncError);
+      }
+
       const { data, error } = await supabase
         .from('students')
         .select('*')
