@@ -83,31 +83,31 @@ const StudentViewModal = ({ student, isOpen, onClose }: StudentViewModalProps) =
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="text-xs sm:text-sm font-medium text-gray-600">Email</label>
-                <p className="text-sm sm:text-base text-gray-800 break-words">{student.email}</p>
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground">Email</label>
+                <p className="text-sm sm:text-base text-foreground break-words">{student.email}</p>
               </div>
               
               <div>
-                <label className="text-xs sm:text-sm font-medium text-gray-600">Telefone</label>
-                <p className="text-sm sm:text-base text-gray-800">{student.phone}</p>
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground">Telefone</label>
+                <p className="text-sm sm:text-base text-foreground">{student.phone}</p>
               </div>
               
               <div>
-                <label className="text-xs sm:text-sm font-medium text-gray-600">CPF</label>
-                <p className="text-sm sm:text-base text-gray-800">{student.cpf}</p>
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground">CPF</label>
+                <p className="text-sm sm:text-base text-foreground">{student.cpf}</p>
               </div>
               
               {student.rg && (
                 <div>
-                  <label className="text-xs sm:text-sm font-medium text-gray-600">RG</label>
-                  <p className="text-sm sm:text-base text-gray-800">{student.rg}</p>
+                  <label className="text-xs sm:text-sm font-medium text-muted-foreground">RG</label>
+                  <p className="text-sm sm:text-base text-foreground">{student.rg}</p>
                 </div>
               )}
               
               {student.birth_date && (
                 <div className="sm:col-span-2">
-                  <label className="text-xs sm:text-sm font-medium text-gray-600">Data de Nascimento</label>
-                  <p className="text-sm sm:text-base text-gray-800">{new Date(student.birth_date).toLocaleDateString('pt-BR')}</p>
+                  <label className="text-xs sm:text-sm font-medium text-muted-foreground">Data de Nascimento</label>
+                  <p className="text-sm sm:text-base text-foreground">{new Date(student.birth_date).toLocaleDateString('pt-BR')}</p>
                 </div>
               )}
             </div>
@@ -120,22 +120,22 @@ const StudentViewModal = ({ student, isOpen, onClose }: StudentViewModalProps) =
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {student.address && (
                   <div className="sm:col-span-2">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Endereço</label>
-                    <p className="text-sm sm:text-base text-gray-800">{student.address}</p>
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Endereço</label>
+                    <p className="text-sm sm:text-base text-foreground">{student.address}</p>
                   </div>
                 )}
                 
                 {student.city && (
                   <div>
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Cidade</label>
-                    <p className="text-sm sm:text-base text-gray-800">{student.city}</p>
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Cidade</label>
+                    <p className="text-sm sm:text-base text-foreground">{student.city}</p>
                   </div>
                 )}
                 
                 {student.zip_code && (
                   <div>
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">CEP</label>
-                    <p className="text-sm sm:text-base text-gray-800">{student.zip_code}</p>
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">CEP</label>
+                    <p className="text-sm sm:text-base text-foreground">{student.zip_code}</p>
                   </div>
                 )}
               </div>
@@ -149,22 +149,22 @@ const StudentViewModal = ({ student, isOpen, onClose }: StudentViewModalProps) =
               <div className="space-y-3 sm:space-y-4">
                 {student.emergency_contact && (
                   <div>
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Contato de Emergência</label>
-                    <p className="text-sm sm:text-base text-gray-800">{student.emergency_contact}</p>
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Contato de Emergência</label>
+                    <p className="text-sm sm:text-base text-foreground">{student.emergency_contact}</p>
                   </div>
                 )}
                 
                 {student.health_issues && (
                   <div>
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Problemas de Saúde</label>
-                    <p className="text-sm sm:text-base text-gray-800">{student.health_issues}</p>
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Problemas de Saúde</label>
+                    <p className="text-sm sm:text-base text-foreground">{student.health_issues}</p>
                   </div>
                 )}
                 
                 {student.restrictions && (
                   <div>
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Restrições</label>
-                    <p className="text-sm sm:text-base text-gray-800">{student.restrictions}</p>
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Restrições</label>
+                    <p className="text-sm sm:text-base text-foreground">{student.restrictions}</p>
                   </div>
                 )}
               </div>
@@ -178,15 +178,15 @@ const StudentViewModal = ({ student, isOpen, onClose }: StudentViewModalProps) =
               <div className="space-y-3 sm:space-y-4">
                 {student.main_goal && (
                   <div>
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Objetivo Principal</label>
-                    <p className="text-sm sm:text-base text-gray-800">{student.main_goal}</p>
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Objetivo Principal</label>
+                    <p className="text-sm sm:text-base text-foreground">{student.main_goal}</p>
                   </div>
                 )}
                 
                 {student.notes && (
                   <div>
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Observações</label>
-                    <p className="text-sm sm:text-base text-gray-800">{student.notes}</p>
+                    <label className="text-xs sm:text-sm font-medium text-muted-foreground">Observações</label>
+                    <p className="text-sm sm:text-base text-foreground">{student.notes}</p>
                   </div>
                 )}
               </div>
@@ -198,13 +198,13 @@ const StudentViewModal = ({ student, isOpen, onClose }: StudentViewModalProps) =
             <h4 className="text-base sm:text-lg font-semibold">Informações do Sistema</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="text-xs sm:text-sm font-medium text-gray-600">Data de Cadastro</label>
-                <p className="text-sm sm:text-base text-gray-800">{new Date(student.created_at).toLocaleDateString('pt-BR')}</p>
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground">Data de Cadastro</label>
+                <p className="text-sm sm:text-base text-foreground">{new Date(student.created_at).toLocaleDateString('pt-BR')}</p>
               </div>
               
               <div>
-                <label className="text-xs sm:text-sm font-medium text-gray-600">Última Atualização</label>
-                <p className="text-sm sm:text-base text-gray-800">{new Date(student.updated_at).toLocaleDateString('pt-BR')}</p>
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground">Última Atualização</label>
+                <p className="text-sm sm:text-base text-foreground">{new Date(student.updated_at).toLocaleDateString('pt-BR')}</p>
               </div>
             </div>
           </div>
