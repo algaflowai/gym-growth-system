@@ -26,6 +26,7 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const activePlans = plans.filter(plan => plan.active);
+  const selectedPlan = activePlans.find(plan => plan.id === selectedPlanId);
 
   const formatDate = (dateString: string) => {
     return formatBrazilianDate(dateString);
