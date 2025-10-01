@@ -158,7 +158,7 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
   if (!student) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-0">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg text-gray-900 dark:text-white">
@@ -205,7 +205,7 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
           {/* Seleção do Plano */}
           <div className="space-y-4">
             <Label htmlFor="plan-select" className="text-base font-bold text-gray-900 dark:text-white">Selecionar Plano</Label>
-            <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
+            <Select value={selectedPlanId} onValueChange={(val) => { console.log('Selected plan in reactivation:', val); setSelectedPlanId(val); }}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Escolha um plano para reativação" />
               </SelectTrigger>
