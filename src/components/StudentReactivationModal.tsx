@@ -244,13 +244,13 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
                   <div>
                     <span className="text-gray-900 dark:text-white font-semibold">Valor do Plano:</span>
                     <p className="font-bold text-green-700 dark:text-green-400">
-                      R$ {activePlans.find(p => p.id === selectedPlanId)?.price.toFixed(2)}
+                      R$ {(selectedPlan?.price !== undefined ? selectedPlan.price.toFixed(2) : '0.00')}
                     </p>
                   </div>
                   <div>
                     <span className="text-gray-900 dark:text-white font-semibold">Duração:</span>
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {getDurationLabel(activePlans.find(p => p.id === selectedPlanId)?.duration || '')}
+                      {getDurationLabel(selectedPlan?.duration || '')}
                     </p>
                   </div>
                 </div>
