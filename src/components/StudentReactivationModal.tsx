@@ -158,8 +158,8 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
   if (!student) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-0">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }} modal={false}>
+      <DialogContent onInteractOutside={(e) => e.preventDefault()} className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-0">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg text-gray-900 dark:text-white">
             <UserCheck className="h-4 w-4 sm:h-5 sm:w-5" />
