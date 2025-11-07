@@ -4,7 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Edit, Trash2, UserX, Eye, Loader2, UserCheck, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Search, Edit, Trash2, UserX, Eye, Loader2, UserCheck, RotateCcw, AlertTriangle, CalendarIcon, X } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { useEnrollments } from '@/hooks/useEnrollments';
 import { useGlobalStudents } from '@/hooks/useGlobalStudents';
 import { Plan } from '@/pages/Index';
@@ -22,6 +26,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
   const { updateStudent } = useGlobalStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [expiryDateFilter, setExpiryDateFilter] = useState<Date | undefined>(undefined);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
@@ -65,7 +70,10 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     
     const matchesStatus = statusFilter === 'all' || enrollment.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    const matchesExpiryDate = !expiryDateFilter || 
+      new Date(enrollment.end_date + 'T00:00:00').toDateString() === expiryDateFilter.toDateString();
+    
+    return matchesSearch && matchesStatus && matchesExpiryDate;
   });
 
   const handleEdit = (enrollment: any) => {
@@ -336,30 +344,70 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
           <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">Buscar Matrículas</CardTitle>
           <CardDescription className="text-sm dark:text-gray-300">
             Busque por nome do aluno, email, telefone ou plano
+            {expiryDateFilter && ` - Vencendo em ${format(expiryDateFilter, 'dd/MM/yyyy')}`}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Buscar por nome, email, telefone ou plano..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Buscar por nome, email, telefone ou plano..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Filtrar por status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="active">Apenas Ativas</SelectItem>
+                  <SelectItem value="inactive">Apenas Inativas</SelectItem>
+                  <SelectItem value="expired">Apenas Expiradas</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="active">Apenas Ativas</SelectItem>
-                <SelectItem value="inactive">Apenas Inativas</SelectItem>
-                <SelectItem value="expired">Apenas Expiradas</SelectItem>
-              </SelectContent>
-            </Select>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full sm:flex-1 justify-start text-left font-normal",
+                      !expiryDateFilter && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {expiryDateFilter ? format(expiryDateFilter, "dd/MM/yyyy") : "Filtrar por vencimento"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={expiryDateFilter}
+                    onSelect={setExpiryDateFilter}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              
+              {expiryDateFilter && (
+                <Button
+                  variant="outline"
+                  onClick={() => setExpiryDateFilter(undefined)}
+                  className="w-full sm:w-auto"
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Limpar Data
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
