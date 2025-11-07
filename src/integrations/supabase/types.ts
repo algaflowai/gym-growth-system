@@ -51,6 +51,7 @@ export type Database = {
           start_date: string
           status: string
           student_id: string
+          user_id: string | null
         }
         Insert: {
           archived_at?: string
@@ -64,6 +65,7 @@ export type Database = {
           start_date: string
           status: string
           student_id: string
+          user_id?: string | null
         }
         Update: {
           archived_at?: string
@@ -77,6 +79,7 @@ export type Database = {
           start_date?: string
           status?: string
           student_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -107,6 +110,7 @@ export type Database = {
           status: string
           student_id: string
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -119,6 +123,7 @@ export type Database = {
           status?: string
           student_id: string
           updated_at?: string
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -131,6 +136,7 @@ export type Database = {
           status?: string
           student_id?: string
           updated_at?: string
+          user_id?: string
         }
         Relationships: [
           {
@@ -209,6 +215,7 @@ export type Database = {
           deleted_at: string | null
           email: string
           emergency_contact: string | null
+          gender: string | null
           health_issues: string | null
           id: string
           main_goal: string | null
@@ -219,6 +226,7 @@ export type Database = {
           rg: string | null
           status: string
           updated_at: string
+          user_id: string
           zip_code: string | null
         }
         Insert: {
@@ -230,6 +238,7 @@ export type Database = {
           deleted_at?: string | null
           email: string
           emergency_contact?: string | null
+          gender?: string | null
           health_issues?: string | null
           id?: string
           main_goal?: string | null
@@ -240,6 +249,7 @@ export type Database = {
           rg?: string | null
           status?: string
           updated_at?: string
+          user_id: string
           zip_code?: string | null
         }
         Update: {
@@ -251,6 +261,7 @@ export type Database = {
           deleted_at?: string | null
           email?: string
           emergency_contact?: string | null
+          gender?: string | null
           health_issues?: string | null
           id?: string
           main_goal?: string | null
@@ -261,6 +272,7 @@ export type Database = {
           rg?: string | null
           status?: string
           updated_at?: string
+          user_id?: string
           zip_code?: string | null
         }
         Relationships: []
@@ -318,11 +330,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_admin_role: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       cleanup_old_security_logs: { Args: never; Returns: undefined }
+      get_current_user_id: { Args: never; Returns: string }
       get_current_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      inactivate_expired_enrollments: { Args: never; Returns: undefined }
       initialize_first_admin: { Args: { user_email: string }; Returns: boolean }
       is_admin: { Args: { _user_id?: string }; Returns: boolean }
       log_security_event: {
@@ -334,6 +352,18 @@ export type Database = {
         Returns: undefined
       }
       sync_student_status: { Args: never; Returns: undefined }
+      update_access_password: {
+        Args: { new_password: string; page_name: string }
+        Returns: undefined
+      }
+      update_encrypted_password: {
+        Args: { new_password: string; page_name: string }
+        Returns: undefined
+      }
+      verify_password: {
+        Args: { password_input: string; stored_hash: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
