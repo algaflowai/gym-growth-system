@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import { useStudents } from '@/hooks/useStudents';
 import { useEnrollments } from '@/hooks/useEnrollments';
@@ -51,6 +52,9 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       plan: '',
       mainGoal: '',
       notes: '',
+      useCustomDates: false,
+      customStartDate: '',
+      customEndDate: '',
       
       // Dados Médicos
       healthIssues: '',
@@ -108,6 +112,24 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       errors.phone = 'Telefone deve ter formato válido (11) 99999-9999';
     }
 
+    // Validação de datas personalizadas
+    if (formData.useCustomDates) {
+      if (!formData.customStartDate) {
+        errors.customStartDate = 'Data de início é obrigatória quando usar datas personalizadas';
+      }
+      if (!formData.customEndDate) {
+        errors.customEndDate = 'Data de vencimento é obrigatória quando usar datas personalizadas';
+      }
+      
+      if (formData.customStartDate && formData.customEndDate) {
+        const start = new Date(formData.customStartDate);
+        const end = new Date(formData.customEndDate);
+        if (end <= start) {
+          errors.customEndDate = 'Data de vencimento deve ser posterior à data de início';
+        }
+      }
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -134,7 +156,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
     // Limpar erro de validação quando o usuário começar a digitar
@@ -143,7 +165,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     }
 
     // Verificar CPF em tempo real quando o usuário parar de digitar
-    if (field === 'cpf' && value.length >= 11) {
+    if (field === 'cpf' && typeof value === 'string' && value.length >= 11) {
       const timeoutId = setTimeout(async () => {
         const existing = await checkExistingStudent(value);
         if (existing) {
@@ -202,26 +224,35 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         return;
       }
 
-      const startDate = new Date();
-      const endDate = new Date();
-      
-      switch (selectedPlan.duration) {
-        case 'Diária':
-        case 'daily':
-          // For daily plans, end date is start date + 1 day
-          endDate.setDate(startDate.getDate() + 1);
-          break;
-        case 'month':
-          endDate.setMonth(endDate.getMonth() + 1);
-          break;
-        case 'quarter':
-          endDate.setMonth(endDate.getMonth() + 3);
-          break;
-        case 'year':
-          endDate.setFullYear(endDate.getFullYear() + 1);
-          break;
-        default:
-          endDate.setMonth(endDate.getMonth() + 1);
+      let startDate: Date;
+      let endDate: Date;
+
+      if (formData.useCustomDates && formData.customStartDate && formData.customEndDate) {
+        // Usar datas personalizadas para migração
+        startDate = new Date(formData.customStartDate);
+        endDate = new Date(formData.customEndDate);
+      } else {
+        // Calcular automaticamente baseado no plano
+        startDate = new Date();
+        endDate = new Date();
+        
+        switch (selectedPlan.duration) {
+          case 'Diária':
+          case 'daily':
+            endDate.setDate(startDate.getDate() + 1);
+            break;
+          case 'month':
+            endDate.setMonth(endDate.getMonth() + 1);
+            break;
+          case 'quarter':
+            endDate.setMonth(endDate.getMonth() + 3);
+            break;
+          case 'year':
+            endDate.setFullYear(endDate.getFullYear() + 1);
+            break;
+          default:
+            endDate.setMonth(endDate.getMonth() + 1);
+        }
       }
 
       const enrollmentData = {
@@ -245,7 +276,8 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         // Reset form e limpar localStorage
         const resetData = {
           name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
-          plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
+          plan: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
+          healthIssues: '', restrictions: '', emergencyContact: ''
         };
         setFormData(resetData);
         localStorage.removeItem('algagym-new-enrollment-form');
@@ -360,27 +392,36 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
 
       console.log('Aluno criado com sucesso:', newStudent);
 
-      // Calcular data de vencimento baseada no plano
-      const startDate = new Date();
-      const endDate = new Date();
-      
-      switch (selectedPlan.duration) {
-        case 'Diária':
-        case 'daily':
-          // For daily plans, end date is start date + 1 day
-          endDate.setDate(startDate.getDate() + 1);
-          break;
-        case 'month':
-          endDate.setMonth(endDate.getMonth() + 1);
-          break;
-        case 'quarter':
-          endDate.setMonth(endDate.getMonth() + 3);
-          break;
-        case 'year':
-          endDate.setFullYear(endDate.getFullYear() + 1);
-          break;
-        default:
-          endDate.setMonth(endDate.getMonth() + 1);
+      // Calcular ou usar datas personalizadas
+      let startDate: Date;
+      let endDate: Date;
+
+      if (formData.useCustomDates && formData.customStartDate && formData.customEndDate) {
+        // Usar datas personalizadas para migração
+        startDate = new Date(formData.customStartDate);
+        endDate = new Date(formData.customEndDate);
+      } else {
+        // Calcular automaticamente baseado no plano
+        startDate = new Date();
+        endDate = new Date();
+        
+        switch (selectedPlan.duration) {
+          case 'Diária':
+          case 'daily':
+            endDate.setDate(startDate.getDate() + 1);
+            break;
+          case 'month':
+            endDate.setMonth(endDate.getMonth() + 1);
+            break;
+          case 'quarter':
+            endDate.setMonth(endDate.getMonth() + 3);
+            break;
+          case 'year':
+            endDate.setFullYear(endDate.getFullYear() + 1);
+            break;
+          default:
+            endDate.setMonth(endDate.getMonth() + 1);
+        }
       }
 
       // Criar a matrícula
@@ -408,7 +449,8 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         // Reset form e limpar localStorage
         const resetData = {
           name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
-          plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
+          plan: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
+          healthIssues: '', restrictions: '', emergencyContact: ''
         };
         setFormData(resetData);
         localStorage.removeItem('algagym-new-enrollment-form');
@@ -648,6 +690,63 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 <p className="text-red-600 text-base font-semibold">{validationErrors.plan}</p>
               )}
             </div>
+
+            {/* Opção de Datas Personalizadas */}
+            <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+              <div className="flex items-start space-x-3">
+                <Checkbox 
+                  id="useCustomDates"
+                  checked={formData.useCustomDates}
+                  onCheckedChange={(checked) => handleInputChange('useCustomDates', checked)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="useCustomDates" className="cursor-pointer font-medium">
+                    Usar datas personalizadas
+                  </Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Para migração de alunos com planos já ativos em outras academias
+                  </p>
+                </div>
+              </div>
+
+              {formData.useCustomDates && (
+                <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="customStartDate">Data de Início *</Label>
+                      <Input
+                        id="customStartDate"
+                        type="date"
+                        value={formData.customStartDate}
+                        onChange={(e) => handleInputChange('customStartDate', e.target.value)}
+                        className={`h-12 ${validationErrors.customStartDate ? 'border-red-500' : ''}`}
+                      />
+                      {validationErrors.customStartDate && (
+                        <p className="text-red-600 text-sm font-semibold">{validationErrors.customStartDate}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="customEndDate">Data de Vencimento *</Label>
+                      <Input
+                        id="customEndDate"
+                        type="date"
+                        value={formData.customEndDate}
+                        onChange={(e) => handleInputChange('customEndDate', e.target.value)}
+                        className={`h-12 ${validationErrors.customEndDate ? 'border-red-500' : ''}`}
+                      />
+                      {validationErrors.customEndDate && (
+                        <p className="text-red-600 text-sm font-semibold">{validationErrors.customEndDate}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-sm text-amber-700 dark:text-amber-300 flex items-start space-x-2">
+                    <span>⚠️</span>
+                    <span>As datas informadas serão usadas exatamente como fornecidas. Após o vencimento, você poderá renovar o plano normalmente.</span>
+                  </div>
+                </div>
+              )}
+            </div>
             
             <div className="space-y-2">
               <Label htmlFor="mainGoal">Objetivo Principal</Label>
@@ -730,7 +829,8 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
             onClick={() => {
               const resetData = {
                 name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
-                plan: '', mainGoal: '', notes: '', healthIssues: '', restrictions: '', emergencyContact: ''
+                plan: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
+                healthIssues: '', restrictions: '', emergencyContact: ''
               };
               setFormData(resetData);
               localStorage.removeItem('algagym-new-enrollment-form');
