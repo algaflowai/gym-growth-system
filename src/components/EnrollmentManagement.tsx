@@ -8,6 +8,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Search, Edit, Trash2, UserX, Eye, Loader2, UserCheck, RotateCcw, AlertTriangle, CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useEnrollments } from '@/hooks/useEnrollments';
 import { useGlobalStudents } from '@/hooks/useGlobalStudents';
@@ -344,7 +345,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
           <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">Buscar Matrículas</CardTitle>
           <CardDescription className="text-sm dark:text-gray-300">
             Busque por nome do aluno, email, telefone ou plano
-            {expiryDateFilter && ` - Vencendo em ${format(expiryDateFilter, 'dd/MM/yyyy')}`}
+            {expiryDateFilter && ` - Vencendo em ${format(expiryDateFilter, 'dd/MM/yyyy', { locale: ptBR })}`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -383,7 +384,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {expiryDateFilter ? format(expiryDateFilter, "dd/MM/yyyy") : "Filtrar por vencimento"}
+                    {expiryDateFilter ? format(expiryDateFilter, "dd/MM/yyyy", { locale: ptBR }) : "Filtrar por vencimento"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -392,6 +393,7 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
                     selected={expiryDateFilter}
                     onSelect={setExpiryDateFilter}
                     initialFocus
+                    locale={ptBR}
                     className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
