@@ -286,14 +286,6 @@ const SettingsSection = () => {
               </div>
               <Switch defaultChecked />
             </div>
-            
-            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div>
-                <div className="font-medium">Relatórios Automáticos</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Envio automático de relatórios mensais</div>
-              </div>
-              <Switch />
-            </div>
           </div>
         </CardContent>
       </Card>
