@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Settings, Bell, Database, KeyRound } from 'lucide-react';
+import { Settings, Bell, Database, KeyRound, Download, FileJson, FileSpreadsheet } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAccessPasswordManager } from '@/hooks/useAccessPasswordManager';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { useDataBackup } from '@/hooks/useDataBackup';
 
 const SettingsSection = () => {
   const [restrictedPasswordForm, setRestrictedPasswordForm] = useState({
@@ -26,6 +27,7 @@ const SettingsSection = () => {
 
   const { updatePassword } = useAccessPasswordManager();
   const { settings, updateSettings, loading: settingsLoading } = useSystemSettings();
+  const { exportToJSON, exportToCSV, isExporting } = useDataBackup();
 
   useEffect(() => {
     if (settings) {
@@ -302,14 +304,45 @@ const SettingsSection = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button variant="outline" className="h-12">
-              Fazer Backup dos Dados
-            </Button>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Exporte todos os dados do sistema (alunos, matrículas e histórico) em formato JSON ou CSV.
+            </p>
             
-            <Button variant="outline" className="h-12">
-              Exportar Relatórios
-            </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-12"
+                onClick={exportToJSON}
+                disabled={isExporting}
+              >
+                <FileJson className="mr-2 h-4 w-4" />
+                {isExporting ? 'Exportando...' : 'Exportar JSON'}
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="h-12"
+                onClick={exportToCSV}
+                disabled={isExporting}
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                {isExporting ? 'Exportando...' : 'Exportar CSV'}
+              </Button>
+            </div>
+
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <Download className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800 dark:text-blue-200">
+                  <div className="font-medium mb-1">Sobre o Backup</div>
+                  <ul className="list-disc list-inside space-y-1 text-blue-700 dark:text-blue-300">
+                    <li><strong>JSON:</strong> Um único arquivo com todos os dados estruturados</li>
+                    <li><strong>CSV:</strong> Três arquivos separados (alunos, matrículas e histórico)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
           
         </CardContent>
