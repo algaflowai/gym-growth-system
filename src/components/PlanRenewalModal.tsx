@@ -241,40 +241,43 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
           </div>
 
           {/* Preview do Novo Plano */}
-          {selectedPlanId && (
-            <Card className="border-green-200 bg-green-50">
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                  Preview da Renovação
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base">
-                  <div>
-                    <span className="text-gray-900 dark:text-white font-semibold">Nova Data de Início:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">{formatDate(newStartDate)}</p>
+          {selectedPlanId && newStartDate && newEndDate && (() => {
+            const previewPlan = activePlans.find(p => p.id === selectedPlanId);
+            return previewPlan ? (
+              <Card className="border-green-200 bg-green-50">
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                    Preview da Renovação
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base">
+                    <div>
+                      <span className="text-gray-900 dark:text-white font-semibold">Nova Data de Início:</span>
+                      <p className="font-medium text-gray-900 dark:text-white">{formatDate(newStartDate)}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-900 dark:text-white font-semibold">Nova Data de Término:</span>
+                      <p className="font-medium text-gray-900 dark:text-white">{formatDate(newEndDate)}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-900 dark:text-white font-semibold">Valor do Plano:</span>
+                      <p className="font-bold text-green-700 dark:text-green-400">
+                        R$ {previewPlan.price.toFixed(2)}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-900 dark:text-white font-semibold">Duração:</span>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {getDurationLabel(previewPlan.duration)}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-gray-900 dark:text-white font-semibold">Nova Data de Término:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">{formatDate(newEndDate)}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-900 dark:text-white font-semibold">Valor do Plano:</span>
-                    <p className="font-bold text-green-700 dark:text-green-400">
-                      R$ {activePlans.find(p => p.id === selectedPlanId)?.price.toFixed(2)}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-gray-900 dark:text-white font-semibold">Duração:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {getDurationLabel(activePlans.find(p => p.id === selectedPlanId)?.duration || '')}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            ) : null;
+          })()}
 
           {/* Botões de Ação */}
           <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">

@@ -158,8 +158,8 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
   if (!student) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }} modal={false}>
-      <DialogContent onInteractOutside={(e) => e.preventDefault()} className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-0">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-0">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg text-gray-900 dark:text-white">
             <UserCheck className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -223,7 +223,7 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
           </div>
 
           {/* Preview do Novo Plano */}
-          {selectedPlanId && (
+          {selectedPlanId && newStartDate && newEndDate && selectedPlan && (
             <Card className="border-green-200 bg-green-50">
               <CardHeader>
                 <CardTitle className="text-base sm:text-lg flex items-center gap-2">
@@ -244,13 +244,13 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
                   <div>
                     <span className="text-gray-900 dark:text-white font-semibold">Valor do Plano:</span>
                     <p className="font-bold text-green-700 dark:text-green-400">
-                      R$ {(selectedPlan?.price !== undefined ? selectedPlan.price.toFixed(2) : '0.00')}
+                      R$ {selectedPlan.price.toFixed(2)}
                     </p>
                   </div>
                   <div>
                     <span className="text-gray-900 dark:text-white font-semibold">Duração:</span>
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {getDurationLabel(selectedPlan?.duration || '')}
+                      {getDurationLabel(selectedPlan.duration)}
                     </p>
                   </div>
                 </div>

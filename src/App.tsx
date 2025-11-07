@@ -8,6 +8,7 @@ import AuthLogin from "./pages/AuthLogin";
 import AuthSignup from "./pages/AuthSignup";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppLayout from "./components/AppLayout";
+import RootErrorBoundary from "./components/RootErrorBoundary";
 import {
   DashboardRoute,
   NewEnrollmentRoute,
@@ -23,38 +24,40 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<AuthLogin />} />
-          <Route path="/signup" element={<AuthSignup />} />
-          
-          {/* Protected routes with layout */}
-          <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-            <Route index element={<DashboardRoute />} />
-            <Route path="dashboard" element={<DashboardRoute />} />
-            <Route path="nova-matricula" element={<NewEnrollmentRoute />} />
-            <Route path="gestao-matriculas" element={<EnrollmentManagementRoute />} />
-            <Route path="alunos" element={<StudentsManagementRoute />} />
-            <Route path="planos" element={<PlansManagementRoute />} />
-            <Route path="ai-trainer" element={<AITrainerRoute />} />
-            <Route path="financeiro" element={<FinancialSectionRoute />} />
-            <Route path="configuracoes" element={<SettingsSectionRoute />} />
-          </Route>
-          
-          {/* Fallback for unauthenticated users */}
-          <Route path="/apresentacao" element={<Index />} />
-          
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <RootErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<AuthLogin />} />
+            <Route path="/signup" element={<AuthSignup />} />
+            
+            {/* Protected routes with layout */}
+            <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+              <Route index element={<DashboardRoute />} />
+              <Route path="dashboard" element={<DashboardRoute />} />
+              <Route path="nova-matricula" element={<NewEnrollmentRoute />} />
+              <Route path="gestao-matriculas" element={<EnrollmentManagementRoute />} />
+              <Route path="alunos" element={<StudentsManagementRoute />} />
+              <Route path="planos" element={<PlansManagementRoute />} />
+              <Route path="ai-trainer" element={<AITrainerRoute />} />
+              <Route path="financeiro" element={<FinancialSectionRoute />} />
+              <Route path="configuracoes" element={<SettingsSectionRoute />} />
+            </Route>
+            
+            {/* Fallback for unauthenticated users */}
+            <Route path="/apresentacao" element={<Index />} />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </RootErrorBoundary>
 );
 
 export default App;
