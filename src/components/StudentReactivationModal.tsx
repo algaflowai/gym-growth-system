@@ -182,17 +182,17 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
                 <Badge className="bg-gray-200 text-gray-900 font-bold hover:bg-gray-200">Inativo</Badge>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base">
-                <div>
+                <div className="overflow-hidden">
                   <span className="text-gray-900 dark:text-white font-semibold">Email:</span>
-                  <p className="font-medium text-gray-900 dark:text-white">{student.email}</p>
+                  <p className="font-medium text-gray-900 dark:text-white break-all">{student.email}</p>
                 </div>
-                <div>
+                <div className="overflow-hidden">
                   <span className="text-gray-900 dark:text-white font-semibold">Telefone:</span>
-                  <p className="font-medium text-gray-900 dark:text-white">{student.phone}</p>
+                  <p className="font-medium text-gray-900 dark:text-white break-all">{student.phone}</p>
                 </div>
-                <div>
+                <div className="overflow-hidden">
                   <span className="text-gray-900 dark:text-white font-semibold">CPF:</span>
-                  <p className="font-medium text-gray-900 dark:text-white">{student.cpf}</p>
+                  <p className="font-medium text-gray-900 dark:text-white break-all">{student.cpf}</p>
                 </div>
                 <div>
                   <span className="text-gray-900 dark:text-white font-semibold">Status:</span>
@@ -224,9 +224,9 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
 
           {/* Preview do Novo Plano */}
           {selectedPlanId && newStartDate && newEndDate && selectedPlan && (
-            <Card className="border-green-200 bg-green-50">
+            <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
               <CardHeader>
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2 text-green-900 dark:text-green-100">
                   <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                   Preview da Reativação
                 </CardTitle>
@@ -234,22 +234,22 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base">
                   <div>
-                    <span className="text-gray-900 dark:text-white font-semibold">Data de Início:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">{formatDate(newStartDate)}</p>
+                    <span className="text-green-800 dark:text-green-200 font-semibold">Data de Início:</span>
+                    <p className="font-medium text-green-900 dark:text-green-100">{formatDate(newStartDate)}</p>
                   </div>
                   <div>
-                    <span className="text-gray-900 dark:text-white font-semibold">Data de Término:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">{formatDate(newEndDate)}</p>
+                    <span className="text-green-800 dark:text-green-200 font-semibold">Data de Término:</span>
+                    <p className="font-medium text-green-900 dark:text-green-100">{formatDate(newEndDate)}</p>
                   </div>
                   <div>
-                    <span className="text-gray-900 dark:text-white font-semibold">Valor do Plano:</span>
-                    <p className="font-bold text-green-700 dark:text-green-400">
+                    <span className="text-green-800 dark:text-green-200 font-semibold">Valor do Plano:</span>
+                    <p className="font-bold text-green-700 dark:text-green-300">
                       R$ {selectedPlan.price.toFixed(2)}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-900 dark:text-white font-semibold">Duração:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <span className="text-green-800 dark:text-green-200 font-semibold">Duração:</span>
+                    <p className="font-medium text-green-900 dark:text-green-100">
                       {getDurationLabel(selectedPlan.duration)}
                     </p>
                   </div>
