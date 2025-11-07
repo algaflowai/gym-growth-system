@@ -69,7 +69,7 @@ export const useEnrollments = () => {
         console.error('Error updating expired enrollments:', expiredError);
       }
 
-      // Then inactivate enrollments that have been expired for more than 5 days
+      // Then inactivate enrollments that have been expired for more than 7 days
       const { error: inactivateError } = await supabase
         .rpc('inactivate_expired_enrollments');
 
