@@ -71,6 +71,7 @@ export const useGlobalStudents = () => {
         .from('students')
         .select('*')
         .neq('status', 'deleted')
+        .eq('user_id', user.id)
         .order('name');
 
       if (error) {
