@@ -56,6 +56,7 @@ export const useStudents = () => {
         .from('students')
         .select('*')
         .neq('status', 'deleted')
+        .eq('user_id', user.id)
         .order('name');
 
       if (error) {
@@ -136,10 +137,22 @@ export const useStudents = () => {
 
   const updateStudent = async (id: string, updates: Partial<Student>) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para atualizar um aluno.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       const { error } = await supabase
         .from('students')
         .update(updates)
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Error updating student:', error);
@@ -171,10 +184,22 @@ export const useStudents = () => {
 
   const deleteStudent = async (id: string) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para excluir um aluno.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       const { error } = await supabase
         .from('students')
         .update({ status: 'deleted', deleted_at: new Date().toISOString() })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Error deleting student:', error);
