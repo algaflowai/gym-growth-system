@@ -56,20 +56,24 @@ export const useEnrollments = () => {
   // Função para atualizar status automaticamente baseado na data
   const updateExpiredEnrollments = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       const today = dayjs.tz(new Date(), BRAZIL_TZ).format('YYYY-MM-DD');
       
-      // First mark expired enrollments
+      // First mark expired enrollments only for the current user
       const { error: expiredError } = await supabase
         .from('enrollments')
         .update({ status: 'expired' })
         .lt('end_date', today)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .eq('user_id', user.id);
 
       if (expiredError) {
         console.error('Error updating expired enrollments:', expiredError);
       }
 
-      // Then inactivate enrollments that have been expired for more than 7 days
+      // Then inactivate enrollments that have been expired for more than 7 days (handled by RPC)
       const { error: inactivateError } = await supabase
         .rpc('inactivate_expired_enrollments');
 
@@ -103,6 +107,7 @@ export const useEnrollments = () => {
           student:students(*)
         `)
         .in('status', ['active', 'inactive', 'expired']) // Show all statuses
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -152,7 +157,8 @@ export const useEnrollments = () => {
         .from('enrollments')
         .select('*')
         .eq('student_id', enrollmentData.student_id)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .eq('user_id', user.id);
 
       if (checkError) {
         console.error('Error checking existing enrollments:', checkError);
@@ -190,7 +196,8 @@ export const useEnrollments = () => {
           const { error: deleteError } = await supabase
             .from('enrollments')
             .delete()
-            .eq('id', enrollment.id);
+            .eq('id', enrollment.id)
+            .eq('user_id', user.id);
 
           if (deleteError) {
             console.error('Error deleting existing enrollment:', deleteError);
@@ -379,6 +386,7 @@ export const useEnrollments = () => {
         .from('enrollments')
         .select('*')
         .eq('id', currentEnrollmentId)
+        .eq('user_id', user.id)
         .single();
 
       if (fetchError || !currentEnrollment) {
@@ -446,7 +454,8 @@ export const useEnrollments = () => {
           end_date: dayjs.tz(endDate, BRAZIL_TZ).format('YYYY-MM-DD'),
           status: 'active' as EnrollmentStatus
         })
-        .eq('id', currentEnrollmentId);
+        .eq('id', currentEnrollmentId)
+        .eq('user_id', user.id);
 
       if (updateError) {
         console.error('Error updating enrollment:', updateError);

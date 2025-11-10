@@ -172,13 +172,6 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
         
         // Recarrega a lista de matrículas
         await fetchEnrollments();
-      } else {
-        console.log(`Falha ao excluir matrícula ${enrollmentId}`);
-        toast({
-          title: "Falha na Exclusão",
-          description: "Não foi possível excluir a matrícula. Verifique suas permissões e tente novamente.",
-          variant: "destructive",
-        });
       }
     } catch (error: any) {
       console.error('Erro inesperado na exclusão:', error);

@@ -204,6 +204,7 @@ export const useGlobalStudents = () => {
         .from('enrollments')
         .select('id')
         .eq('student_id', id)
+        .eq('user_id', user.id)
         .in('status', ['active', 'expired']);
 
       if (enrollmentError) {
@@ -224,6 +225,7 @@ export const useGlobalStudents = () => {
             .from('enrollments')
             .select('*')
             .eq('id', enrollment.id)
+            .eq('user_id', user.id)
             .single();
 
           if (!getError && fullEnrollment) {
@@ -250,7 +252,8 @@ export const useGlobalStudents = () => {
             const { error: deleteEnrollmentError } = await supabase
               .from('enrollments')
               .delete()
-              .eq('id', enrollment.id);
+              .eq('id', enrollment.id)
+              .eq('user_id', user.id);
 
             if (deleteEnrollmentError) {
               console.error('Error deleting enrollment:', deleteEnrollmentError);
