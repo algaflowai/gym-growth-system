@@ -360,6 +360,10 @@ export type Database = {
         Args: { new_password: string; page_name: string }
         Returns: undefined
       }
+      verify_page_access: {
+        Args: { page_name_input: string; password_input: string }
+        Returns: boolean
+      }
       verify_password: {
         Args: { password_input: string; stored_hash: string }
         Returns: boolean

@@ -13,45 +13,18 @@ export const useAccessPasswordManager = () => {
     try {
       setLoading(true);
       
-      // Security: Removed debug logging of sensitive data
-      
       // Clean and sanitize password
       const cleanPassword = sanitizeText(enteredPassword.trim().replace(/[\u200B-\u200D\uFEFF]/g, ''));
       
-      const { data, error } = await supabase
-        .from('access_passwords')
-        .select('password_hash')
-        .eq('page_name', page)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error querying password:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao verificar senha.",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      if (!data) {
-        toast({
-          title: "Erro",
-          description: "Senha não encontrada para esta página.",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      // Verify password using secure RPC function
-      const { data: verifyResult, error: verifyError } = await supabase
-        .rpc('verify_password', {
-          stored_hash: data.password_hash,
+      // Verify password using secure RPC function (doesn't expose password hashes to client)
+      const { data: isValid, error } = await supabase
+        .rpc('verify_page_access', {
+          page_name_input: page,
           password_input: cleanPassword
         });
 
-      if (verifyError) {
-        console.error('Error verifying password:', verifyError);
+      if (error) {
+        console.error('Error verifying password:', error);
         toast({
           title: "Erro",
           description: "Erro ao verificar senha.",
@@ -60,13 +33,12 @@ export const useAccessPasswordManager = () => {
         return false;
       }
 
-      if (verifyResult) {
+      if (isValid) {
         await logPasswordVerification(page, true);
         return true;
       }
 
       await logPasswordVerification(page, false);
-
       toast({
         title: "Erro",
         description: "Senha incorreta.",
