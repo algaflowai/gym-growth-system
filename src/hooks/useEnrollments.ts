@@ -303,24 +303,42 @@ export const useEnrollments = () => {
         endDate = expires.toDate();
       }
 
-      // Criar nova matrícula para o aluno reativado
-      const { data, error } = await supabase
+      // Buscar a matrícula inativa existente do aluno
+      const { data: inactiveEnrollment, error: fetchError } = await supabase
         .from('enrollments')
-        .insert([{
-          student_id: studentId,
+        .select('*')
+        .eq('student_id', studentId)
+        .eq('user_id', user.id)
+        .eq('status', 'inactive')
+        .single();
+
+      if (fetchError || !inactiveEnrollment) {
+        console.error('Matrícula inativa não encontrada:', fetchError);
+        toast({
+          title: "Erro",
+          description: "Não foi possível encontrar a matrícula inativa do aluno.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Atualizar a matrícula existente (não criar nova)
+      const { error: updateError } = await supabase
+        .from('enrollments')
+        .update({
           plan_id: planId,
           plan_name: planName,
           plan_price: planPrice,
           start_date: dayjs.tz(startDate, BRAZIL_TZ).format('YYYY-MM-DD'),
           end_date: dayjs.tz(endDate, BRAZIL_TZ).format('YYYY-MM-DD'),
           status: 'active' as EnrollmentStatus,
-          user_id: user.id
-        }])
-        .select()
-        .single();
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', inactiveEnrollment.id)
+        .eq('user_id', user.id);
 
-      if (error) {
-        console.error('Error creating reactivation enrollment:', error);
+      if (updateError) {
+        console.error('Error updating enrollment:', updateError);
         toast({
           title: "Erro",
           description: "Não foi possível reativar o aluno.",
@@ -333,7 +351,8 @@ export const useEnrollments = () => {
       const { error: studentUpdateError } = await supabase
         .from('students')
         .update({ status: 'active' })
-        .eq('id', studentId);
+        .eq('id', studentId)
+        .eq('user_id', user.id);
 
       if (studentUpdateError) {
         console.error('Error updating student status:', studentUpdateError);
