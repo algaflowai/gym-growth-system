@@ -97,7 +97,6 @@ serve(async (req) => {
     const netProfit = totalRevenue - totalExpensesForPeriod;
 
     // Receita Mensal (mês atual)
-    const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
     const monthlyRevenue = enrollments.filter(e => {
