@@ -66,6 +66,11 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
   const [formData, setFormData] = useState(loadSavedFormData);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  
+  // Estados para parcelamento
+  const [isInstallmentPlan, setIsInstallmentPlan] = useState(false);
+  const [totalInstallments, setTotalInstallments] = useState('3');
+  const [paymentDay, setPaymentDay] = useState(10);
 
   // Salvar dados no localStorage sempre que formData mudar
   useEffect(() => {
@@ -437,7 +442,12 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
 
       console.log('Dados da matrícula para criar:', enrollmentData);
 
-      const newEnrollment = await createEnrollment(enrollmentData);
+      // Criar matrícula com suporte a parcelamento
+      const newEnrollment = await createEnrollment(
+        enrollmentData,
+        isInstallmentPlan,
+        isInstallmentPlan ? { total_installments: parseInt(totalInstallments), payment_day: paymentDay } : undefined
+      );
       
       if (newEnrollment) {
         console.log('Matrícula criada com sucesso:', newEnrollment);
@@ -743,6 +753,82 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                   <div className="text-sm text-amber-700 dark:text-amber-300 flex items-start space-x-2">
                     <span>⚠️</span>
                     <span>As datas informadas serão usadas exatamente como fornecidas. Após o vencimento, você poderá renovar o plano normalmente.</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Opção de Parcelamento */}
+            <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+              <div className="flex items-start space-x-3">
+                <Checkbox 
+                  id="installmentPlan"
+                  checked={isInstallmentPlan}
+                  onCheckedChange={(checked) => setIsInstallmentPlan(!!checked)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="installmentPlan" className="cursor-pointer font-medium">
+                    Parcelar pagamento (Recorrente)
+                  </Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Dividir o valor em múltiplas parcelas mensais com controle de inadimplência
+                  </p>
+                </div>
+              </div>
+
+              {isInstallmentPlan && (
+                <div className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-purple-200 dark:border-purple-700">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="totalInstallments">Número de Parcelas *</Label>
+                      <select
+                        id="totalInstallments"
+                        value={totalInstallments}
+                        onChange={(e) => setTotalInstallments(e.target.value)}
+                        className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="6">6x</option>
+                        <option value="12">12x</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="paymentDay">Dia de Vencimento (1-28) *</Label>
+                      <Input
+                        id="paymentDay"
+                        type="number"
+                        min="1"
+                        max="28"
+                        value={paymentDay}
+                        onChange={(e) => setPaymentDay(parseInt(e.target.value) || 10)}
+                        className="h-12"
+                      />
+                    </div>
+                  </div>
+                  {formData.plan && (
+                    <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium">Valor Total:</span>
+                        <span className="text-lg font-bold">
+                          R$ {plans.find(p => p.id === formData.plan)?.price.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Valor da Parcela:</span>
+                        <span className="text-2xl font-bold text-purple-600">
+                          R$ {((plans.find(p => p.id === formData.plan)?.price || 0) / parseInt(totalInstallments)).toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {totalInstallments}x de R$ {((plans.find(p => p.id === formData.plan)?.price || 0) / parseInt(totalInstallments)).toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+                  <div className="text-sm text-purple-700 dark:text-purple-300 flex items-start space-x-2">
+                    <span>ℹ️</span>
+                    <span>As parcelas serão geradas automaticamente e o aluno será bloqueado em caso de inadimplência.</span>
                   </div>
                 </div>
               )}

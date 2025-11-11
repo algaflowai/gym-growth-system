@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, CreditCardIcon, HistoryIcon } from 'lucide-react';
+import { CalendarIcon, CreditCardIcon, HistoryIcon, DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Enrollment } from '@/hooks/useEnrollments';
 import { Student } from '@/hooks/useStudents';
 import dayjs from '@/lib/dayjs';
 import { nowInBrazil, BRAZIL_TZ } from '@/lib/dayjs';
+import { useInstallments, Installment } from '@/hooks/useInstallments';
 
 interface StudentEnrollmentHistoryProps {
   studentId: string;
@@ -20,6 +21,9 @@ type EnrollmentStatus = "active" | "inactive" | "expired";
 const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHistoryProps) => {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
+  const { installments, loading: installmentsLoading, fetchInstallments, markAsPaid } = useInstallments();
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+  const [showPaymentDialog, setShowPaymentDialog] = useState<string | null>(null);
 
   const fetchStudentEnrollments = async () => {
     try {
@@ -60,6 +64,7 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
   useEffect(() => {
     if (studentId) {
       fetchStudentEnrollments();
+      fetchInstallments(undefined, studentId);
     }
   }, [studentId]);
 
@@ -117,6 +122,23 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
 
   const getTotalValue = () => {
     return enrollments.reduce((total, enrollment) => total + enrollment.plan_price, 0);
+  };
+
+  const getInstallmentStatusBadge = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return <Badge className="bg-green-500">Pago</Badge>;
+      case 'overdue':
+        return <Badge variant="destructive">Atrasado</Badge>;
+      default:
+        return <Badge variant="secondary">Pendente</Badge>;
+    }
+  };
+
+  const handleConfirmPayment = async (installmentId: string, method: string) => {
+    await markAsPaid(installmentId, method);
+    setShowPaymentDialog(null);
+    setSelectedPaymentMethod('');
   };
 
   if (loading) {
@@ -244,6 +266,92 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
           </Card>
         )}
       </div>
+
+      {/* Seção de Parcelas */}
+      {installments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Parcelas de Pagamento
+            </CardTitle>
+            <CardDescription>
+              Controle de parcelas e pagamentos do plano
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {installments.map((installment) => (
+              <div key={installment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold">
+                      Parcela {installment.installment_number}/{installment.total_installments}
+                    </span>
+                    {getInstallmentStatusBadge(installment.status)}
+                  </div>
+                  <div className="text-sm text-muted-foreground flex items-center gap-4">
+                    <span>Vencimento: {dayjs(installment.due_date).format('DD/MM/YYYY')}</span>
+                    <span className="font-semibold text-foreground">
+                      R$ {Number(installment.amount).toFixed(2)}
+                    </span>
+                  </div>
+                  {installment.paid_date && (
+                    <p className="text-xs text-green-600 mt-1">
+                      Pago em {dayjs(installment.paid_date).format('DD/MM/YYYY')}
+                      {installment.payment_method && ` via ${installment.payment_method}`}
+                    </p>
+                  )}
+                </div>
+                {installment.status !== 'paid' && (
+                  <div className="ml-4">
+                    {showPaymentDialog === installment.id ? (
+                      <div className="flex flex-col gap-2">
+                        <select
+                          value={selectedPaymentMethod}
+                          onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                          className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        >
+                          <option value="">Método</option>
+                          <option value="dinheiro">Dinheiro</option>
+                          <option value="pix">PIX</option>
+                          <option value="cartao_debito">Débito</option>
+                          <option value="cartao_credito">Crédito</option>
+                        </select>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleConfirmPayment(installment.id, selectedPaymentMethod)}
+                            disabled={!selectedPaymentMethod}
+                          >
+                            Confirmar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setShowPaymentDialog(null);
+                              setSelectedPaymentMethod('');
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={() => setShowPaymentDialog(installment.id)}
+                      >
+                        Confirmar Pagamento
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

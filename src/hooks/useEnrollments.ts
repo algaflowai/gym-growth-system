@@ -139,7 +139,11 @@ export const useEnrollments = () => {
     }
   };
 
-  const createEnrollment = async (enrollmentData: Omit<Enrollment, 'id' | 'created_at' | 'updated_at' | 'student' | 'user_id'>) => {
+  const createEnrollment = async (
+    enrollmentData: Omit<Enrollment, 'id' | 'created_at' | 'updated_at' | 'student' | 'user_id'>,
+    isInstallmentPlan = false,
+    installmentConfig?: { total_installments: number; payment_day: number }
+  ) => {
     try {
       // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
@@ -251,6 +255,44 @@ export const useEnrollments = () => {
         title: "Sucesso",
         description: "Matrícula criada com sucesso!",
       });
+
+      // Se for plano parcelado, gerar parcelas
+      if (isInstallmentPlan && installmentConfig && data) {
+        console.log('Gerando parcelas para a matrícula:', data.id);
+        const { error: installmentsError } = await supabase.functions.invoke('generate-installments', {
+          body: {
+            enrollment_id: data.id,
+            user_id: user.id,
+            student_id: data.student_id,
+            total_amount: data.plan_price,
+            total_installments: installmentConfig.total_installments,
+            start_date: data.start_date,
+            payment_day: installmentConfig.payment_day
+          }
+        });
+
+        if (installmentsError) {
+          console.error('Erro ao gerar parcelas:', installmentsError);
+          toast({
+            title: "Aviso",
+            description: "Matrícula criada, mas houve erro ao gerar parcelas.",
+            variant: "destructive",
+          });
+        } else {
+          // Atualizar enrollment com flag de parcelado
+          await supabase
+            .from('enrollments')
+            .update({
+              is_installment_plan: true,
+              total_installments: installmentConfig.total_installments,
+              installment_amount: data.plan_price / installmentConfig.total_installments,
+              payment_day: installmentConfig.payment_day
+            })
+            .eq('id', data.id);
+          
+          console.log('Parcelas geradas com sucesso');
+        }
+      }
 
       await fetchEnrollments();
       return data;

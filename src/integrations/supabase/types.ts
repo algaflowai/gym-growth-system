@@ -103,12 +103,16 @@ export type Database = {
           created_at: string
           end_date: string
           id: string
+          installment_amount: number | null
+          is_installment_plan: boolean | null
+          payment_day: number | null
           plan_id: string
           plan_name: string
           plan_price: number
           start_date: string
           status: string
           student_id: string
+          total_installments: number | null
           updated_at: string
           user_id: string
         }
@@ -116,12 +120,16 @@ export type Database = {
           created_at?: string
           end_date: string
           id?: string
+          installment_amount?: number | null
+          is_installment_plan?: boolean | null
+          payment_day?: number | null
           plan_id: string
           plan_name: string
           plan_price: number
           start_date?: string
           status?: string
           student_id: string
+          total_installments?: number | null
           updated_at?: string
           user_id: string
         }
@@ -129,18 +137,88 @@ export type Database = {
           created_at?: string
           end_date?: string
           id?: string
+          installment_amount?: number | null
+          is_installment_plan?: boolean | null
+          payment_day?: number | null
           plan_id?: string
           plan_name?: string
           plan_price?: number
           start_date?: string
           status?: string
           student_id?: string
+          total_installments?: number | null
           updated_at?: string
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_installments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          due_date: string
+          enrollment_id: string
+          id: string
+          installment_number: number
+          notes: string | null
+          paid_date: string | null
+          payment_method: string | null
+          status: string
+          student_id: string
+          total_installments: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          due_date: string
+          enrollment_id: string
+          id?: string
+          installment_number: number
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          status?: string
+          student_id: string
+          total_installments: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          due_date?: string
+          enrollment_id?: string
+          id?: string
+          installment_number?: number
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          status?: string
+          student_id?: string
+          total_installments?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_installments_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_installments_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"

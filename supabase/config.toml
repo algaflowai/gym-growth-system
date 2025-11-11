@@ -1,1 +1,13 @@
 project_id = "wuuzmuxyiessejxsrzjl"
+
+[functions.generate-workout]
+verify_jwt = false
+
+[functions.get-financial-dashboard]
+verify_jwt = false
+
+[functions.generate-installments]
+verify_jwt = false
+
+[functions.check-overdue-installments]
+verify_jwt = false
