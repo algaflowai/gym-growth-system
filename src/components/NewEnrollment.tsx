@@ -71,6 +71,9 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
   const [isInstallmentPlan, setIsInstallmentPlan] = useState(false);
   const [totalInstallments, setTotalInstallments] = useState('3');
   const [paymentDay, setPaymentDay] = useState(10);
+  
+  // Estados para plano personalizado/familiar
+  const [isCustomPlan, setIsCustomPlan] = useState(false);
 
   // Salvar dados no localStorage sempre que formData mudar
   useEffect(() => {
@@ -698,6 +701,29 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
               </RadioGroup>
               {validationErrors.plan && (
                 <p className="text-red-600 text-base font-semibold">{validationErrors.plan}</p>
+              )}
+            </div>
+            
+            {/* Opção de Plano Personalizado/Familiar */}
+            <div className="space-y-3 border-t pt-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="custom-plan"
+                  checked={isCustomPlan}
+                  onCheckedChange={(checked) => setIsCustomPlan(checked as boolean)}
+                />
+                <Label htmlFor="custom-plan" className="text-base font-medium cursor-pointer">
+                  Plano Personalizado/Familiar (com dependentes)
+                </Label>
+              </div>
+              {isCustomPlan && (
+                <Alert className="bg-blue-50 border-blue-200">
+                  <AlertDescription className="text-sm">
+                    <strong>Plano Personalizado:</strong> Após criar a matrícula, você poderá adicionar dependentes
+                    (familiares) ao plano. O valor total será calculado automaticamente como a soma das mensalidades
+                    individuais de cada pessoa.
+                  </AlertDescription>
+                </Alert>
               )}
             </div>
 

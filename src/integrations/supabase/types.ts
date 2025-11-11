@@ -38,6 +38,61 @@ export type Database = {
         }
         Relationships: []
       }
+      enrollment_dependents: {
+        Row: {
+          created_at: string
+          dependent_price: number
+          dependent_student_id: string
+          enrollment_id: string
+          id: string
+          student_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dependent_price: number
+          dependent_student_id: string
+          enrollment_id: string
+          id?: string
+          student_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dependent_price?: number
+          dependent_student_id?: string
+          enrollment_id?: string
+          id?: string
+          student_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollment_dependents_dependent_student_id_fkey"
+            columns: ["dependent_student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollment_dependents_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollment_dependents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollment_history: {
         Row: {
           archived_at: string

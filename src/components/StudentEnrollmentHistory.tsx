@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, CreditCardIcon, HistoryIcon, DollarSign } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CalendarIcon, CreditCardIcon, HistoryIcon, DollarSign, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Enrollment } from '@/hooks/useEnrollments';
 import { Student } from '@/hooks/useStudents';
 import dayjs from '@/lib/dayjs';
 import { nowInBrazil, BRAZIL_TZ } from '@/lib/dayjs';
 import { useInstallments, Installment } from '@/hooks/useInstallments';
+import { EnrollmentDependentsView } from './EnrollmentDependentsView';
 
 interface StudentEnrollmentHistoryProps {
   studentId: string;
@@ -191,6 +193,7 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
       <div className="space-y-4">
         {enrollments.map((enrollment, index) => {
           const monthsCovered = getMonthsCovered(enrollment.start_date, enrollment.end_date);
+          const isActivePlan = index === 0 && getDisplayStatus(enrollment) === 'active';
           
           return (
             <Card key={enrollment.id} className="border-l-4 border-l-blue-500">
@@ -212,40 +215,178 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4 text-gray-500" />
-                    <div>
-                      <div className="text-sm text-gray-600">Período</div>
-                      <div className="font-medium">
-                        {new Date(enrollment.start_date).toLocaleDateString('pt-BR')} até{' '}
-                        {new Date(enrollment.end_date).toLocaleDateString('pt-BR')}
+                {isActivePlan ? (
+                  <Tabs defaultValue="detalhes" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
+                      <TabsTrigger value="parcelas">
+                        <DollarSign className="h-4 w-4 mr-1" />
+                        Parcelas
+                      </TabsTrigger>
+                      <TabsTrigger value="dependentes">
+                        <Users className="h-4 w-4 mr-1" />
+                        Dependentes
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="detalhes" className="space-y-4 mt-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center gap-2">
+                          <CalendarIcon className="h-4 w-4 text-gray-500" />
+                          <div>
+                            <div className="text-sm text-gray-600">Período</div>
+                            <div className="font-medium">
+                              {new Date(enrollment.start_date).toLocaleDateString('pt-BR')} até{' '}
+                              {new Date(enrollment.end_date).toLocaleDateString('pt-BR')}
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-600">Data de Contratação</div>
+                          <div className="font-medium">
+                            {new Date(enrollment.created_at).toLocaleDateString('pt-BR')}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-sm text-gray-600 mb-2">Meses Cobertos por este Plano:</div>
+                        <div className="flex flex-wrap gap-2">
+                          {monthsCovered.map((month, monthIndex) => (
+                            <Badge key={monthIndex} variant="secondary" className="text-xs">
+                              {month}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="text-sm font-medium text-green-800">
+                          ✓ Este é o plano ativo atual
+                        </div>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="parcelas" className="mt-4">
+                      {installments.filter(i => i.enrollment_id === enrollment.id).length > 0 ? (
+                        <div className="space-y-3">
+                          {installments
+                            .filter(i => i.enrollment_id === enrollment.id)
+                            .map((installment) => (
+                              <div key={installment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-semibold text-sm">
+                                      Parcela {installment.installment_number}/{installment.total_installments}
+                                    </span>
+                                    {getInstallmentStatusBadge(installment.status)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground flex items-center gap-4">
+                                    <span>Vencimento: {dayjs(installment.due_date).format('DD/MM/YYYY')}</span>
+                                    <span className="font-semibold text-foreground">
+                                      R$ {Number(installment.amount).toFixed(2)}
+                                    </span>
+                                  </div>
+                                  {installment.paid_date && (
+                                    <p className="text-xs text-green-600 mt-1">
+                                      Pago em {dayjs(installment.paid_date).format('DD/MM/YYYY')}
+                                      {installment.payment_method && ` via ${installment.payment_method}`}
+                                    </p>
+                                  )}
+                                </div>
+                                {installment.status !== 'paid' && (
+                                  <div className="ml-4">
+                                    {showPaymentDialog === installment.id ? (
+                                      <div className="flex flex-col gap-2">
+                                        <select
+                                          value={selectedPaymentMethod}
+                                          onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                                          className="h-8 rounded-md border border-input bg-background px-2 py-1 text-xs"
+                                        >
+                                          <option value="">Método</option>
+                                          <option value="dinheiro">Dinheiro</option>
+                                          <option value="pix">PIX</option>
+                                          <option value="cartao_debito">Débito</option>
+                                          <option value="cartao_credito">Crédito</option>
+                                        </select>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            size="sm"
+                                            onClick={() => handleConfirmPayment(installment.id, selectedPaymentMethod)}
+                                            disabled={!selectedPaymentMethod}
+                                          >
+                                            Confirmar
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => {
+                                              setShowPaymentDialog(null);
+                                              setSelectedPaymentMethod('');
+                                            }}
+                                          >
+                                            Cancelar
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <Button
+                                        size="sm"
+                                        onClick={() => setShowPaymentDialog(installment.id)}
+                                      >
+                                        Confirmar
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          Nenhuma parcela configurada para este plano
+                        </div>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="dependentes" className="mt-4">
+                      <EnrollmentDependentsView 
+                        enrollmentId={enrollment.id} 
+                        studentId={studentId}
+                        isActive={true}
+                      />
+                    </TabsContent>
+                  </Tabs>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <div className="text-sm text-gray-600">Período</div>
+                          <div className="font-medium">
+                            {new Date(enrollment.start_date).toLocaleDateString('pt-BR')} até{' '}
+                            {new Date(enrollment.end_date).toLocaleDateString('pt-BR')}
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Data de Contratação</div>
+                        <div className="font-medium">
+                          {new Date(enrollment.created_at).toLocaleDateString('pt-BR')}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600">Data de Contratação</div>
-                    <div className="font-medium">
-                      {new Date(enrollment.created_at).toLocaleDateString('pt-BR')}
-                    </div>
-                  </div>
-                </div>
 
-                <div>
-                  <div className="text-sm text-gray-600 mb-2">Meses Cobertos por este Plano:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {monthsCovered.map((month, monthIndex) => (
-                      <Badge key={monthIndex} variant="secondary" className="text-xs">
-                        {month}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {index === 0 && getDisplayStatus(enrollment) === 'active' && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <div className="text-sm font-medium text-green-800">
-                      ✓ Este é o plano ativo atual
+                    <div>
+                      <div className="text-sm text-gray-600 mb-2">Meses Cobertos por este Plano:</div>
+                      <div className="flex flex-wrap gap-2">
+                        {monthsCovered.map((month, monthIndex) => (
+                          <Badge key={monthIndex} variant="secondary" className="text-xs">
+                            {month}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -267,91 +408,7 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
         )}
       </div>
 
-      {/* Seção de Parcelas */}
-      {installments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Parcelas de Pagamento
-            </CardTitle>
-            <CardDescription>
-              Controle de parcelas e pagamentos do plano
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {installments.map((installment) => (
-              <div key={installment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold">
-                      Parcela {installment.installment_number}/{installment.total_installments}
-                    </span>
-                    {getInstallmentStatusBadge(installment.status)}
-                  </div>
-                  <div className="text-sm text-muted-foreground flex items-center gap-4">
-                    <span>Vencimento: {dayjs(installment.due_date).format('DD/MM/YYYY')}</span>
-                    <span className="font-semibold text-foreground">
-                      R$ {Number(installment.amount).toFixed(2)}
-                    </span>
-                  </div>
-                  {installment.paid_date && (
-                    <p className="text-xs text-green-600 mt-1">
-                      Pago em {dayjs(installment.paid_date).format('DD/MM/YYYY')}
-                      {installment.payment_method && ` via ${installment.payment_method}`}
-                    </p>
-                  )}
-                </div>
-                {installment.status !== 'paid' && (
-                  <div className="ml-4">
-                    {showPaymentDialog === installment.id ? (
-                      <div className="flex flex-col gap-2">
-                        <select
-                          value={selectedPaymentMethod}
-                          onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                          className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                        >
-                          <option value="">Método</option>
-                          <option value="dinheiro">Dinheiro</option>
-                          <option value="pix">PIX</option>
-                          <option value="cartao_debito">Débito</option>
-                          <option value="cartao_credito">Crédito</option>
-                        </select>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleConfirmPayment(installment.id, selectedPaymentMethod)}
-                            disabled={!selectedPaymentMethod}
-                          >
-                            Confirmar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setShowPaymentDialog(null);
-                              setSelectedPaymentMethod('');
-                            }}
-                          >
-                            Cancelar
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => setShowPaymentDialog(installment.id)}
-                      >
-                        Confirmar Pagamento
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+      {/* Seção de Parcelas removida - agora está nas abas do plano ativo */}
     </div>
   );
 };
