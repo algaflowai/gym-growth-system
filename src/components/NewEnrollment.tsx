@@ -69,7 +69,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
   
   // Estados para parcelamento
   const [isInstallmentPlan, setIsInstallmentPlan] = useState(false);
-  const [totalInstallments, setTotalInstallments] = useState('3');
+  const [totalInstallments, setTotalInstallments] = useState('1');
   const [paymentDay, setPaymentDay] = useState(10);
   
   // Estados para plano personalizado/familiar
@@ -717,9 +717,9 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 </Label>
               </div>
               {isCustomPlan && (
-                <Alert className="bg-blue-50 border-blue-200">
-                  <AlertDescription className="text-sm">
-                    <strong>Plano Personalizado:</strong> Após criar a matrícula, você poderá adicionar dependentes
+                <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
+                  <AlertDescription className="text-sm text-blue-900 dark:text-blue-100">
+                    <strong className="text-blue-950 dark:text-blue-50">Plano Personalizado:</strong> Após criar a matrícula, você poderá adicionar dependentes
                     (familiares) ao plano. O valor total será calculado automaticamente como a soma das mensalidades
                     individuais de cada pessoa.
                   </AlertDescription>
@@ -814,10 +814,9 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                         onChange={(e) => setTotalInstallments(e.target.value)}
                         className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <option value="2">2x</option>
-                        <option value="3">3x</option>
-                        <option value="6">6x</option>
-                        <option value="12">12x</option>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                          <option key={n} value={n}>{n}x</option>
+                        ))}
                       </select>
                     </div>
                     <div className="space-y-2">
