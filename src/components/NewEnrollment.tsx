@@ -100,7 +100,6 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     if (!formData.name.trim()) errors.name = 'Nome é obrigatório';
     if (!formData.phone.trim()) errors.phone = 'Telefone é obrigatório';
     if (!formData.cpf.trim()) errors.cpf = 'CPF é obrigatório';
-    if (!formData.email.trim()) errors.email = 'Email é obrigatório';
     if (!formData.plan) errors.plan = 'Plano é obrigatório';
 
     // Validação de CPF (formato básico)
@@ -641,13 +640,12 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                required
                 className={`h-12 ${validationErrors.email ? 'border-red-500' : ''}`}
                 placeholder="email@exemplo.com"
               />
