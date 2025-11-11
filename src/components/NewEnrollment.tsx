@@ -13,6 +13,7 @@ import { useStudents } from '@/hooks/useStudents';
 import { useEnrollments } from '@/hooks/useEnrollments';
 import { supabase } from '@/integrations/supabase/client';
 import { Plan } from '@/pages/Index';
+import dayjs from '@/lib/dayjs';
 
 interface NewEnrollmentProps {
   plans: Plan[];
@@ -130,9 +131,10 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       }
       
       if (formData.customStartDate && formData.customEndDate) {
-        const start = new Date(formData.customStartDate);
-        const end = new Date(formData.customEndDate);
-        if (end <= start) {
+        const start = dayjs(formData.customStartDate).startOf('day');
+        const end = dayjs(formData.customEndDate).startOf('day');
+        
+        if (!end.isAfter(start)) {
           errors.customEndDate = 'Data de vencimento deve ser posterior à data de início';
         }
       }
