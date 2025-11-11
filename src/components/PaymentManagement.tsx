@@ -20,6 +20,9 @@ const PaymentManagement = () => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [showNext7Days, setShowNext7Days] = useState(false);
 
   useEffect(() => {
     fetchInstallments();
@@ -39,8 +42,34 @@ const PaymentManagement = () => {
       );
     }
 
+    // Filtro por data de vencimento
+    if (startDate && endDate) {
+      const start = dayjs(startDate).startOf('day');
+      const end = dayjs(endDate).endOf('day');
+      
+      filtered = filtered.filter(i => {
+        const dueDate = dayjs(i.due_date);
+        return dueDate.isAfter(start) || dueDate.isSame(start, 'day') && (dueDate.isBefore(end) || dueDate.isSame(end, 'day'));
+      });
+    }
+
     setFilteredInstallments(filtered);
-  }, [installments, statusFilter, searchTerm]);
+  }, [installments, statusFilter, searchTerm, startDate, endDate]);
+
+  const handleNext7Days = () => {
+    const today = dayjs().startOf('day');
+    const next7Days = dayjs().add(7, 'days').endOf('day');
+    
+    setStartDate(today.format('YYYY-MM-DD'));
+    setEndDate(next7Days.format('YYYY-MM-DD'));
+    setShowNext7Days(true);
+  };
+
+  const clearDateFilters = () => {
+    setStartDate('');
+    setEndDate('');
+    setShowNext7Days(false);
+  };
 
   const handleConfirmPayment = async () => {
     if (!selectedInstallment || !paymentMethod) return;
@@ -141,6 +170,48 @@ const PaymentManagement = () => {
                   <SelectItem value="paid">Pago</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+          
+          {/* Filtros de Data de Vencimento */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+            <div className="space-y-2">
+              <Label>Data Início (Vencimento)</Label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Data Fim (Vencimento)</Label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>&nbsp;</Label>
+              <div className="flex gap-2">
+                <Button
+                  variant={showNext7Days ? "default" : "outline"}
+                  onClick={handleNext7Days}
+                  className="flex-1"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Próximos 7 dias
+                </Button>
+                {(startDate || endDate) && (
+                  <Button
+                    variant="ghost"
+                    onClick={clearDateFilters}
+                    className="px-3"
+                  >
+                    Limpar
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
