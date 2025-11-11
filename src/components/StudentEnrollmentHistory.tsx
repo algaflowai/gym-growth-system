@@ -6,6 +6,8 @@ import { CalendarIcon, CreditCardIcon, HistoryIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Enrollment } from '@/hooks/useEnrollments';
 import { Student } from '@/hooks/useStudents';
+import dayjs from '@/lib/dayjs';
+import { nowInBrazil, BRAZIL_TZ } from '@/lib/dayjs';
 
 interface StudentEnrollmentHistoryProps {
   studentId: string;
@@ -61,6 +63,18 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
     }
   }, [studentId]);
 
+  // Helper function to get the display status based on actual dates
+  const getDisplayStatus = (enrollment: Enrollment): EnrollmentStatus => {
+    const now = nowInBrazil().startOf('day');
+    const endDate = dayjs(enrollment.end_date).tz(BRAZIL_TZ).startOf('day');
+    
+    // If the end date has passed, show as expired
+    if (endDate.isBefore(now)) {
+      return 'expired';
+    }
+    
+    return enrollment.status as EnrollmentStatus;
+  };
   
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -138,7 +152,7 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {enrollments.filter(e => e.status === 'active').length}
+                {enrollments.filter(e => getDisplayStatus(e) === 'active').length}
               </div>
               <div className="text-sm text-green-600">Planos Ativos</div>
             </div>
@@ -165,7 +179,7 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
                     {enrollment.plan_name}
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                    {getStatusBadge(enrollment.status)}
+                    {getStatusBadge(getDisplayStatus(enrollment))}
                     <Badge variant="outline">
                       {getDurationLabel(enrollment.plan_name)}
                     </Badge>
@@ -206,7 +220,7 @@ const StudentEnrollmentHistory = ({ studentId, student }: StudentEnrollmentHisto
                   </div>
                 </div>
 
-                {index === 0 && enrollment.status === 'active' && (
+                {index === 0 && getDisplayStatus(enrollment) === 'active' && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                     <div className="text-sm font-medium text-green-800">
                       ✓ Este é o plano ativo atual
