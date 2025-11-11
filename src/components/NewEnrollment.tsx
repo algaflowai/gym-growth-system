@@ -239,8 +239,8 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
 
       if (formData.useCustomDates && formData.customStartDate && formData.customEndDate) {
         // Usar datas personalizadas para migração
-        startDate = new Date(formData.customStartDate);
-        endDate = new Date(formData.customEndDate);
+        startDate = new Date(formData.customStartDate + 'T00:00:00');
+        endDate = new Date(formData.customEndDate + 'T23:59:59');
       } else {
         // Calcular automaticamente baseado no plano
         startDate = new Date();
@@ -406,10 +406,18 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       let startDate: Date;
       let endDate: Date;
 
+      // Debug: Verificar valores das datas personalizadas
+      console.log('===== DEBUG DATAS PERSONALIZADAS =====');
+      console.log('useCustomDates:', formData.useCustomDates);
+      console.log('customStartDate:', formData.customStartDate);
+      console.log('customEndDate:', formData.customEndDate);
+      console.log('Condição completa:', formData.useCustomDates && formData.customStartDate && formData.customEndDate);
+      console.log('=====================================');
+
       if (formData.useCustomDates && formData.customStartDate && formData.customEndDate) {
         // Usar datas personalizadas para migração
-        startDate = new Date(formData.customStartDate);
-        endDate = new Date(formData.customEndDate);
+        startDate = new Date(formData.customStartDate + 'T00:00:00');
+        endDate = new Date(formData.customEndDate + 'T23:59:59');
       } else {
         // Calcular automaticamente baseado no plano
         startDate = new Date();
@@ -433,6 +441,12 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
             endDate.setMonth(endDate.getMonth() + 1);
         }
       }
+
+      // Debug: Mostrar datas finais calculadas
+      console.log('===== DATAS FINAIS =====');
+      console.log('Data de Início:', startDate.toISOString());
+      console.log('Data de Fim:', endDate.toISOString());
+      console.log('========================');
 
       // Criar a matrícula
       const enrollmentData = {
