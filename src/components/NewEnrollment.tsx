@@ -102,24 +102,6 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     if (!formData.cpf.trim()) errors.cpf = 'CPF é obrigatório';
     if (!formData.plan) errors.plan = 'Plano é obrigatório';
 
-    // Validação de CPF (formato básico)
-    const cpfRegex = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/;
-    if (formData.cpf && !cpfRegex.test(formData.cpf)) {
-      errors.cpf = 'CPF deve ter formato válido (000.000.000-00)';
-    }
-
-    // Validação de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (formData.email && !emailRegex.test(formData.email)) {
-      errors.email = 'Email deve ter formato válido';
-    }
-
-    // Validação de telefone
-    const phoneRegex = /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
-    if (formData.phone && !phoneRegex.test(formData.phone)) {
-      errors.phone = 'Telefone deve ter formato válido (11) 99999-9999';
-    }
-
     // Validação de datas personalizadas
     if (formData.useCustomDates) {
       if (!formData.customStartDate) {
@@ -140,8 +122,6 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     }
 
     setValidationErrors(errors);
-    console.log('🔍 Erros de validação encontrados:', errors);
-    console.log('📋 Dados do formulário:', formData);
     return Object.keys(errors).length === 0;
   };
 
