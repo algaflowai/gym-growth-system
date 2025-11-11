@@ -52,6 +52,18 @@ serve(async (req) => {
     );
     const enrollments = await enrollmentsRes.json();
 
+    // Buscar parcelas do usuário
+    const installmentsRes = await fetch(
+      `${Deno.env.get('SUPABASE_URL')}/rest/v1/payment_installments?user_id=eq.${user_id}`,
+      {
+        headers: {
+          apikey: Deno.env.get('SUPABASE_ANON_KEY'),
+          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+        },
+      }
+    );
+    const installments = await installmentsRes.json();
+
     // Receita Total
     const totalRevenue = enrollments.reduce((sum, e) => sum + Number(e.plan_price || 0), 0);
 
@@ -155,6 +167,17 @@ serve(async (req) => {
     // Taxa de retenção: (alunos que permaneceram / total inicial) x 100 (simplificado: ativos / total)
     const taxaRetencao = students.length > 0 ? (activeSubscriptions / students.length) * 100 : 0;
 
+    // Métricas de parcelas
+    const totalAPagar = installments.filter(i => i.status === 'pending').reduce((sum, i) => sum + Number(i.amount), 0);
+    const totalAtrasado = installments.filter(i => i.status === 'overdue').reduce((sum, i) => sum + Number(i.amount), 0);
+    const totalPagoMes = installments.filter(i => {
+      if (i.status !== 'paid' || !i.paid_date) return false;
+      const paidDate = new Date(i.paid_date);
+      return paidDate.getMonth() === currentMonth && paidDate.getFullYear() === currentYear;
+    }).reduce((sum, i) => sum + Number(i.amount), 0);
+    const parcelasAtrasadas = installments.filter(i => i.status === 'overdue').length;
+    const taxaInadimplencia = totalAPagar > 0 ? (totalAtrasado / (totalAPagar + totalAtrasado)) * 100 : 0;
+
     return new Response(
       JSON.stringify({
         cards: {
@@ -185,6 +208,13 @@ serve(async (req) => {
           taxa_retencao: taxaRetencao,
           novos_clientes_mes: novosClientes,
           taxa_perda: taxaPerda,
+        },
+        metricas_parcelas: {
+          total_a_pagar: totalAPagar,
+          total_atrasado: totalAtrasado,
+          total_pago_mes: totalPagoMes,
+          parcelas_atrasadas: parcelasAtrasadas,
+          taxa_inadimplencia: taxaInadimplencia,
         },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

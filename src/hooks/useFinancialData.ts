@@ -18,6 +18,13 @@ export interface FinancialDashboard {
     novos_clientes_mes: number;
     taxa_perda: number;
   };
+  metricas_parcelas?: {
+    total_a_pagar: number;
+    total_atrasado: number;
+    total_pago_mes: number;
+    parcelas_atrasadas: number;
+    taxa_inadimplencia: number;
+  };
 }
 
 export const useFinancialData = (academia_id: string, user_id: string) => {

@@ -26,6 +26,7 @@ const AppLayout = () => {
       '/planos': 'plans',
       '/ai-trainer': 'ai-trainer',
       '/financeiro': 'financial',
+      '/pagamentos': 'payments',
       '/configuracoes': 'settings'
     };
     return pathToPage[path] || 'dashboard';
@@ -40,6 +41,7 @@ const AppLayout = () => {
       'plans': '/planos',
       'ai-trainer': '/ai-trainer',
       'financial': '/financeiro',
+      'payments': '/pagamentos',
       'settings': '/configuracoes'
     };
     

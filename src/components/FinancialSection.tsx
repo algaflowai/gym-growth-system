@@ -54,7 +54,8 @@ const FinancialSection = () => {
     perdas_breakdown,
     receitas_vs_perdas,
     distribuicao_planos,
-    metricas_adicionais
+    metricas_adicionais,
+    metricas_parcelas
   } = financialData;
 
   const monthlyRevenue = cards?.receita_mensal?.valor || 0;
@@ -155,6 +156,73 @@ const FinancialSection = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cards de Parcelas */}
+      {metricas_parcelas && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                A Receber Este Mês
+              </CardTitle>
+              <Calendar className="h-5 w-5 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                R$ {metricas_parcelas.total_a_pagar?.toLocaleString() || '0'}
+              </div>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Parcelas pendentes</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-red-700 dark:text-red-300">
+                Atrasado
+              </CardTitle>
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-red-900 dark:text-red-100">
+                R$ {metricas_parcelas.total_atrasado?.toLocaleString() || '0'}
+              </div>
+              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                {metricas_parcelas.parcelas_atrasadas || 0} parcelas vencidas
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
+                Pago no Mês
+              </CardTitle>
+              <DollarSign className="h-5 w-5 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-900 dark:text-green-100">
+                R$ {metricas_parcelas.total_pago_mes?.toLocaleString() || '0'}
+              </div>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1">Parcelas recebidas</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                Taxa de Inadimplência
+              </CardTitle>
+              <TrendingDown className="h-5 w-5 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">
+                {metricas_parcelas.taxa_inadimplencia?.toFixed(1) || '0'}%
+              </div>
+              <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Do total a receber</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Evolution Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

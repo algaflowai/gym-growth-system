@@ -17,7 +17,8 @@ import {
   PlansManagementRoute,
   AITrainerRoute,
   FinancialSectionRoute,
-  SettingsSectionRoute
+  SettingsSectionRoute,
+  PaymentManagementRoute
 } from "./components/RouteComponents";
 import NotFound from "./pages/NotFound";
 
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="planos" element={<PlansManagementRoute />} />
               <Route path="ai-trainer" element={<AITrainerRoute />} />
               <Route path="financeiro" element={<FinancialSectionRoute />} />
+              <Route path="pagamentos" element={<PaymentManagementRoute />} />
               <Route path="configuracoes" element={<SettingsSectionRoute />} />
             </Route>
             

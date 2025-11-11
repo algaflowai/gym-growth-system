@@ -8,6 +8,7 @@ import PlansManagement from './PlansManagement';
 import AITrainer from './AITrainer';
 import ProtectedFinancialSection from './ProtectedFinancialSection';
 import ProtectedSettingsSection from './ProtectedSettingsSection';
+import PaymentManagement from './PaymentManagement';
 
 // Wrapper components that connect to the layout context
 
@@ -52,4 +53,8 @@ export const FinancialSectionRoute = () => {
 
 export const SettingsSectionRoute = () => {
   return <ProtectedSettingsSection />;
+};
+
+export const PaymentManagementRoute = () => {
+  return <PaymentManagement />;
 };
