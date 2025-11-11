@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { academia_id, user_id } = await req.json();
+    const { academia_id, user_id, start_date, end_date } = await req.json();
     if (!user_id) {
       return new Response(
         JSON.stringify({ error: 'user_id é obrigatório' }),
@@ -27,6 +27,11 @@ serve(async (req) => {
         }
       );
     }
+
+    // Define date range (use provided dates or default to last 6 months)
+    const now = new Date();
+    const startDate = start_date ? new Date(start_date) : new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    const endDate = end_date ? new Date(end_date) : now;
 
     // Buscar alunos do usuário
     const studentsRes = await fetch(
@@ -64,8 +69,32 @@ serve(async (req) => {
     );
     const installments = await installmentsRes.json();
 
-    // Receita Total
-    const totalRevenue = enrollments.reduce((sum, e) => sum + Number(e.plan_price || 0), 0);
+    // Buscar despesas fixas do usuário
+    const expensesRes = await fetch(
+      `${Deno.env.get('SUPABASE_URL')}/rest/v1/fixed_expenses?user_id=eq.${user_id}&is_active=eq.true`,
+      {
+        headers: {
+          apikey: Deno.env.get('SUPABASE_ANON_KEY'),
+          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+        },
+      }
+    );
+    const expenses = await expensesRes.json();
+
+    // Filtrar enrollments por período
+    const filteredEnrollments = enrollments.filter(e => {
+      const start = new Date(e.start_date);
+      return start >= startDate && start <= endDate;
+    });
+
+    // Calcular despesas fixas
+    const totalMonthlyExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+    const monthsDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+    const totalExpensesForPeriod = totalMonthlyExpenses * Math.max(1, monthsDiff);
+
+    // Receita Total (filtrada por período)
+    const totalRevenue = filteredEnrollments.reduce((sum, e) => sum + Number(e.plan_price || 0), 0);
+    const netProfit = totalRevenue - totalExpensesForPeriod;
 
     // Receita Mensal (mês atual)
     const now = new Date();
@@ -215,6 +244,20 @@ serve(async (req) => {
           total_pago_mes: totalPagoMes,
           parcelas_atrasadas: parcelasAtrasadas,
           taxa_inadimplencia: taxaInadimplencia,
+        },
+        despesas_fixas: {
+          total_mensal: totalMonthlyExpenses,
+          total_periodo: totalExpensesForPeriod,
+          detalhamento: expenses.map(e => ({
+            nome: e.name,
+            valor: Number(e.amount),
+            vencimento: e.due_day,
+            categoria: e.category || 'Geral'
+          }))
+        },
+        lucro_liquido: {
+          valor: netProfit,
+          margem: totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0
         },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

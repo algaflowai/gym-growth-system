@@ -221,6 +221,45 @@ export type Database = {
           },
         ]
       }
+      fixed_expenses: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string | null
+          description: string | null
+          due_day: number
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_day: number
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_day?: number
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_installments: {
         Row: {
           amount: number

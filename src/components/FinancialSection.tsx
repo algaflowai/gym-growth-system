@@ -1,13 +1,21 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
-import { DollarSign, TrendingUp, Calendar, CreditCard, TrendingDown, AlertTriangle, Loader2 } from 'lucide-react';
+import { DollarSign, TrendingUp, Calendar, CreditCard, TrendingDown, AlertTriangle, Loader2, Download, Filter } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import { useFinancialExport } from '@/hooks/useFinancialExport';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ExpenseManagement } from './ExpenseManagement';
 
 const FinancialSection = () => {
   const [userId, setUserId] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [isFiltering, setIsFiltering] = useState(false);
+  const { exportToPDF, exportToExcel } = useFinancialExport();
 
   useEffect(() => {
     const getUser = async () => {
@@ -17,7 +25,42 @@ const FinancialSection = () => {
     getUser();
   }, []);
 
-  const { financialData, loading } = useFinancialData(userId || '', userId || '');
+  const { financialData, loading, refetch } = useFinancialData(
+    userId || '', 
+    userId || '',
+    isFiltering ? startDate : undefined,
+    isFiltering ? endDate : undefined
+  );
+
+  const applyDateFilter = () => {
+    if (startDate && endDate) {
+      if (new Date(startDate) > new Date(endDate)) {
+        alert('Data de início deve ser anterior à data de fim');
+        return;
+      }
+      setIsFiltering(true);
+    }
+  };
+
+  const clearFilter = () => {
+    setStartDate('');
+    setEndDate('');
+    setIsFiltering(false);
+  };
+
+  const handleExport = (format: 'pdf' | 'excel') => {
+    if (!financialData) return;
+    
+    const period = isFiltering 
+      ? `${new Date(startDate).toLocaleDateString('pt-BR')} - ${new Date(endDate).toLocaleDateString('pt-BR')}`
+      : undefined;
+
+    if (format === 'pdf') {
+      exportToPDF(financialData, period);
+    } else {
+      exportToExcel(financialData);
+    }
+  };
 
   if (loading) {
     return (
@@ -85,10 +128,62 @@ const FinancialSection = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Módulo Financeiro</h2>
-        <p className="text-gray-600 dark:text-gray-400 text-lg">Acompanhe a performance financeira da academia</p>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Módulo Financeiro</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">Acompanhe a performance financeira da academia</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={() => handleExport('pdf')} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            PDF
+          </Button>
+          <Button onClick={() => handleExport('excel')} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Excel
+          </Button>
+        </div>
       </div>
+
+      {/* Filtro por Data */}
+      <Card className="border-2 border-primary/20 bg-primary/5">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-2 block">Data Início</label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-2 block">Data Fim</label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={applyDateFilter} disabled={!startDate || !endDate}>
+                <Filter className="h-4 w-4 mr-2" />
+                Filtrar
+              </Button>
+              {isFiltering && (
+                <Button variant="outline" onClick={clearFilter}>
+                  Limpar
+                </Button>
+              )}
+            </div>
+          </div>
+          {isFiltering && (
+            <p className="text-sm text-muted-foreground mt-3">
+              Mostrando dados de {new Date(startDate).toLocaleDateString('pt-BR')} até {new Date(endDate).toLocaleDateString('pt-BR')}
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Financial Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -155,6 +250,45 @@ const FinancialSection = () => {
             <p className="text-xs text-orange-600 mt-1">Matrículas ativas</p>
           </CardContent>
         </Card>
+
+        {/* Cards de Despesas e Lucro */}
+        {financialData.despesas_fixas && (
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                Despesas Fixas Mensais
+              </CardTitle>
+              <TrendingDown className="h-5 w-5 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">
+                R$ {financialData.despesas_fixas.total_mensal?.toLocaleString() || '0'}
+              </div>
+              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                {financialData.despesas_fixas.detalhamento?.length || 0} despesas cadastradas
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {financialData.lucro_liquido && (
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-teal-700 dark:text-teal-300">
+                Lucro Líquido
+              </CardTitle>
+              <DollarSign className="h-5 w-5 text-teal-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-teal-900 dark:text-teal-100">
+                R$ {financialData.lucro_liquido.valor?.toLocaleString() || '0'}
+              </div>
+              <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">
+                Margem: {financialData.lucro_liquido.margem?.toFixed(1) || '0'}%
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Cards de Parcelas */}
@@ -435,6 +569,9 @@ const FinancialSection = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Gestão de Despesas Fixas */}
+      <ExpenseManagement />
     </div>
   );
 };

@@ -25,9 +25,18 @@ export interface FinancialDashboard {
     parcelas_atrasadas: number;
     taxa_inadimplencia: number;
   };
+  despesas_fixas?: {
+    total_mensal: number;
+    total_periodo: number;
+    detalhamento: Array<{ nome: string; valor: number; vencimento: number; categoria: string }>;
+  };
+  lucro_liquido?: {
+    valor: number;
+    margem: number;
+  };
 }
 
-export const useFinancialData = (academia_id: string, user_id: string) => {
+export const useFinancialData = (academia_id: string, user_id: string, startDate?: string, endDate?: string) => {
   const [financialData, setFinancialData] = useState<FinancialDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -35,7 +44,7 @@ export const useFinancialData = (academia_id: string, user_id: string) => {
   useEffect(() => {
     if (academia_id && user_id) fetchFinancialData();
     // eslint-disable-next-line
-  }, [academia_id, user_id]);
+  }, [academia_id, user_id, startDate, endDate]);
 
   const fetchFinancialData = async () => {
     try {
@@ -48,7 +57,12 @@ export const useFinancialData = (academia_id: string, user_id: string) => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1dXptdXh5aWVzc2VqeHNyempsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0OTI4ODQsImV4cCI6MjA2NTA2ODg4NH0.UfQg8NH5S7T5V8Ro7BEDLYYF-4t6y5AbGYjUZwcnpE8`
           },
-          body: JSON.stringify({ academia_id, user_id }),
+          body: JSON.stringify({ 
+            academia_id, 
+            user_id,
+            start_date: startDate,
+            end_date: endDate
+          }),
         }
       );
       const data = await response.json();
