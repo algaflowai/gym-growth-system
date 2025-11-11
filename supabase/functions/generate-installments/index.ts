@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { enrollment_id, user_id, student_id, total_amount, total_installments, start_date, payment_day } = await req.json();
+    const { enrollment_id, user_id, student_id, total_amount, total_installments, start_date, payment_day, is_family_plan } = await req.json();
 
     console.log('📋 Gerando parcelas:', { enrollment_id, user_id, student_id, total_amount, total_installments, payment_day });
 
@@ -49,7 +49,8 @@ serve(async (req) => {
         total_installments,
         amount: parseFloat(installment_amount),
         due_date: dueDate.toISOString().split('T')[0],
-        status: 'pending'
+        status: 'pending',
+        is_family_plan: is_family_plan || false
       });
     }
 

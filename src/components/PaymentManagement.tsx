@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useInstallments, Installment } from '@/hooks/useInstallments';
-import { Calendar, DollarSign, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Calendar, DollarSign, AlertCircle, CheckCircle2, Clock, Users } from 'lucide-react';
 import dayjs from '@/lib/dayjs';
 
 const PaymentManagement = () => {
@@ -168,6 +168,12 @@ const PaymentManagement = () => {
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-foreground">{installment.student?.name}</h3>
+                      {installment.is_family_plan && (
+                        <Badge variant="outline" className="bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300">
+                          <Users className="h-3 w-3 mr-1" />
+                          Plano Familiar
+                        </Badge>
+                      )}
                       {getStatusBadge(installment.status)}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">

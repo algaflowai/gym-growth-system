@@ -14,6 +14,7 @@ export interface Installment {
   status: 'pending' | 'paid' | 'overdue';
   payment_method?: string;
   notes?: string;
+  is_family_plan?: boolean;
   student?: {
     id: string;
     name: string;

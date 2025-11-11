@@ -440,6 +440,8 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         plan_id: selectedPlan.id,
         plan_name: selectedPlan.name,
         plan_price: selectedPlan.price,
+        titular_price: selectedPlan.price,
+        is_family_plan: isCustomPlan,
         start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],
         status: 'active' as const,

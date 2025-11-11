@@ -159,6 +159,7 @@ export type Database = {
           end_date: string
           id: string
           installment_amount: number | null
+          is_family_plan: boolean | null
           is_installment_plan: boolean | null
           payment_day: number | null
           plan_id: string
@@ -167,6 +168,7 @@ export type Database = {
           start_date: string
           status: string
           student_id: string
+          titular_price: number | null
           total_installments: number | null
           updated_at: string
           user_id: string
@@ -176,6 +178,7 @@ export type Database = {
           end_date: string
           id?: string
           installment_amount?: number | null
+          is_family_plan?: boolean | null
           is_installment_plan?: boolean | null
           payment_day?: number | null
           plan_id: string
@@ -184,6 +187,7 @@ export type Database = {
           start_date?: string
           status?: string
           student_id: string
+          titular_price?: number | null
           total_installments?: number | null
           updated_at?: string
           user_id: string
@@ -193,6 +197,7 @@ export type Database = {
           end_date?: string
           id?: string
           installment_amount?: number | null
+          is_family_plan?: boolean | null
           is_installment_plan?: boolean | null
           payment_day?: number | null
           plan_id?: string
@@ -201,6 +206,7 @@ export type Database = {
           start_date?: string
           status?: string
           student_id?: string
+          titular_price?: number | null
           total_installments?: number | null
           updated_at?: string
           user_id?: string
@@ -223,6 +229,7 @@ export type Database = {
           enrollment_id: string
           id: string
           installment_number: number
+          is_family_plan: boolean | null
           notes: string | null
           paid_date: string | null
           payment_method: string | null
@@ -239,6 +246,7 @@ export type Database = {
           enrollment_id: string
           id?: string
           installment_number: number
+          is_family_plan?: boolean | null
           notes?: string | null
           paid_date?: string | null
           payment_method?: string | null
@@ -255,6 +263,7 @@ export type Database = {
           enrollment_id?: string
           id?: string
           installment_number?: number
+          is_family_plan?: boolean | null
           notes?: string | null
           paid_date?: string | null
           payment_method?: string | null
