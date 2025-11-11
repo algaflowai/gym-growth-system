@@ -311,8 +311,10 @@ export const useEnrollments = () => {
     studentId: string,
     planId: string,
     planName: string,
-    planPrice: number,
-    planDuration: string
+    titularPrice: number,
+    planDuration: string,
+    dependents?: Array<{ dependent_student_id: string; dependent_price: number }>,
+    totalPrice?: number
   ) => {
     try {
       // Check if user is authenticated
@@ -364,13 +366,19 @@ export const useEnrollments = () => {
         return false;
       }
 
-      // Atualizar a matrícula existente (não criar nova)
+      // Calcular valores finais
+      const isFamilyPlan = dependents && dependents.length > 0;
+      const finalPrice = totalPrice || titularPrice;
+
+      // Atualizar a matrícula existente com titular_price
       const { error: updateError } = await supabase
         .from('enrollments')
         .update({
           plan_id: planId,
           plan_name: planName,
-          plan_price: planPrice,
+          titular_price: titularPrice, // Atualiza apenas titular
+          plan_price: finalPrice, // Preço total calculado
+          is_family_plan: isFamilyPlan,
           start_date: dayjs.tz(startDate, BRAZIL_TZ).format('YYYY-MM-DD'),
           end_date: dayjs.tz(endDate, BRAZIL_TZ).format('YYYY-MM-DD'),
           status: 'active' as EnrollmentStatus,
@@ -387,6 +395,32 @@ export const useEnrollments = () => {
           variant: "destructive",
         });
         return false;
+      }
+
+      // Limpar dependentes antigos
+      await supabase
+        .from('enrollment_dependents')
+        .delete()
+        .eq('enrollment_id', inactiveEnrollment.id);
+
+      // Recriar dependentes selecionados
+      if (dependents && dependents.length > 0) {
+        const dependentsData = dependents.map(dep => ({
+          enrollment_id: inactiveEnrollment.id,
+          student_id: studentId,
+          dependent_student_id: dep.dependent_student_id,
+          dependent_price: dep.dependent_price,
+          user_id: user.id
+        }));
+
+        const { error: depsError } = await supabase
+          .from('enrollment_dependents')
+          .insert(dependentsData);
+
+        if (depsError) {
+          console.error('Error inserting dependents:', depsError);
+          // Continuar mesmo se houver erro nos dependentes
+        }
       }
 
       // Atualizar status do aluno para ativo

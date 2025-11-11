@@ -5,18 +5,28 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, CreditCardIcon, UserCheck } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CalendarIcon, CreditCardIcon, UserCheck, Users } from 'lucide-react';
 import { Plan } from '@/pages/Index';
 import { Student } from '@/hooks/useStudents';
 import { toast } from '@/hooks/use-toast';
 import dayjs, { BRAZIL_TZ, formatBrazilianDate } from '@/lib/dayjs';
+import { supabase } from '@/integrations/supabase/client';
 
 interface StudentReactivationModalProps {
   student: Student | null;
   plans: Plan[];
   isOpen: boolean;
   onClose: () => void;
-  onReactivate: (studentId: string, planId: string, planName: string, planPrice: number, duration: string) => Promise<boolean>;
+  onReactivate: (
+    studentId: string, 
+    planId: string, 
+    planName: string, 
+    titularPrice: number, 
+    duration: string,
+    dependents?: Array<{ dependent_student_id: string; dependent_price: number }>,
+    totalPrice?: number
+  ) => Promise<boolean>;
 }
 
 const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivate }: StudentReactivationModalProps) => {
@@ -24,6 +34,10 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
   const [newStartDate, setNewStartDate] = useState<string>('');
   const [newEndDate, setNewEndDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inactiveEnrollment, setInactiveEnrollment] = useState<any>(null);
+  const [originalDependents, setOriginalDependents] = useState<any[]>([]);
+  const [selectedDependents, setSelectedDependents] = useState<string[]>([]);
+  const [studentsMap, setStudentsMap] = useState<Map<string, any>>(new Map());
 
   const activePlans = plans.filter(plan => plan.active);
   const selectedPlan = activePlans.find(plan => plan.id === selectedPlanId);
@@ -74,6 +88,67 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
     };
   };
 
+  // Buscar matrícula inativa e dependentes quando o modal abrir
+  useEffect(() => {
+    if (isOpen && student) {
+      fetchInactiveEnrollmentWithDependents();
+    }
+  }, [isOpen, student]);
+
+  const fetchInactiveEnrollmentWithDependents = async () => {
+    try {
+      if (!student) return;
+
+      // 1. Buscar matrícula inativa
+      const { data: enrollment } = await supabase
+        .from('enrollments')
+        .select('*')
+        .eq('student_id', student.id)
+        .eq('status', 'inactive')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!enrollment) {
+        setInactiveEnrollment(null);
+        setOriginalDependents([]);
+        return;
+      }
+      
+      setInactiveEnrollment(enrollment);
+
+      // 2. Buscar dependentes da matrícula inativa
+      const { data: dependents } = await supabase
+        .from('enrollment_dependents')
+        .select('*')
+        .eq('enrollment_id', enrollment.id);
+
+      if (dependents && dependents.length > 0) {
+        setOriginalDependents(dependents);
+        
+        // 3. Buscar informações dos alunos dependentes
+        const dependentIds = dependents.map(d => d.dependent_student_id);
+        const { data: students } = await supabase
+          .from('students')
+          .select('*')
+          .in('id', dependentIds);
+
+        if (students) {
+          const map = new Map(students.map(s => [s.id, s]));
+          setStudentsMap(map);
+        }
+
+        // 4. Selecionar todos por padrão
+        setSelectedDependents(dependents.map(d => d.dependent_student_id));
+      } else {
+        setOriginalDependents([]);
+        setSelectedDependents([]);
+      }
+    } catch (error) {
+      console.error('Error fetching inactive enrollment:', error);
+    }
+  };
+
   useEffect(() => {
     if (selectedPlanId && activePlans.length > 0) {
       const selectedPlan = activePlans.find(plan => plan.id === selectedPlanId);
@@ -93,6 +168,18 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
       }
     }
   }, [selectedPlanId, activePlans]);
+
+  // Calcular preço total (titular + dependentes selecionados)
+  const calculateTotalPrice = () => {
+    if (!selectedPlan) return 0;
+    
+    const titularPrice = selectedPlan.price;
+    const dependentsPrice = originalDependents
+      .filter(dep => selectedDependents.includes(dep.dependent_student_id))
+      .reduce((sum, dep) => sum + dep.dependent_price, 0);
+    
+    return titularPrice + dependentsPrice;
+  };
 
   const handleReactivate = async () => {
     if (!selectedPlanId || !student) {
@@ -117,21 +204,40 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
     setIsSubmitting(true);
     
     try {
+      // Calcular preço total
+      const totalPrice = calculateTotalPrice();
+      
+      // Criar array de dependentes selecionados com seus preços
+      const dependentsToReactivate = originalDependents
+        .filter(dep => selectedDependents.includes(dep.dependent_student_id))
+        .map(dep => ({
+          dependent_student_id: dep.dependent_student_id,
+          dependent_price: dep.dependent_price
+        }));
+
+      // Chamar função de reativação com dependentes
       const success = await onReactivate(
         student.id,
         selectedPlan.id,
         selectedPlan.name,
-        selectedPlan.price,
-        selectedPlan.duration
+        selectedPlan.price, // Preço do titular
+        selectedPlan.duration,
+        dependentsToReactivate, // Passar dependentes selecionados
+        totalPrice // Passar preço total
       );
 
       if (success) {
+        const dependentText = dependentsToReactivate.length > 0 
+          ? ` com ${dependentsToReactivate.length} dependente(s)` 
+          : ' com plano individual';
         toast({
           title: "Aluno reativado!",
-          description: `${student.name} foi reativado com o plano ${selectedPlan.name}.`,
+          description: `${student.name} foi reativado${dependentText}.`,
         });
         onClose();
         setSelectedPlanId('');
+        setSelectedDependents([]);
+        setOriginalDependents([]);
       }
     } catch (error) {
       toast({
@@ -222,6 +328,54 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
             </Select>
           </div>
 
+          {/* Seleção de Dependentes (se existirem) */}
+          {originalDependents.length > 0 && (
+            <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950">
+              <CardHeader>
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Dependentes a Reativar
+                </CardTitle>
+                <CardDescription>
+                  Selecione quais dependentes serão reativados junto com o titular
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {originalDependents.map((dep) => {
+                  const dependentStudent = studentsMap.get(dep.dependent_student_id);
+                  const isSelected = selectedDependents.includes(dep.dependent_student_id);
+                  
+                  return (
+                    <div key={dep.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          id={`dep-${dep.id}`}
+                          checked={isSelected}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedDependents([...selectedDependents, dep.dependent_student_id]);
+                            } else {
+                              setSelectedDependents(selectedDependents.filter(id => id !== dep.dependent_student_id));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`dep-${dep.id}`} className="cursor-pointer">
+                          <div>
+                            <p className="font-semibold">{dependentStudent?.name || 'Dependente'}</p>
+                            <p className="text-sm text-muted-foreground">{dependentStudent?.cpf}</p>
+                          </div>
+                        </Label>
+                      </div>
+                      <Badge variant="outline" className="font-bold">
+                        + R$ {dep.dependent_price.toFixed(2)}
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Preview do Novo Plano */}
           {selectedPlanId && newStartDate && newEndDate && selectedPlan && (
             <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
@@ -243,9 +397,22 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
                   </div>
                   <div>
                     <span className="text-green-800 dark:text-green-200 font-semibold">Valor do Plano:</span>
-                    <p className="font-bold text-green-700 dark:text-green-300">
-                      R$ {selectedPlan.price.toFixed(2)}
-                    </p>
+                    <div className="space-y-1">
+                      <p className="font-medium text-green-900 dark:text-green-100">
+                        Titular: R$ {selectedPlan.price.toFixed(2)}
+                      </p>
+                      {selectedDependents.length > 0 && (
+                        <>
+                          <p className="font-medium text-green-900 dark:text-green-100">
+                            Dependentes ({selectedDependents.length}): 
+                            R$ {(calculateTotalPrice() - selectedPlan.price).toFixed(2)}
+                          </p>
+                          <p className="font-bold text-green-700 dark:text-green-300 text-lg">
+                            Total: R$ {calculateTotalPrice().toFixed(2)}
+                          </p>
+                        </>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <span className="text-green-800 dark:text-green-200 font-semibold">Duração:</span>

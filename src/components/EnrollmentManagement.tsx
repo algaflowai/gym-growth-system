@@ -119,10 +119,12 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     studentId: string,
     planId: string,
     planName: string,
-    planPrice: number,
-    duration: string
+    titularPrice: number,
+    duration: string,
+    dependents?: Array<{ dependent_student_id: string; dependent_price: number }>,
+    totalPrice?: number
   ) => {
-    const success = await reactivateStudent(studentId, planId, planName, planPrice, duration);
+    const success = await reactivateStudent(studentId, planId, planName, titularPrice, duration, dependents, totalPrice);
     if (success) {
       setShowReactivationModal(false);
       setSelectedStudentForReactivation(null);
