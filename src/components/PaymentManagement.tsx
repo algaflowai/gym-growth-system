@@ -49,7 +49,7 @@ const PaymentManagement = () => {
       
       filtered = filtered.filter(i => {
         const dueDate = dayjs(i.due_date);
-        return dueDate.isAfter(start) || dueDate.isSame(start, 'day') && (dueDate.isBefore(end) || dueDate.isSame(end, 'day'));
+        return (dueDate.isAfter(start) || dueDate.isSame(start, 'day')) && (dueDate.isBefore(end) || dueDate.isSame(end, 'day'));
       });
     }
 
