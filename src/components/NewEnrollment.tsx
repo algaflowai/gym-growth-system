@@ -140,6 +140,8 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     }
 
     setValidationErrors(errors);
+    console.log('🔍 Erros de validação encontrados:', errors);
+    console.log('📋 Dados do formulário:', formData);
     return Object.keys(errors).length === 0;
   };
 
@@ -314,9 +316,19 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
     e.preventDefault();
     
     if (!validateForm()) {
+      // Encontrar o primeiro campo com erro e rolar até ele
+      const firstErrorField = Object.keys(validationErrors)[0];
+      const element = document.getElementById(firstErrorField);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => element.focus(), 300);
+      }
+      
+      // Listar os campos com erro na mensagem
+      const errorFields = Object.keys(validationErrors).join(', ');
       toast({
         title: "Erro de Validação",
-        description: "Por favor, corrija os campos destacados.",
+        description: `Verifique os campos: ${errorFields}`,
         variant: "destructive",
       });
       return;
