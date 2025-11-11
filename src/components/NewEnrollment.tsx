@@ -12,8 +12,8 @@ import { toast } from '@/hooks/use-toast';
 import { useStudents } from '@/hooks/useStudents';
 import { useEnrollments } from '@/hooks/useEnrollments';
 import { supabase } from '@/integrations/supabase/client';
+import dayjs, { BRAZIL_TZ } from '@/lib/dayjs';
 import { Plan } from '@/pages/Index';
-import dayjs from '@/lib/dayjs';
 
 interface NewEnrollmentProps {
   plans: Plan[];
@@ -265,13 +265,18 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         }
       }
 
+      // Criar a matrícula para o aluno existente com datas corretas
       const enrollmentData = {
         student_id: existingStudent.id,
         plan_id: selectedPlan.id,
         plan_name: selectedPlan.name,
         plan_price: selectedPlan.price,
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
+        start_date: formData.useCustomDates && formData.customStartDate 
+          ? formData.customStartDate 
+          : dayjs.tz(startDate, BRAZIL_TZ).format('YYYY-MM-DD'),
+        end_date: formData.useCustomDates && formData.customEndDate 
+          ? formData.customEndDate 
+          : dayjs.tz(endDate, BRAZIL_TZ).format('YYYY-MM-DD'),
         status: 'active' as const,
       };
 
@@ -444,11 +449,14 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
 
       // Debug: Mostrar datas finais calculadas
       console.log('===== DATAS FINAIS =====');
-      console.log('Data de Início:', startDate.toISOString());
-      console.log('Data de Fim:', endDate.toISOString());
+      console.log('Data de Início:', startDate);
+      console.log('Data de Fim:', endDate);
+      console.log('useCustomDates:', formData.useCustomDates);
+      console.log('customStartDate:', formData.customStartDate);
+      console.log('customEndDate:', formData.customEndDate);
       console.log('========================');
 
-      // Criar a matrícula
+      // Criar a matrícula com as datas corretas
       const enrollmentData = {
         student_id: newStudent.id,
         plan_id: selectedPlan.id,
@@ -456,8 +464,12 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         plan_price: selectedPlan.price,
         titular_price: selectedPlan.price,
         is_family_plan: isCustomPlan,
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
+        start_date: formData.useCustomDates && formData.customStartDate 
+          ? formData.customStartDate 
+          : dayjs.tz(startDate, BRAZIL_TZ).format('YYYY-MM-DD'),
+        end_date: formData.useCustomDates && formData.customEndDate 
+          ? formData.customEndDate 
+          : dayjs.tz(endDate, BRAZIL_TZ).format('YYYY-MM-DD'),
         status: 'active' as const,
       };
 

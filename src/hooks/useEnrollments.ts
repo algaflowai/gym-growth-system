@@ -209,23 +209,30 @@ export const useEnrollments = () => {
         }
       }
 
-      // Recalcular as datas baseado no tipo de plano para garantir correção
-      const start = dayjs.tz(new Date(), BRAZIL_TZ).startOf('day');
-      const startDate = start.format('YYYY-MM-DD');
-      
-      // Recalcular data de vencimento baseada no plano
-      let endDate;
-      const durationInDays = calculateDurationInDays(enrollmentData.plan_name || enrollmentData.plan_id);
-      
-      if (durationInDays === 1 && (enrollmentData.plan_name?.toLowerCase().includes('diária') || 
-                                   enrollmentData.plan_name?.toLowerCase().includes('daily') || 
-                                   enrollmentData.plan_id?.toLowerCase().includes('day'))) {
-        // Para plano diário, data de vencimento = data de início + 1 dia
-        endDate = dayjs.tz(startDate, BRAZIL_TZ).add(1, 'day').format('YYYY-MM-DD');
+      // Se datas personalizadas foram fornecidas, usar elas; senão calcular baseado no plano
+      let startDate: string;
+      let endDate: string;
+
+      if (enrollmentData.start_date && enrollmentData.end_date) {
+        // Datas personalizadas fornecidas - apenas normalizar no timezone do Brasil
+        startDate = dayjs.tz(enrollmentData.start_date, BRAZIL_TZ).format('YYYY-MM-DD');
+        endDate = dayjs.tz(enrollmentData.end_date, BRAZIL_TZ).format('YYYY-MM-DD');
       } else {
-        // Para outros planos, usar a data original do frontend mas ajustar para timezone
-        const originalEnd = dayjs.tz(enrollmentData.end_date, BRAZIL_TZ);
-        endDate = originalEnd.format('YYYY-MM-DD');
+        // Calcular datas automaticamente baseado no plano
+        const start = dayjs.tz(new Date(), BRAZIL_TZ).startOf('day');
+        startDate = start.format('YYYY-MM-DD');
+        
+        const durationInDays = calculateDurationInDays(enrollmentData.plan_name || enrollmentData.plan_id);
+        
+        if (durationInDays === 1 && (enrollmentData.plan_name?.toLowerCase().includes('diária') || 
+                                     enrollmentData.plan_name?.toLowerCase().includes('daily') || 
+                                     enrollmentData.plan_id?.toLowerCase().includes('day'))) {
+          // Para plano diário, data de vencimento = data de início + 1 dia
+          endDate = dayjs.tz(startDate, BRAZIL_TZ).add(1, 'day').format('YYYY-MM-DD');
+        } else {
+          // Para outros planos, adicionar duração ao início
+          endDate = dayjs.tz(startDate, BRAZIL_TZ).add(durationInDays, 'day').format('YYYY-MM-DD');
+        }
       }
 
       const correctedEnrollmentData = {
