@@ -154,10 +154,14 @@ Dados do aluno: ${studentData.name}, ${studentData.main_goal || 'Condicionamento
     });
 
   } catch (error) {
-    console.error('Error in generate-workout function:', error);
+    // Log detailed error server-side only
+    console.error('Erro ao gerar treino:', error);
+    
+    // Return generic error to client
     return new Response(JSON.stringify({ 
-      error: error.message,
-      recommendation: 'Erro ao gerar recomendação. Tente novamente mais tarde.',
+      error: 'Erro ao gerar recomendação de treino',
+      recommendation: 'Erro ao gerar recomendação personalizada. Tente novamente.',
+      code: 'INTERNAL_ERROR',
       isBasic: true
     }), {
       status: 500,

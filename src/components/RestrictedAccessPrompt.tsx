@@ -9,7 +9,7 @@ import { useAccessPasswordManager } from '@/hooks/useAccessPasswordManager';
 interface RestrictedAccessPromptProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (sessionToken: string) => void;
   page: string;
   title: string;
 }
@@ -24,7 +24,7 @@ const RestrictedAccessPrompt: React.FC<RestrictedAccessPromptProps> = ({
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { verifyPassword, loading } = useAccessPasswordManager();
+  const { verifyPasswordAndCreateSession, loading } = useAccessPasswordManager();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,12 +35,12 @@ const RestrictedAccessPrompt: React.FC<RestrictedAccessPromptProps> = ({
       return;
     }
 
-    const isValid = await verifyPassword(page, password);
+    const sessionToken = await verifyPasswordAndCreateSession(page, password);
     
-    if (isValid) {
+    if (sessionToken) {
       setPassword('');
       setError('');
-      onSuccess();
+      onSuccess(sessionToken);
     } else {
       setError('Senha incorreta. Tente novamente.');
       setPassword('');

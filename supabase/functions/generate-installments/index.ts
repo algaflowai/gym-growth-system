@@ -74,8 +74,14 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('❌ Erro:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    // Log detailed error server-side only
+    console.error('❌ Erro ao gerar parcelas:', error);
+    
+    // Return generic error to client
+    return new Response(JSON.stringify({ 
+      error: 'Erro ao gerar parcelas',
+      code: 'INTERNAL_ERROR'
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

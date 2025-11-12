@@ -260,6 +260,33 @@ export type Database = {
         }
         Relationships: []
       }
+      page_access_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          page_name: string
+          session_token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          page_name: string
+          session_token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          page_name?: string
+          session_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_installments: {
         Row: {
           amount: number
@@ -515,7 +542,12 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      cleanup_expired_page_sessions: { Args: never; Returns: undefined }
       cleanup_old_security_logs: { Args: never; Returns: undefined }
+      create_page_access_session: {
+        Args: { page_name_input: string; password_input: string }
+        Returns: Json
+      }
       get_current_user_id: { Args: never; Returns: string }
       get_current_user_role: {
         Args: never
@@ -540,6 +572,10 @@ export type Database = {
       update_encrypted_password: {
         Args: { new_password: string; page_name: string }
         Returns: undefined
+      }
+      validate_page_access_session: {
+        Args: { page_name_input: string; session_token_input: string }
+        Returns: boolean
       }
       verify_page_access: {
         Args: { page_name_input: string; password_input: string }

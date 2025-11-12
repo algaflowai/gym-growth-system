@@ -88,8 +88,14 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    // Log detailed error server-side only
     console.error('❌ Erro geral:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    
+    // Return generic error to client
+    return new Response(JSON.stringify({ 
+      error: 'Erro ao processar verificação de parcelas',
+      code: 'INTERNAL_ERROR'
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

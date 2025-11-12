@@ -97,8 +97,73 @@ export const useAccessPasswordManager = () => {
     }
   };
 
+  const verifyPasswordAndCreateSession = async (page: string, enteredPassword: string): Promise<string | null> => {
+    try {
+      setLoading(true);
+      
+      // Clean and sanitize password
+      const cleanPassword = sanitizeText(enteredPassword.trim().replace(/[\u200B-\u200D\uFEFF]/g, ''));
+      
+      // Create session using secure RPC function
+      const { data, error } = await supabase
+        .rpc('create_page_access_session', {
+          page_name_input: page,
+          password_input: cleanPassword
+        });
+
+      if (error) {
+        console.error('Error creating session:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao verificar senha.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      if (data && typeof data === 'object' && 'success' in data && data.success) {
+        await logPasswordVerification(page, true);
+        return (data as { success: boolean; session_token: string }).session_token;
+      }
+
+      await logPasswordVerification(page, false);
+      return null;
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao verificar senha.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateSession = async (page: string, sessionToken: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('validate_page_access_session', {
+        page_name_input: page,
+        session_token_input: sessionToken
+      });
+
+      if (error) {
+        console.error('Error validating session:', error);
+        return false;
+      }
+
+      return data === true;
+    } catch (error) {
+      console.error('Error validating session:', error);
+      return false;
+    }
+  };
+
   return {
     verifyPassword,
+    verifyPasswordAndCreateSession,
+    validateSession,
     updatePassword,
     loading,
   };
