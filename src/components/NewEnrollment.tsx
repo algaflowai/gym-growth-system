@@ -419,23 +419,27 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         startDate = new Date();
         endDate = new Date();
         
-        switch (selectedPlan.duration) {
-          case 'Diária':
-          case 'daily':
-            endDate.setDate(startDate.getDate() + 1);
-            break;
-          case 'month':
-            endDate.setMonth(endDate.getMonth() + 1);
-            break;
-          case 'quarter':
-            endDate.setMonth(endDate.getMonth() + 3);
-            break;
-          case 'year':
-            endDate.setFullYear(endDate.getFullYear() + 1);
-            break;
-          default:
-            endDate.setMonth(endDate.getMonth() + 1);
-        }
+            switch (selectedPlan.duration) {
+              case 'day':
+              case 'daily':
+              case 'Diária':
+                endDate.setDate(startDate.getDate() + 1);
+                break;
+              case 'month':
+              case 'Mensal':
+                endDate.setMonth(endDate.getMonth() + 1);
+                break;
+              case 'quarter':
+              case 'Trimestral':
+                endDate.setMonth(endDate.getMonth() + 3);
+                break;
+              case 'year':
+              case 'Anual':
+                endDate.setFullYear(endDate.getFullYear() + 1);
+                break;
+              default:
+                endDate.setMonth(endDate.getMonth() + 1);
+            }
       }
 
       // Debug: Mostrar datas finais calculadas
