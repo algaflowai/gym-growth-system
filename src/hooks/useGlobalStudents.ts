@@ -32,6 +32,8 @@ type StudentStatus = "active" | "inactive" | "deleted";
 let globalStudents: Student[] = [];
 let globalLoading = true;
 let subscribers: Array<() => void> = [];
+let currentUserId: string | null = null;
+let authListenerInitialized = false;
 
 const notifySubscribers = () => {
   subscribers.forEach(callback => callback());
@@ -43,6 +45,35 @@ const subscribe = (callback: () => void) => {
     subscribers = subscribers.filter(sub => sub !== callback);
   };
 };
+
+const resetGlobalState = () => {
+  console.log('🔄 [useGlobalStudents] Resetando estado global (troca de usuário)');
+  globalStudents = [];
+  globalLoading = true;
+  notifySubscribers();
+};
+
+const initAuthListener = async () => {
+  if (authListenerInitialized) return;
+  authListenerInitialized = true;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  currentUserId = user?.id ?? null;
+  console.log('👤 [useGlobalStudents] Auth listener inicializado. User ID:', currentUserId);
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    const newId = session?.user?.id ?? null;
+    console.log('🔐 [useGlobalStudents] Mudança de autenticação detectada. Novo ID:', newId, '| Anterior:', currentUserId);
+    
+    if (newId !== currentUserId) {
+      currentUserId = newId;
+      resetGlobalState();
+    }
+  });
+};
+
+// Inicializar listener na carga do módulo
+initAuthListener();
 
 export const useGlobalStudents = () => {
   const [students, setStudents] = useState<Student[]>(globalStudents);
@@ -307,13 +338,25 @@ export const useGlobalStudents = () => {
       setLoading(globalLoading);
     });
 
-    // Initial fetch if not loaded yet
-    if (globalLoading) {
-      fetchStudents();
-    } else {
-      setStudents([...globalStudents]);
-      setLoading(false);
-    }
+    // Verificar se o usuário mudou e forçar reset se necessário
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id ?? null;
+      
+      if (userId !== currentUserId) {
+        console.log('⚠️ [useGlobalStudents] User ID divergente detectado no useEffect. Resetando...');
+        currentUserId = userId;
+        resetGlobalState();
+      }
+      
+      // Initial fetch if not loaded yet
+      if (globalLoading) {
+        await fetchStudents();
+      } else {
+        setStudents([...globalStudents]);
+        setLoading(false);
+      }
+    })();
 
     return unsubscribe;
   }, [fetchStudents]);
