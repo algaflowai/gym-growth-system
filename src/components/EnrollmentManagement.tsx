@@ -37,6 +37,12 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Debug: Monitor enrollments received
+  useEffect(() => {
+    console.log('🚀 [EnrollmentManagement] Matrículas recebidas:', enrollments.length);
+    console.log('📊 [EnrollmentManagement] Dados:', enrollments);
+  }, [enrollments]);
+
   // Stats calculation with real-time updates
   const [stats, setStats] = useState({
     total: 0,
@@ -59,14 +65,27 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     calculateStats();
   }, [enrollments]);
 
+  // Force refresh enrollments on mount
+  useEffect(() => {
+    console.log('🔄 [EnrollmentManagement] Forçando refresh das matrículas');
+    fetchEnrollments();
+  }, [fetchEnrollments]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
   };
 
   const filteredEnrollments = enrollments.filter(enrollment => {
-    const matchesSearch = enrollment.student?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enrollment.student?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enrollment.student?.phone.includes(searchTerm) ||
+    // Verificar se student existe
+    if (!enrollment.student) {
+      console.warn('⚠️ Matrícula sem dados de aluno:', enrollment.id);
+      return false;
+    }
+
+    const matchesSearch = searchTerm === '' || 
+      enrollment.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (enrollment.student.email && enrollment.student.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (enrollment.student.phone && enrollment.student.phone.includes(searchTerm)) ||
       enrollment.plan_name.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || enrollment.status === statusFilter;
@@ -76,6 +95,15 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     
     return matchesSearch && matchesStatus && matchesExpiryDate;
   });
+
+  // Debug: Monitor filtered enrollments
+  console.log('🎯 [EnrollmentManagement] Filtros ativos:', {
+    searchTerm,
+    statusFilter,
+    expiryDateFilter
+  });
+  console.log('🔍 [EnrollmentManagement] Matrículas filtradas:', filteredEnrollments.length);
+  console.log('📄 [EnrollmentManagement] Filtradas:', filteredEnrollments);
 
   const handleEdit = (enrollment: any) => {
     if (enrollment.student) {
