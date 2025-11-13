@@ -17,7 +17,7 @@ export const usePlans = () => {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('plans')
         .select('*')
         .eq('user_id', user.id)
@@ -25,7 +25,7 @@ export const usePlans = () => {
 
       if (error) throw error;
 
-      const formattedPlans: Plan[] = (data || []).map(plan => ({
+      const formattedPlans: Plan[] = (data || []).map((plan: any) => ({
         id: plan.id,
         name: plan.name,
         price: Number(plan.price),
@@ -49,7 +49,7 @@ export const usePlans = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('plans')
         .insert([{ 
           user_id: user.id,
@@ -65,12 +65,12 @@ export const usePlans = () => {
       if (error) throw error;
 
       const formattedPlan: Plan = {
-        id: data.id,
-        name: data.name,
-        price: Number(data.price),
-        duration: data.duration,
-        durationDays: data.duration_days,
-        active: data.active
+        id: (data as any).id,
+        name: (data as any).name,
+        price: Number((data as any).price),
+        duration: (data as any).duration,
+        durationDays: (data as any).duration_days,
+        active: (data as any).active
       };
 
       setPlans(prev => [...prev, formattedPlan]);
@@ -92,7 +92,7 @@ export const usePlans = () => {
       if (updates.durationDays !== undefined) dbUpdates.duration_days = updates.durationDays;
       if (updates.active !== undefined) dbUpdates.active = updates.active;
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('plans')
         .update(dbUpdates)
         .eq('id', id);
@@ -110,7 +110,7 @@ export const usePlans = () => {
 
   const deletePlan = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('plans')
         .delete()
         .eq('id', id);
