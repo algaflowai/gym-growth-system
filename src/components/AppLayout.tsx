@@ -1,19 +1,14 @@
-import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import Layout from './Layout';
 import { supabase } from '@/integrations/supabase/client';
 import { Plan } from '@/pages/Index';
+import { usePlans } from '@/hooks/usePlans';
 
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [plans, setPlans] = useState<Plan[]>([
-    { id: '1', name: 'Diária', price: 15, duration: 'day', durationDays: 1, active: true },
-    { id: '2', name: 'Mensal', price: 89, duration: 'month', durationDays: 30, active: true },
-    { id: '3', name: 'Trimestral', price: 240, duration: 'quarter', durationDays: 90, active: true },
-    { id: '4', name: 'Anual', price: 890, duration: 'year', durationDays: 365, active: true },
-  ]);
+  const { plans, addPlan, updatePlan, deletePlan } = usePlans();
 
   // Map paths to page names for the sidebar
   const getPageFromPath = (path: string) => {
@@ -58,21 +53,6 @@ const AppLayout = () => {
     }
   };
 
-  const handleAddPlan = (plan: Omit<Plan, 'id'>) => {
-    const newPlan = { ...plan, id: Date.now().toString() };
-    setPlans(prev => [...prev, newPlan]);
-  };
-
-  const handleUpdatePlan = (id: string, updatedPlan: Partial<Plan>) => {
-    setPlans(prev => prev.map(plan => 
-      plan.id === id ? { ...plan, ...updatedPlan } : plan
-    ));
-  };
-
-  const handleDeletePlan = (id: string) => {
-    setPlans(prev => prev.filter(plan => plan.id !== id));
-  };
-
   const currentPage = getPageFromPath(location.pathname);
 
   return (
@@ -86,9 +66,9 @@ const AppLayout = () => {
           <div className="w-full max-w-full overflow-x-hidden">
             <LayoutProvider 
               plans={plans}
-              onAddPlan={handleAddPlan}
-              onUpdatePlan={handleUpdatePlan}
-              onDeletePlan={handleDeletePlan}
+              onAddPlan={addPlan}
+              onUpdatePlan={updatePlan}
+              onDeletePlan={deletePlan}
               onNavigate={handleNavigate}
             >
               <Outlet />
