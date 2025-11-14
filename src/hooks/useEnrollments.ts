@@ -111,8 +111,6 @@ export const useEnrollments = () => {
         .order('created_at', { ascending: false });
 
       console.log('🔍 [useEnrollments] Matrículas buscadas:', data?.length || 0);
-      console.log('📋 [useEnrollments] Dados completos:', data);
-      console.log('❌ [useEnrollments] Erro:', error);
 
       if (error) {
         console.error('Error fetching enrollments:', error);

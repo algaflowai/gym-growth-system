@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -37,37 +37,16 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Debug: Monitor enrollments received
-  useEffect(() => {
-    console.log('🚀 [EnrollmentManagement] Matrículas recebidas:', enrollments.length);
-    console.log('📊 [EnrollmentManagement] Dados:', enrollments);
-  }, [enrollments]);
-
   // Stats calculation with real-time updates
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    inactive: 0,
-    expired: 0
-  });
-
-  useEffect(() => {
-    const calculateStats = () => {
-      const newStats = {
-        total: enrollments.length,
-        active: enrollments.filter(e => e.status === 'active').length,
-        inactive: enrollments.filter(e => e.status === 'inactive').length,
-        expired: enrollments.filter(e => e.status === 'expired').length
-      };
-      setStats(newStats);
-    };
-
-    calculateStats();
-  }, [enrollments]);
+  const stats = useMemo(() => ({
+    total: enrollments.length,
+    active: enrollments.filter(e => e.status === 'active').length,
+    inactive: enrollments.filter(e => e.status === 'inactive').length,
+    expired: enrollments.filter(e => e.status === 'expired').length
+  }), [enrollments]);
 
   // Force refresh enrollments on mount
   useEffect(() => {
-    console.log('🔄 [EnrollmentManagement] Forçando refresh das matrículas');
     fetchEnrollments();
   }, [fetchEnrollments]);
 
@@ -75,35 +54,27 @@ const EnrollmentManagement = ({ plans = [] }: EnrollmentManagementProps) => {
     return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
   };
 
-  const filteredEnrollments = enrollments.filter(enrollment => {
-    // Verificar se student existe
-    if (!enrollment.student) {
-      console.warn('⚠️ Matrícula sem dados de aluno:', enrollment.id);
-      return false;
-    }
+  const filteredEnrollments = useMemo(() => {
+    return enrollments.filter(enrollment => {
+      // Verificar se student existe
+      if (!enrollment.student) {
+        return false;
+      }
 
-    const matchesSearch = searchTerm === '' || 
-      enrollment.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (enrollment.student.email && enrollment.student.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (enrollment.student.phone && enrollment.student.phone.includes(searchTerm)) ||
-      enrollment.plan_name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || enrollment.status === statusFilter;
-    
-    const matchesExpiryDate = !expiryDateFilter || 
-      new Date(enrollment.end_date + 'T00:00:00').toDateString() === expiryDateFilter.toDateString();
-    
-    return matchesSearch && matchesStatus && matchesExpiryDate;
-  });
-
-  // Debug: Monitor filtered enrollments
-  console.log('🎯 [EnrollmentManagement] Filtros ativos:', {
-    searchTerm,
-    statusFilter,
-    expiryDateFilter
-  });
-  console.log('🔍 [EnrollmentManagement] Matrículas filtradas:', filteredEnrollments.length);
-  console.log('📄 [EnrollmentManagement] Filtradas:', filteredEnrollments);
+      const matchesSearch = searchTerm === '' || 
+        enrollment.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (enrollment.student.email && enrollment.student.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (enrollment.student.phone && enrollment.student.phone.includes(searchTerm)) ||
+        enrollment.plan_name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' || enrollment.status === statusFilter;
+      
+      const matchesExpiryDate = !expiryDateFilter || 
+        new Date(enrollment.end_date + 'T00:00:00').toDateString() === expiryDateFilter.toDateString();
+      
+      return matchesSearch && matchesStatus && matchesExpiryDate;
+    });
+  }, [enrollments, searchTerm, statusFilter, expiryDateFilter]);
 
   const handleEdit = (enrollment: any) => {
     if (enrollment.student) {

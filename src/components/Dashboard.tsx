@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -14,7 +14,7 @@ interface DashboardProps {
   onNavigate: (page: string) => void;
 }
 
-const Dashboard = ({ onNavigate }: DashboardProps) => {
+const Dashboard = memo(({ onNavigate }: DashboardProps) => {
   const { students, loading: studentsLoading } = useGlobalStudents();
   const { enrollments, loading: enrollmentsLoading } = useEnrollments();
   const [birthdayStudents, setBirthdayStudents] = useState<string[]>([]);
@@ -25,11 +25,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 
   // Calculate students with birthdays today (only active students)
   useEffect(() => {
-    console.log('Checking birthdays for active students:', students);
-    
     const today = new Date();
-    
-    console.log(`Today is: ${format(today, 'dd/MM/yyyy', { locale: ptBR })}`);
     
     const birthdaysToday = students.filter(student => {
       // Only check active students
@@ -43,12 +39,9 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
         birthDate.getDate() === today.getDate() && 
         birthDate.getMonth() === today.getMonth();
       
-      console.log(`Student ${student.name}: birth date ${format(birthDate, 'dd/MM/yyyy', { locale: ptBR })}, status: ${student.status}, is birthday today: ${isBirthdayToday}`);
-      
       return isBirthdayToday;
     }).map(student => student.name);
 
-    console.log('Birthday students found (active only):', birthdaysToday);
     setBirthdayStudents(birthdaysToday);
   }, [students]);
 
@@ -56,10 +49,6 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
   useEffect(() => {
     const today = new Date();
     const sevenDaysFromNow = addDays(today, 7);
-    
-    console.log('Processing enrollments for expiring alerts');
-    console.log(`Today: ${format(today, 'dd/MM/yyyy', { locale: ptBR })}`);
-    console.log(`Seven days from now: ${format(sevenDaysFromNow, 'dd/MM/yyyy', { locale: ptBR })}`);
     
     // Calculate enrollments expiring within 7 days (only active enrollments)
     const expiring = enrollments
@@ -72,20 +61,19 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           (isSameDay(endDate, today) || isAfter(endDate, today)) && 
           (isSameDay(endDate, sevenDaysFromNow) || isBefore(endDate, sevenDaysFromNow));
         
-        const daysRemaining = differenceInDays(endDate, today);
-        
-        console.log(`Enrollment for ${enrollment.student?.name}: end_date=${format(endDate, 'dd/MM/yyyy', { locale: ptBR })}, status=${enrollment.status}, days remaining=${daysRemaining}, expiring soon=${isExpiringSoon}`);
-        
         return isExpiringSoon;
       });
 
-    console.log('Expiring enrollments found:', expiring.length);
     setExpiringEnrollments(expiring);
   }, [enrollments]);
 
-  // Calculate statistics
-  const activeEnrollments = enrollments.filter(e => e.status === 'active').length;
-  const expiredEnrollments = enrollments.filter(e => e.status === 'expired').length;
+  // Calculate statistics with useMemo for performance
+  const stats = useMemo(() => ({
+    activeEnrollments: enrollments.filter(e => e.status === 'active').length,
+    expiredEnrollments: enrollments.filter(e => e.status === 'expired').length,
+  }), [enrollments]);
+  
+  const { activeEnrollments, expiredEnrollments } = stats;
 
   // Mock data for chart (we can replace this with real monthly data later)
   const chartData = [
@@ -367,6 +355,8 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
       />
     </div>
   );
-};
+});
+
+Dashboard.displayName = 'Dashboard';
 
 export default Dashboard;
