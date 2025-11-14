@@ -59,11 +59,9 @@ const initAuthListener = async () => {
 
   const { data: { user } } = await supabase.auth.getUser();
   currentUserId = user?.id ?? null;
-  console.log('👤 [useGlobalStudents] Auth listener inicializado. User ID:', currentUserId);
 
   supabase.auth.onAuthStateChange((_event, session) => {
     const newId = session?.user?.id ?? null;
-    console.log('🔐 [useGlobalStudents] Mudança de autenticação detectada. Novo ID:', newId, '| Anterior:', currentUserId);
     
     if (newId !== currentUserId) {
       currentUserId = newId;
