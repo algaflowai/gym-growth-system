@@ -98,8 +98,6 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
 
     // Validação de campos obrigatórios
     if (!formData.name.trim()) errors.name = 'Nome é obrigatório';
-    if (!formData.phone.trim()) errors.phone = 'Telefone é obrigatório';
-    if (!formData.cpf.trim()) errors.cpf = 'CPF é obrigatório';
     if (!formData.plan) errors.plan = 'Plano é obrigatório';
 
     // Validação de datas personalizadas
@@ -335,13 +333,15 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         return;
       }
 
-      // Verificar novamente se o CPF já existe
-      const existingStudent = await checkExistingStudent(formData.cpf);
-      if (existingStudent) {
-        setExistingStudent(existingStudent);
-        setShowExistingStudentOption(true);
-        setIsSubmitting(false);
-        return;
+      // Verificar novamente se o CPF já existe (somente se CPF foi informado)
+      if (formData.cpf.trim()) {
+        const existingStudent = await checkExistingStudent(formData.cpf);
+        if (existingStudent) {
+          setExistingStudent(existingStudent);
+          setShowExistingStudentOption(true);
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       // Encontrar o plano selecionado
@@ -358,17 +358,19 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
 
       console.log('Plano selecionado:', selectedPlan);
 
-      // Limpar e formatar CPF
+      // Limpar e formatar CPF (se fornecido)
       const cleanCpf = formData.cpf.replace(/[^\d]/g, '');
-      const formattedCpf = `${cleanCpf.slice(0,3)}.${cleanCpf.slice(3,6)}.${cleanCpf.slice(6,9)}-${cleanCpf.slice(9,11)}`;
+      const formattedCpf = cleanCpf 
+        ? `${cleanCpf.slice(0,3)}.${cleanCpf.slice(3,6)}.${cleanCpf.slice(6,9)}-${cleanCpf.slice(9,11)}`
+        : '';
 
       // Criar o aluno primeiro
       const studentData = {
         name: formData.name.trim(),
-        phone: formData.phone.trim(),
-        cpf: formattedCpf,
+        phone: formData.phone.trim() || undefined,
+        cpf: formattedCpf || undefined,
         rg: formData.rg?.trim() || undefined,
-        email: formData.email.trim().toLowerCase(),
+        email: formData.email.trim().toLowerCase() || undefined,
         address: formData.address?.trim() || undefined,
         city: formData.city?.trim() || undefined,
         zip_code: formData.zipCode?.trim() || undefined,
@@ -595,13 +597,12 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="phone">Telefone *</Label>
+              <Label htmlFor="phone">Telefone</Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="(11) 99999-9999"
-                required
                 className={`h-12 ${validationErrors.phone ? 'border-red-500' : ''}`}
               />
               {validationErrors.phone && (
@@ -610,13 +611,12 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="cpf">CPF *</Label>
+              <Label htmlFor="cpf">CPF</Label>
               <Input
                 id="cpf"
                 value={formData.cpf}
                 onChange={(e) => handleInputChange('cpf', e.target.value)}
                 placeholder="000.000.000-00"
-                required
                 className={`h-12 ${validationErrors.cpf ? 'border-red-500' : ''}`}
               />
               {validationErrors.cpf && (

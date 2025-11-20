@@ -356,6 +356,42 @@ export type Database = {
           },
         ]
       }
+      plans: {
+        Row: {
+          active: boolean
+          created_at: string | null
+          duration: string
+          duration_days: number
+          id: string
+          name: string
+          price: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string | null
+          duration: string
+          duration_days: number
+          id?: string
+          name: string
+          price: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string | null
+          duration?: string
+          duration_days?: number
+          id?: string
+          name?: string
+          price?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       security_logs: {
         Row: {
           action: string
@@ -544,6 +580,10 @@ export type Database = {
       }
       cleanup_expired_page_sessions: { Args: never; Returns: undefined }
       cleanup_old_security_logs: { Args: never; Returns: undefined }
+      create_default_plans_for_user: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       create_page_access_session: {
         Args: { page_name_input: string; password_input: string }
         Returns: Json
