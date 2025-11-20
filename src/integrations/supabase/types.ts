@@ -454,7 +454,7 @@ export type Database = {
           address: string | null
           birth_date: string | null
           city: string | null
-          cpf: string
+          cpf: string | null
           created_at: string
           deleted_at: string | null
           email: string
@@ -465,7 +465,7 @@ export type Database = {
           main_goal: string | null
           name: string
           notes: string | null
-          phone: string
+          phone: string | null
           restrictions: string | null
           rg: string | null
           status: string
@@ -477,7 +477,7 @@ export type Database = {
           address?: string | null
           birth_date?: string | null
           city?: string | null
-          cpf: string
+          cpf?: string | null
           created_at?: string
           deleted_at?: string | null
           email: string
@@ -488,7 +488,7 @@ export type Database = {
           main_goal?: string | null
           name: string
           notes?: string | null
-          phone: string
+          phone?: string | null
           restrictions?: string | null
           rg?: string | null
           status?: string
@@ -500,7 +500,7 @@ export type Database = {
           address?: string | null
           birth_date?: string | null
           city?: string | null
-          cpf?: string
+          cpf?: string | null
           created_at?: string
           deleted_at?: string | null
           email?: string
@@ -511,7 +511,7 @@ export type Database = {
           main_goal?: string | null
           name?: string
           notes?: string | null
-          phone?: string
+          phone?: string | null
           restrictions?: string | null
           rg?: string | null
           status?: string
