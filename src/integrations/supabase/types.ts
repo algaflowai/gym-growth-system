@@ -156,13 +156,18 @@ export type Database = {
       enrollments: {
         Row: {
           created_at: string
+          custom_plan_duration: string | null
+          custom_titular_price: number | null
           end_date: string
           id: string
           installment_amount: number | null
+          is_custom_plan: boolean | null
+          is_dependent: boolean | null
           is_family_plan: boolean | null
           is_installment_plan: boolean | null
+          parent_enrollment_id: string | null
           payment_day: number | null
-          plan_id: string
+          plan_id: string | null
           plan_name: string
           plan_price: number
           start_date: string
@@ -175,13 +180,18 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_plan_duration?: string | null
+          custom_titular_price?: number | null
           end_date: string
           id?: string
           installment_amount?: number | null
+          is_custom_plan?: boolean | null
+          is_dependent?: boolean | null
           is_family_plan?: boolean | null
           is_installment_plan?: boolean | null
+          parent_enrollment_id?: string | null
           payment_day?: number | null
-          plan_id: string
+          plan_id?: string | null
           plan_name: string
           plan_price: number
           start_date?: string
@@ -194,13 +204,18 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_plan_duration?: string | null
+          custom_titular_price?: number | null
           end_date?: string
           id?: string
           installment_amount?: number | null
+          is_custom_plan?: boolean | null
+          is_dependent?: boolean | null
           is_family_plan?: boolean | null
           is_installment_plan?: boolean | null
+          parent_enrollment_id?: string | null
           payment_day?: number | null
-          plan_id?: string
+          plan_id?: string | null
           plan_name?: string
           plan_price?: number
           start_date?: string
@@ -212,6 +227,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "enrollments_parent_enrollment_id_fkey"
+            columns: ["parent_enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "enrollments_student_id_fkey"
             columns: ["student_id"]
