@@ -479,7 +479,7 @@ export type Database = {
           cpf: string | null
           created_at: string
           deleted_at: string | null
-          email: string
+          email: string | null
           emergency_contact: string | null
           gender: string | null
           health_issues: string | null
@@ -502,7 +502,7 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           deleted_at?: string | null
-          email: string
+          email?: string | null
           emergency_contact?: string | null
           gender?: string | null
           health_issues?: string | null
@@ -525,7 +525,7 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           deleted_at?: string | null
-          email?: string
+          email?: string | null
           emergency_contact?: string | null
           gender?: string | null
           health_issues?: string | null
