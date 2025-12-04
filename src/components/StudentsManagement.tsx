@@ -1,11 +1,19 @@
 
 import React, { useState } from 'react';
 import { useStudents } from '@/hooks/useStudents';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Search, UserCheck, UserX } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import StudentViewModal from './StudentViewModal';
 import { Student } from '@/hooks/useStudents';
 
@@ -43,45 +51,32 @@ const StudentsManagement = () => {
     return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
   };
 
-  const renderStudentCard = (student: Student) => {
+  const renderStudentRow = (student: Student) => {
     const StatusIcon = getStatusIcon(student.status);
     
     return (
-      <Card key={student.id} className="hover:shadow-md transition-shadow">
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <CardTitle className="text-base sm:text-lg break-words text-gray-900 dark:text-white">{student.name}</CardTitle>
-            <Badge className={`${getStatusColor(student.status)} w-fit font-bold`}>
-              <StatusIcon className="w-3 h-3 mr-1" />
-              {student.status === 'active' ? 'Ativo' : 'Inativo'}
-            </Badge>
-          </div>
-          <CardDescription className="text-sm break-words text-gray-900 dark:text-gray-200">{student.email}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm text-student-info-secondary">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <p><strong className="text-gray-900 dark:text-white">CPF:</strong> <span className="text-gray-900 dark:text-white">{student.cpf}</span></p>
-              <p><strong className="text-gray-900 dark:text-white">Telefone:</strong> <span className="text-gray-900 dark:text-white">{student.phone}</span></p>
-            </div>
-            {student.birth_date && (
-              <p><strong className="text-gray-900 dark:text-white">Data de Nascimento:</strong> <span className="text-gray-900 dark:text-white">{formatDate(student.birth_date)}</span></p>
-            )}
-          </div>
-          
-          <div className="mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleViewStudent(student)}
-              className="flex items-center gap-1 w-full sm:w-auto"
-            >
-              <Eye className="w-4 h-4" />
-              Ver Detalhes
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <TableRow key={student.id} className="hover:bg-muted/50">
+        <TableCell className="font-medium text-foreground">{student.name}</TableCell>
+        <TableCell className="hidden sm:table-cell text-foreground">{student.cpf || '-'}</TableCell>
+        <TableCell className="text-foreground">{student.phone || '-'}</TableCell>
+        <TableCell className="hidden md:table-cell text-foreground">{formatDate(student.birth_date)}</TableCell>
+        <TableCell>
+          <Badge className={`${getStatusColor(student.status)} w-fit font-bold`}>
+            <StatusIcon className="w-3 h-3 mr-1" />
+            {student.status === 'active' ? 'Ativo' : 'Inativo'}
+          </Badge>
+        </TableCell>
+        <TableCell className="text-right">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleViewStudent(student)}
+            className="h-8 w-8 p-0"
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+        </TableCell>
+      </TableRow>
     );
   };
 
@@ -96,12 +91,12 @@ const StudentsManagement = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">Gerenciamento de Alunos</h1>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Gerenciamento de Alunos</h1>
       </div>
 
       <div className="flex gap-4 items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             placeholder="Buscar por nome, email, CPF ou telefone..."
             value={searchTerm}
@@ -113,19 +108,33 @@ const StudentsManagement = () => {
 
       {/* Active Students */}
       <div>
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-4">
+        <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4">
           Alunos ({activeStudents.length})
         </h2>
         {activeStudents.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <CardContent className="text-center py-8 text-muted-foreground">
               Nenhum aluno ativo encontrado.
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {activeStudents.map(renderStudentCard)}
-          </div>
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead className="hidden sm:table-cell">CPF</TableHead>
+                  <TableHead>Telefone</TableHead>
+                  <TableHead className="hidden md:table-cell">Data Nasc.</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeStudents.map(renderStudentRow)}
+              </TableBody>
+            </Table>
+          </Card>
         )}
       </div>
 
