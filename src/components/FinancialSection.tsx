@@ -293,7 +293,7 @@ const FinancialSection = () => {
 
       {/* Cards de Parcelas */}
       {metricas_parcelas && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
@@ -302,10 +302,25 @@ const FinancialSection = () => {
               <Calendar className="h-5 w-5 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-                R$ {metricas_parcelas.total_a_pagar?.toLocaleString() || '0'}
+              <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                R$ {(metricas_parcelas.a_receber_este_mes || 0).toLocaleString()}
               </div>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Parcelas pendentes</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Parcelas do mês atual</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-cyan-700 dark:text-cyan-300">
+                Próximos 7 Dias
+              </CardTitle>
+              <Calendar className="h-5 w-5 text-cyan-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-cyan-900 dark:text-cyan-100">
+                R$ {(metricas_parcelas.a_receber_proximos_7_dias || 0).toLocaleString()}
+              </div>
+              <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-1">A vencer em breve</p>
             </CardContent>
           </Card>
 
@@ -317,27 +332,32 @@ const FinancialSection = () => {
               <AlertTriangle className="h-5 w-5 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-red-900 dark:text-red-100">
-                R$ {metricas_parcelas.total_atrasado?.toLocaleString() || '0'}
+              <div className="text-2xl font-bold text-red-900 dark:text-red-100">
+                R$ {(metricas_parcelas.total_atrasado || 0).toLocaleString()}
               </div>
               <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                 {metricas_parcelas.parcelas_atrasadas || 0} parcelas vencidas
               </p>
+              {(metricas_parcelas.parcelas_pendentes_atrasadas || 0) > 0 && (
+                <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                  ⚠️ {metricas_parcelas.parcelas_pendentes_atrasadas} pendentes em atraso
+                </p>
+              )}
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
-                Pago no Mês
+                Recebido no Mês
               </CardTitle>
               <DollarSign className="h-5 w-5 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-900 dark:text-green-100">
-                R$ {metricas_parcelas.total_pago_mes?.toLocaleString() || '0'}
+              <div className="text-2xl font-bold text-green-900 dark:text-green-100">
+                R$ {(metricas_parcelas.receita_recebida_mes || 0).toLocaleString()}
               </div>
-              <p className="text-xs text-green-600 dark:text-green-400 mt-1">Parcelas recebidas</p>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1">Parcelas pagas</p>
             </CardContent>
           </Card>
 
@@ -349,8 +369,8 @@ const FinancialSection = () => {
               <TrendingDown className="h-5 w-5 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">
-                {metricas_parcelas.taxa_inadimplencia?.toFixed(1) || '0'}%
+              <div className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+                {(metricas_parcelas.taxa_inadimplencia || 0).toFixed(1)}%
               </div>
               <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Do total a receber</p>
             </CardContent>
