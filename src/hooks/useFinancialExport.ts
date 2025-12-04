@@ -78,13 +78,15 @@ export const useFinancialExport = () => {
       y += 10;
       
       doc.setFontSize(10);
-      doc.text(`A Receber: R$ ${financialData.metricas_parcelas.total_a_pagar.toLocaleString()}`, 20, y);
+      doc.text(`A Receber Este Mês: R$ ${(financialData.metricas_parcelas.a_receber_este_mes || 0).toLocaleString()}`, 20, y);
       y += 7;
-      doc.text(`Atrasado: R$ ${financialData.metricas_parcelas.total_atrasado.toLocaleString()}`, 20, y);
+      doc.text(`Próximos 7 Dias: R$ ${(financialData.metricas_parcelas.a_receber_proximos_7_dias || 0).toLocaleString()}`, 20, y);
       y += 7;
-      doc.text(`Pago no Mês: R$ ${financialData.metricas_parcelas.total_pago_mes.toLocaleString()}`, 20, y);
+      doc.text(`Atrasado: R$ ${(financialData.metricas_parcelas.total_atrasado || 0).toLocaleString()}`, 20, y);
       y += 7;
-      doc.text(`Taxa de Inadimplência: ${financialData.metricas_parcelas.taxa_inadimplencia.toFixed(1)}%`, 20, y);
+      doc.text(`Recebido no Mês: R$ ${(financialData.metricas_parcelas.receita_recebida_mes || 0).toLocaleString()}`, 20, y);
+      y += 7;
+      doc.text(`Taxa de Inadimplência: ${(financialData.metricas_parcelas.taxa_inadimplencia || 0).toFixed(1)}%`, 20, y);
     }
     
     doc.save(`resumo-financeiro-${Date.now()}.pdf`);

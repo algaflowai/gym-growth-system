@@ -19,10 +19,14 @@ export interface FinancialDashboard {
     taxa_perda: number;
   };
   metricas_parcelas?: {
-    total_a_pagar: number;
+    a_receber_este_mes: number;
+    a_receber_proximos_7_dias: number;
+    total_pendente: number;
     total_atrasado: number;
-    total_pago_mes: number;
+    total_pendentes_atrasadas: number;
+    receita_recebida_mes: number;
     parcelas_atrasadas: number;
+    parcelas_pendentes_atrasadas: number;
     taxa_inadimplencia: number;
   };
   despesas_fixas?: {
