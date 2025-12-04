@@ -7,21 +7,45 @@ export const useDataBackup = () => {
 
   const fetchAllData = async () => {
     try {
-      // Buscar todos os dados em paralelo
-      const [studentsResult, enrollmentsResult, historyResult] = await Promise.all([
+      // Buscar todos os dados em paralelo - TODAS as tabelas relevantes
+      const [
+        studentsResult, 
+        enrollmentsResult, 
+        historyResult,
+        installmentsResult,
+        dependentsResult,
+        expensesResult,
+        plansResult,
+        settingsResult
+      ] = await Promise.all([
         supabase.from('students').select('*').order('created_at', { ascending: false }),
         supabase.from('enrollments').select('*').order('created_at', { ascending: false }),
-        supabase.from('enrollment_history').select('*').order('archived_at', { ascending: false })
+        supabase.from('enrollment_history').select('*').order('archived_at', { ascending: false }),
+        supabase.from('payment_installments').select('*').order('created_at', { ascending: false }),
+        supabase.from('enrollment_dependents').select('*').order('created_at', { ascending: false }),
+        supabase.from('fixed_expenses').select('*').order('created_at', { ascending: false }),
+        supabase.from('plans').select('*').order('created_at', { ascending: false }),
+        supabase.from('system_settings').select('*').order('created_at', { ascending: false })
       ]);
 
       if (studentsResult.error) throw studentsResult.error;
       if (enrollmentsResult.error) throw enrollmentsResult.error;
       if (historyResult.error) throw historyResult.error;
+      if (installmentsResult.error) throw installmentsResult.error;
+      if (dependentsResult.error) throw dependentsResult.error;
+      if (expensesResult.error) throw expensesResult.error;
+      if (plansResult.error) throw plansResult.error;
+      if (settingsResult.error) throw settingsResult.error;
 
       return {
         students: studentsResult.data || [],
         enrollments: enrollmentsResult.data || [],
-        enrollment_history: historyResult.data || []
+        enrollment_history: historyResult.data || [],
+        payment_installments: installmentsResult.data || [],
+        enrollment_dependents: dependentsResult.data || [],
+        fixed_expenses: expensesResult.data || [],
+        plans: plansResult.data || [],
+        system_settings: settingsResult.data || []
       };
     } catch (error) {
       console.error('Error fetching data for backup:', error);
@@ -93,15 +117,35 @@ export const useDataBackup = () => {
                                'restrictions', 'main_goal', 'status', 'created_at'];
       
       const enrollmentsHeaders = ['id', 'student_id', 'plan_id', 'plan_name', 'plan_price', 
-                                   'start_date', 'end_date', 'status', 'created_at'];
+                                   'start_date', 'end_date', 'status', 'is_family_plan', 'is_custom_plan',
+                                   'titular_price', 'is_installment_plan', 'total_installments', 'created_at'];
       
       const historyHeaders = ['id', 'enrollment_id', 'student_id', 'plan_id', 'plan_name', 
                               'plan_price', 'start_date', 'end_date', 'status', 'archived_at'];
+
+      const installmentsHeaders = ['id', 'enrollment_id', 'student_id', 'installment_number', 
+                                   'total_installments', 'amount', 'due_date', 'paid_date', 
+                                   'status', 'payment_method', 'is_family_plan', 'created_at'];
+
+      const dependentsHeaders = ['id', 'enrollment_id', 'student_id', 'dependent_student_id', 
+                                 'dependent_price', 'created_at'];
+
+      const expensesHeaders = ['id', 'name', 'amount', 'due_day', 'category', 'description', 
+                               'is_active', 'created_at'];
+
+      const plansHeaders = ['id', 'name', 'price', 'duration', 'duration_days', 'active', 'created_at'];
+
+      const settingsHeaders = ['id', 'key', 'value', 'created_at'];
 
       // Converter cada tabela para CSV
       const studentsCSV = convertToCSV(data.students, studentsHeaders);
       const enrollmentsCSV = convertToCSV(data.enrollments, enrollmentsHeaders);
       const historyCSV = convertToCSV(data.enrollment_history, historyHeaders);
+      const installmentsCSV = convertToCSV(data.payment_installments, installmentsHeaders);
+      const dependentsCSV = convertToCSV(data.enrollment_dependents, dependentsHeaders);
+      const expensesCSV = convertToCSV(data.fixed_expenses, expensesHeaders);
+      const plansCSV = convertToCSV(data.plans, plansHeaders);
+      const settingsCSV = convertToCSV(data.system_settings, settingsHeaders);
 
       // Criar arquivo ZIP simulado (múltiplos downloads)
       const timestamp = new Date().toISOString().split('T')[0];
@@ -110,7 +154,12 @@ export const useDataBackup = () => {
       [
         { content: studentsCSV, name: `alunos-${timestamp}.csv` },
         { content: enrollmentsCSV, name: `matriculas-${timestamp}.csv` },
-        { content: historyCSV, name: `historico-${timestamp}.csv` }
+        { content: historyCSV, name: `historico-${timestamp}.csv` },
+        { content: installmentsCSV, name: `parcelas-${timestamp}.csv` },
+        { content: dependentsCSV, name: `dependentes-${timestamp}.csv` },
+        { content: expensesCSV, name: `despesas-${timestamp}.csv` },
+        { content: plansCSV, name: `planos-${timestamp}.csv` },
+        { content: settingsCSV, name: `configuracoes-${timestamp}.csv` }
       ].forEach(({ content, name }) => {
         const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -125,7 +174,7 @@ export const useDataBackup = () => {
 
       toast({
         title: "Backup Concluído",
-        description: "3 arquivos CSV foram baixados com sucesso!",
+        description: "8 arquivos CSV foram baixados com sucesso!",
       });
     } catch (error) {
       toast({
