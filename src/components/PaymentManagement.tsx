@@ -6,20 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useInstallments, Installment } from '@/hooks/useInstallments';
-import { Calendar, DollarSign, AlertCircle, CheckCircle2, Clock, Users } from 'lucide-react';
+import { Calendar, DollarSign, AlertCircle, CheckCircle2, Clock, Users, Trash2 } from 'lucide-react';
 import dayjs from '@/lib/dayjs';
 
 const PaymentManagement = () => {
-  const { installments, loading, fetchInstallments, markAsPaid } = useInstallments();
+  const { installments, loading, fetchInstallments, markAsPaid, cancelInstallment } = useInstallments();
   const [filteredInstallments, setFilteredInstallments] = useState<Installment[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInstallment, setSelectedInstallment] = useState<Installment | null>(null);
+  const [installmentToCancel, setInstallmentToCancel] = useState<Installment | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [showNext7Days, setShowNext7Days] = useState(false);
@@ -266,12 +269,23 @@ const PaymentManagement = () => {
                     )}
                   </div>
                   {installment.status !== 'paid' && (
-                    <Button
-                      onClick={() => setSelectedInstallment(installment)}
-                      variant="default"
-                    >
-                      Confirmar Recebimento
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setInstallmentToCancel(installment)}
+                        variant="outline"
+                        size="icon"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        title="Cancelar parcela"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={() => setSelectedInstallment(installment)}
+                        variant="default"
+                      >
+                        Confirmar Recebimento
+                      </Button>
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -344,6 +358,38 @@ const PaymentManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Confirmação de Cancelamento */}
+      <AlertDialog open={!!installmentToCancel} onOpenChange={() => setInstallmentToCancel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Parcela</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar a parcela {installmentToCancel?.installment_number}/{installmentToCancel?.total_installments} de{' '}
+              <strong>{installmentToCancel?.student?.name}</strong> no valor de{' '}
+              <strong>R$ {Number(installmentToCancel?.amount || 0).toFixed(2)}</strong>?
+              <br /><br />
+              Esta ação não pode ser desfeita e o valor será removido dos cálculos financeiros.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!installmentToCancel) return;
+                setIsCancelling(true);
+                await cancelInstallment(installmentToCancel.id);
+                setIsCancelling(false);
+                setInstallmentToCancel(null);
+              }}
+              disabled={isCancelling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isCancelling ? 'Cancelando...' : 'Confirmar Cancelamento'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

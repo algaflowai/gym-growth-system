@@ -127,10 +127,67 @@ export const useInstallments = () => {
     }
   };
 
+  const cancelInstallment = async (installmentId: string) => {
+    try {
+      // Buscar dados da parcela antes de excluir
+      const { data: installment, error: fetchError } = await supabase
+        .from('payment_installments')
+        .select('enrollment_id, student_id')
+        .eq('id', installmentId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Excluir a parcela
+      const { error: deleteError } = await supabase
+        .from('payment_installments')
+        .delete()
+        .eq('id', installmentId);
+
+      if (deleteError) throw deleteError;
+
+      // Verificar se ainda há parcelas para esta matrícula
+      const { data: remainingInstallments } = await supabase
+        .from('payment_installments')
+        .select('id')
+        .eq('enrollment_id', installment.enrollment_id);
+
+      // Se não houver mais parcelas, atualizar matrícula para não ser parcelada
+      if (!remainingInstallments || remainingInstallments.length === 0) {
+        await supabase
+          .from('enrollments')
+          .update({ 
+            is_installment_plan: false,
+            total_installments: null,
+            installment_amount: null,
+            payment_day: null
+          })
+          .eq('id', installment.enrollment_id);
+      }
+
+      toast({
+        title: "Sucesso!",
+        description: "Parcela cancelada com sucesso.",
+      });
+
+      await fetchInstallments();
+      return true;
+    } catch (error) {
+      console.error('Erro ao cancelar parcela:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível cancelar a parcela.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   return {
     installments,
     loading,
     fetchInstallments,
     markAsPaid,
+    cancelInstallment,
   };
 };
