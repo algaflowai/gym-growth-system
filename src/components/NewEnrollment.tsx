@@ -51,6 +51,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       
       // Dados de Matrícula
       plan: '',
+      customPrice: '',
       mainGoal: '',
       notes: '',
       useCustomDates: false,
@@ -75,6 +76,9 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
   
   // Estados para plano personalizado/familiar
   const [isCustomPlan, setIsCustomPlan] = useState(false);
+  
+  // Flag para controlar se o preço foi editado manualmente
+  const [priceManuallyEdited, setPriceManuallyEdited] = useState(false);
 
   // Salvar dados no localStorage sempre que formData mudar
   useEffect(() => {
@@ -146,7 +150,19 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // Quando trocar de plano, atualizar customPrice se não foi editado manualmente
+      if (field === 'plan' && typeof value === 'string') {
+        const selectedPlan = plans.find(p => p.id === value);
+        if (selectedPlan && !priceManuallyEdited) {
+          updated.customPrice = selectedPlan.price.toString();
+        }
+      }
+      
+      return updated;
+    });
     
     // Limpar erro de validação quando o usuário começar a digitar
     if (validationErrors[field]) {
@@ -244,12 +260,23 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         }
       }
 
+      const finalPrice = formData.customPrice ? parseFloat(formData.customPrice) : selectedPlan.price;
+      
+      if (isNaN(finalPrice) || finalPrice <= 0) {
+        toast({
+          title: "Erro",
+          description: "Valor da matrícula deve ser maior que zero.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Criar a matrícula para o aluno existente com datas corretas
       const enrollmentData = {
         student_id: existingStudent.id,
         plan_id: selectedPlan.id,
         plan_name: selectedPlan.name,
-        plan_price: selectedPlan.price,
+        plan_price: finalPrice,
         start_date: formData.useCustomDates && formData.customStartDate 
           ? formData.customStartDate 
           : dayjs.tz(startDate, BRAZIL_TZ).format('YYYY-MM-DD'),
@@ -270,10 +297,11 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         // Reset form e limpar localStorage
         const resetData = {
           name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
-          plan: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
+          plan: '', customPrice: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
           healthIssues: '', restrictions: '', emergencyContact: ''
         };
         setFormData(resetData);
+        setPriceManuallyEdited(false);
         localStorage.removeItem('algagym-new-enrollment-form');
         setExistingStudent(null);
         setShowExistingStudentOption(false);
@@ -453,13 +481,25 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       console.log('customEndDate:', formData.customEndDate);
       console.log('========================');
 
+      const finalPrice = formData.customPrice ? parseFloat(formData.customPrice) : selectedPlan.price;
+      
+      if (isNaN(finalPrice) || finalPrice <= 0) {
+        toast({
+          title: "Erro",
+          description: "Valor da matrícula deve ser maior que zero.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       // Criar a matrícula com as datas corretas
       const enrollmentData = {
         student_id: newStudent.id,
         plan_id: selectedPlan.id,
         plan_name: selectedPlan.name,
-        plan_price: selectedPlan.price,
-        titular_price: selectedPlan.price,
+        plan_price: finalPrice,
+        titular_price: finalPrice,
         is_family_plan: isCustomPlan,
         start_date: formData.useCustomDates && formData.customStartDate 
           ? formData.customStartDate 
@@ -489,10 +529,11 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         // Reset form e limpar localStorage
         const resetData = {
           name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
-          plan: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
+          plan: '', customPrice: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
           healthIssues: '', restrictions: '', emergencyContact: ''
         };
         setFormData(resetData);
+        setPriceManuallyEdited(false);
         localStorage.removeItem('algagym-new-enrollment-form');
         setValidationErrors({});
         setExistingStudent(null);
@@ -727,6 +768,40 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 <p className="text-red-600 text-base font-semibold">{validationErrors.plan}</p>
               )}
             </div>
+
+            {/* Campo de Valor da Matrícula */}
+            {formData.plan && (
+              <div className="space-y-2">
+                <Label htmlFor="customPrice" className="text-base font-medium">Valor da Matrícula (R$) *</Label>
+                <Input
+                  id="customPrice"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={formData.customPrice}
+                  onChange={(e) => {
+                    setPriceManuallyEdited(true);
+                    handleInputChange('customPrice', e.target.value);
+                  }}
+                  className={`h-12 ${validationErrors.customPrice ? 'border-red-500' : ''}`}
+                  placeholder="0.00"
+                />
+                {(() => {
+                  const selectedPlan = plans.find(p => p.id === formData.plan);
+                  if (selectedPlan && parseFloat(formData.customPrice) !== selectedPlan.price) {
+                    return (
+                      <p className="text-sm text-muted-foreground">
+                        Valor sugerido pelo plano: R$ {selectedPlan.price.toFixed(2)}. Altere se necessário.
+                      </p>
+                    );
+                  }
+                  return null;
+                })()}
+                {validationErrors.customPrice && (
+                  <p className="text-red-600 text-base font-semibold">{validationErrors.customPrice}</p>
+                )}
+              </div>
+            )}
             
             {/* Opção de Plano Personalizado/Familiar */}
             <div className="space-y-3 border-t pt-4">
@@ -861,17 +936,17 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-medium">Valor Total:</span>
                         <span className="text-lg font-bold">
-                          R$ {plans.find(p => p.id === formData.plan)?.price.toFixed(2)}
+                          R$ {(parseFloat(formData.customPrice) || 0).toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="font-medium">Valor da Parcela:</span>
                         <span className="text-2xl font-bold text-purple-600">
-                          R$ {((plans.find(p => p.id === formData.plan)?.price || 0) / parseInt(totalInstallments)).toFixed(2)}
+                          R$ {((parseFloat(formData.customPrice) || 0) / parseInt(totalInstallments)).toFixed(2)}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
-                        {totalInstallments}x de R$ {((plans.find(p => p.id === formData.plan)?.price || 0) / parseInt(totalInstallments)).toFixed(2)}
+                        {totalInstallments}x de R$ {((parseFloat(formData.customPrice) || 0) / parseInt(totalInstallments)).toFixed(2)}
                       </p>
                     </div>
                   )}
@@ -964,10 +1039,11 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
             onClick={() => {
               const resetData = {
                 name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
-                plan: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
+                plan: '', customPrice: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
                 healthIssues: '', restrictions: '', emergencyContact: ''
               };
               setFormData(resetData);
+              setPriceManuallyEdited(false);
               localStorage.removeItem('algagym-new-enrollment-form');
               setValidationErrors({});
               setExistingStudent(null);
