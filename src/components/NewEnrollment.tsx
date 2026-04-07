@@ -936,17 +936,17 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-medium">Valor Total:</span>
                         <span className="text-lg font-bold">
-                          R$ {plans.find(p => p.id === formData.plan)?.price.toFixed(2)}
+                          R$ {(parseFloat(formData.customPrice) || 0).toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="font-medium">Valor da Parcela:</span>
                         <span className="text-2xl font-bold text-purple-600">
-                          R$ {((plans.find(p => p.id === formData.plan)?.price || 0) / parseInt(totalInstallments)).toFixed(2)}
+                          R$ {((parseFloat(formData.customPrice) || 0) / parseInt(totalInstallments)).toFixed(2)}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
-                        {totalInstallments}x de R$ {((plans.find(p => p.id === formData.plan)?.price || 0) / parseInt(totalInstallments)).toFixed(2)}
+                        {totalInstallments}x de R$ {((parseFloat(formData.customPrice) || 0) / parseInt(totalInstallments)).toFixed(2)}
                       </p>
                     </div>
                   )}
