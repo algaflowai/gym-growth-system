@@ -768,6 +768,40 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
                 <p className="text-red-600 text-base font-semibold">{validationErrors.plan}</p>
               )}
             </div>
+
+            {/* Campo de Valor da Matrícula */}
+            {formData.plan && (
+              <div className="space-y-2">
+                <Label htmlFor="customPrice" className="text-base font-medium">Valor da Matrícula (R$) *</Label>
+                <Input
+                  id="customPrice"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={formData.customPrice}
+                  onChange={(e) => {
+                    setPriceManuallyEdited(true);
+                    handleInputChange('customPrice', e.target.value);
+                  }}
+                  className={`h-12 ${validationErrors.customPrice ? 'border-red-500' : ''}`}
+                  placeholder="0.00"
+                />
+                {(() => {
+                  const selectedPlan = plans.find(p => p.id === formData.plan);
+                  if (selectedPlan && parseFloat(formData.customPrice) !== selectedPlan.price) {
+                    return (
+                      <p className="text-sm text-muted-foreground">
+                        Valor sugerido pelo plano: R$ {selectedPlan.price.toFixed(2)}. Altere se necessário.
+                      </p>
+                    );
+                  }
+                  return null;
+                })()}
+                {validationErrors.customPrice && (
+                  <p className="text-red-600 text-base font-semibold">{validationErrors.customPrice}</p>
+                )}
+              </div>
+            )}
             
             {/* Opção de Plano Personalizado/Familiar */}
             <div className="space-y-3 border-t pt-4">
