@@ -260,12 +260,23 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         }
       }
 
+      const finalPrice = formData.customPrice ? parseFloat(formData.customPrice) : selectedPlan.price;
+      
+      if (isNaN(finalPrice) || finalPrice <= 0) {
+        toast({
+          title: "Erro",
+          description: "Valor da matrícula deve ser maior que zero.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Criar a matrícula para o aluno existente com datas corretas
       const enrollmentData = {
         student_id: existingStudent.id,
         plan_id: selectedPlan.id,
         plan_name: selectedPlan.name,
-        plan_price: selectedPlan.price,
+        plan_price: finalPrice,
         start_date: formData.useCustomDates && formData.customStartDate 
           ? formData.customStartDate 
           : dayjs.tz(startDate, BRAZIL_TZ).format('YYYY-MM-DD'),
