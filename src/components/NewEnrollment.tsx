@@ -51,6 +51,7 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
       
       // Dados de Matrícula
       plan: '',
+      customPrice: '',
       mainGoal: '',
       notes: '',
       useCustomDates: false,
