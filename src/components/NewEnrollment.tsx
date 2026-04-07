@@ -76,6 +76,9 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
   
   // Estados para plano personalizado/familiar
   const [isCustomPlan, setIsCustomPlan] = useState(false);
+  
+  // Flag para controlar se o preço foi editado manualmente
+  const [priceManuallyEdited, setPriceManuallyEdited] = useState(false);
 
   // Salvar dados no localStorage sempre que formData mudar
   useEffect(() => {
