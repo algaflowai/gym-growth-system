@@ -297,10 +297,11 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
         // Reset form e limpar localStorage
         const resetData = {
           name: '', phone: '', cpf: '', rg: '', email: '', address: '', city: '', zipCode: '', birthDate: '',
-          plan: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
+          plan: '', customPrice: '', mainGoal: '', notes: '', useCustomDates: false, customStartDate: '', customEndDate: '',
           healthIssues: '', restrictions: '', emergencyContact: ''
         };
         setFormData(resetData);
+        setPriceManuallyEdited(false);
         localStorage.removeItem('algagym-new-enrollment-form');
         setExistingStudent(null);
         setShowExistingStudentOption(false);
