@@ -150,7 +150,19 @@ const NewEnrollment = ({ plans }: NewEnrollmentProps) => {
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // Quando trocar de plano, atualizar customPrice se não foi editado manualmente
+      if (field === 'plan' && typeof value === 'string') {
+        const selectedPlan = plans.find(p => p.id === value);
+        if (selectedPlan && !priceManuallyEdited) {
+          updated.customPrice = selectedPlan.price.toString();
+        }
+      }
+      
+      return updated;
+    });
     
     // Limpar erro de validação quando o usuário começar a digitar
     if (validationErrors[field]) {
