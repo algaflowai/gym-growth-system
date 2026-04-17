@@ -343,6 +343,30 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
             </Select>
           </div>
 
+          {/* Valor da Reativação */}
+          {selectedPlanId && selectedPlan && (
+            <div className="space-y-2">
+              <Label htmlFor="custom-titular-price" className="text-base font-bold text-foreground">
+                Valor da Reativação - Titular (R$) *
+              </Label>
+              <Input
+                id="custom-titular-price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={customTitularPrice}
+                onChange={(e) => {
+                  setCustomTitularPrice(e.target.value);
+                  setPriceManuallyEdited(true);
+                }}
+                placeholder="0.00"
+              />
+              <p className="text-sm text-muted-foreground">
+                Valor sugerido pelo plano: R$ {selectedPlan.price.toFixed(2)}. Altere se necessário.
+              </p>
+            </div>
+          )}
+
           {/* Seleção de Dependentes (se existirem) */}
           {originalDependents.length > 0 && (
             <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950">
@@ -414,13 +438,13 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
                     <span className="text-green-800 dark:text-green-200 font-semibold">Valor do Plano:</span>
                     <div className="space-y-1">
                       <p className="font-medium text-green-900 dark:text-green-100">
-                        Titular: R$ {selectedPlan.price.toFixed(2)}
+                        Titular: R$ {(parseFloat(customTitularPrice) || 0).toFixed(2)}
                       </p>
                       {selectedDependents.length > 0 && (
                         <>
                           <p className="font-medium text-green-900 dark:text-green-100">
                             Dependentes ({selectedDependents.length}): 
-                            R$ {(calculateTotalPrice() - selectedPlan.price).toFixed(2)}
+                            R$ {(calculateTotalPrice() - (parseFloat(customTitularPrice) || 0)).toFixed(2)}
                           </p>
                           <p className="font-bold text-green-700 dark:text-green-300 text-lg">
                             Total: R$ {calculateTotalPrice().toFixed(2)}
@@ -454,7 +478,7 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
             <Button 
               type="button"
               onClick={handleReactivate}
-              disabled={!selectedPlanId || isSubmitting}
+              disabled={!selectedPlanId || isSubmitting || !customTitularPrice || parseFloat(customTitularPrice) <= 0}
               className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 w-full sm:w-auto"
             >
               {isSubmitting ? 'Reativando...' : 'Confirmar Reativação'}
