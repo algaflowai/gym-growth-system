@@ -1,35 +1,39 @@
 
 
-## Plano: Adicionar Campo de Valor Personalizado na Matrícula
+## Plano de Correção
 
-### Objetivo
-Permitir que o usuário defina um valor customizado ao criar uma matrícula, independente do preço do plano selecionado. O valor informado ficará associado àquela matrícula específica.
+### Bug 1: Erro ao buscar alunos ("Cannot read properties of null reading 'toLowerCase'")
 
-### Mudanças
+**Causa**: Em `src/components/StudentsManagement.tsx` (linhas 26–31), o filtro chama `student.name.toLowerCase()` e `student.email.toLowerCase()` sem verificar se os campos são `null`. Vários alunos têm email/CPF nulos (visível no screenshot como "-"), por isso o erro só aparece ao digitar na busca.
 
-#### 1. `src/components/NewEnrollment.tsx`
-- Adicionar campo `customPrice` ao estado do formulário (string, inicialmente vazio)
-- Após a seleção do plano, exibir um campo de input numérico "Valor da matrícula (R$)" pré-preenchido com o preço do plano selecionado
-- O usuário pode alterar o valor livremente
-- Quando um plano é selecionado, o campo é preenchido automaticamente com o preço do plano (se o usuário ainda não editou manualmente)
-- Na submissão (`handleSubmit` e `handleUseExistingStudent`), usar `customPrice` ao invés de `selectedPlan.price` para `plan_price` e `titular_price`
-- O valor também deve ser usado no cálculo de parcelas quando parcelamento estiver ativo
-
-#### 2. Interface proposta
-Abaixo da seleção de plano (RadioGroup), antes do checkbox de Plano Personalizado:
-
-```
-Valor da Matrícula (R$) *
-[___119.90___]
-Valor sugerido pelo plano: R$ 89,00. Altere se necessário.
+**Correção**: Tornar o filtro tolerante a valores nulos:
+```ts
+const term = searchTerm.toLowerCase();
+const filteredStudents = students.filter(student =>
+  (student.name?.toLowerCase().includes(term)) ||
+  (student.email?.toLowerCase().includes(term)) ||
+  (student.cpf?.includes(searchTerm)) ||
+  (student.phone?.includes(searchTerm))
+);
 ```
 
-### Detalhes técnicos
-- O campo `customPrice` será salvo/carregado do localStorage junto com os demais dados do formulário
-- Validação: valor deve ser maior que 0
-- Ao trocar de plano, o valor é atualizado automaticamente somente se o usuário não tiver editado manualmente (controlar com flag `priceManuallyEdited`)
-- O `plan_price` no enrollment será o valor digitado, não o preço original do plano
+### Bug 2: Permitir editar o valor ao renovar plano
+
+**Arquivo**: `src/components/PlanRenewalModal.tsx`
+
+A função `onRenew` já aceita `planPrice` como parâmetro e o hook `renewEnrollment` o repassa direto para o banco — então não precisa mexer no hook nem em `EnrollmentManagement`.
+
+**Mudanças no modal**:
+1. Adicionar estado `customPrice` (string) e flag `priceManuallyEdited`.
+2. Quando o usuário escolhe um plano, preencher `customPrice` automaticamente com `selectedPlan.price` — só se ainda não tiver editado manualmente.
+3. Adicionar input numérico **"Valor da Renovação (R$)"** abaixo do `Select` de plano, com texto auxiliar:
+   > "Valor sugerido pelo plano: R$ X. Altere se necessário."
+4. Validar: valor deve ser > 0 antes de habilitar "Confirmar Renovação".
+5. Atualizar o card "Preview da Renovação" para exibir o `customPrice` (não mais `previewPlan.price`).
+6. Em `handleRenew`, passar `parseFloat(customPrice)` no lugar de `selectedPlan.price` na chamada `onRenew(...)`.
+7. Limpar `customPrice` e `priceManuallyEdited` ao fechar/confirmar o modal.
 
 ### Arquivos modificados
-- `src/components/NewEnrollment.tsx`
+- `src/components/StudentsManagement.tsx` — filtro tolerante a null
+- `src/components/PlanRenewalModal.tsx` — campo de valor editável
 
