@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarIcon, CreditCardIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Plan } from '@/pages/Index';
 import { Enrollment } from '@/hooks/useEnrollments';
 import { toast } from '@/hooks/use-toast';
@@ -24,6 +25,8 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const [newStartDate, setNewStartDate] = useState<string>('');
   const [newEndDate, setNewEndDate] = useState<string>('');
+  const [customPrice, setCustomPrice] = useState<string>('');
+  const [priceManuallyEdited, setPriceManuallyEdited] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const activePlans = plans.filter(plan => plan.active);
@@ -87,6 +90,9 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
           const { startDate, endDate } = calculateDates(selectedPlan.duration);
           setNewStartDate(startDate);
           setNewEndDate(endDate);
+          if (!priceManuallyEdited) {
+            setCustomPrice(selectedPlan.price.toString());
+          }
         } catch (error) {
           console.error('Error calculating dates:', error);
           toast({
@@ -119,6 +125,16 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
       return;
     }
 
+    const priceValue = parseFloat(customPrice);
+    if (!customPrice || isNaN(priceValue) || priceValue <= 0) {
+      toast({
+        title: "Erro",
+        description: "Informe um valor válido para a renovação.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -126,7 +142,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
         enrollment.id,
         selectedPlan.id,
         selectedPlan.name,
-        selectedPlan.price,
+        priceValue,
         selectedPlan.duration
       );
 
@@ -137,6 +153,8 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
         });
         onClose();
         setSelectedPlanId('');
+        setCustomPrice('');
+        setPriceManuallyEdited(false);
       }
     } catch (error) {
       toast({
@@ -240,6 +258,35 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
             </Select>
           </div>
 
+          {/* Valor da Renovação */}
+          {selectedPlanId && (() => {
+            const selectedPlan = activePlans.find(p => p.id === selectedPlanId);
+            return (
+              <div className="space-y-2">
+                <Label htmlFor="custom-price" className="text-base font-bold text-foreground">
+                  Valor da Renovação (R$) *
+                </Label>
+                <Input
+                  id="custom-price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={customPrice}
+                  onChange={(e) => {
+                    setCustomPrice(e.target.value);
+                    setPriceManuallyEdited(true);
+                  }}
+                  placeholder="0.00"
+                />
+                {selectedPlan && (
+                  <p className="text-sm text-muted-foreground">
+                    Valor sugerido pelo plano: R$ {selectedPlan.price.toFixed(2)}. Altere se necessário.
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Preview do Novo Plano */}
           {selectedPlanId && newStartDate && newEndDate && (() => {
             const previewPlan = activePlans.find(p => p.id === selectedPlanId);
@@ -262,9 +309,9 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
                       <p className="font-medium text-foreground">{formatDate(newEndDate)}</p>
                     </div>
                     <div>
-                      <span className="text-foreground font-semibold">Valor do Plano:</span>
+                      <span className="text-foreground font-semibold">Valor da Renovação:</span>
                       <p className="font-bold text-green-700 dark:text-green-400">
-                        R$ {previewPlan.price.toFixed(2)}
+                        R$ {(parseFloat(customPrice) || 0).toFixed(2)}
                       </p>
                     </div>
                     <div>
@@ -292,7 +339,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
             </Button>
             <Button 
               onClick={handleRenew}
-              disabled={!selectedPlanId || isSubmitting}
+              disabled={!selectedPlanId || isSubmitting || !customPrice || parseFloat(customPrice) <= 0}
               className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 w-full sm:w-auto"
             >
               {isSubmitting ? 'Renovando...' : 'Confirmar Renovação'}
