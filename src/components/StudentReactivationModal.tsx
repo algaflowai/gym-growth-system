@@ -160,6 +160,9 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
           const { startDate, endDate } = calculateDates(selectedPlan.duration);
           setNewStartDate(startDate);
           setNewEndDate(endDate);
+          if (!priceManuallyEdited) {
+            setCustomTitularPrice(selectedPlan.price.toString());
+          }
         } catch (error) {
           console.error('Error calculating dates:', error);
           toast({
@@ -175,12 +178,12 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
   // Calcular preço total (titular + dependentes selecionados)
   const calculateTotalPrice = () => {
     if (!selectedPlan) return 0;
-    
-    const titularPrice = selectedPlan.price;
+
+    const titularPrice = parseFloat(customTitularPrice) || 0;
     const dependentsPrice = originalDependents
       .filter(dep => selectedDependents.includes(dep.dependent_student_id))
       .reduce((sum, dep) => sum + dep.dependent_price, 0);
-    
+
     return titularPrice + dependentsPrice;
   };
 
@@ -204,13 +207,21 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
       return;
     }
 
+    const titularPriceValue = parseFloat(customTitularPrice);
+    if (!customTitularPrice || isNaN(titularPriceValue) || titularPriceValue <= 0) {
+      toast({
+        title: "Erro",
+        description: "Informe um valor válido para a reativação.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-    
+
     try {
-      // Calcular preço total
       const totalPrice = calculateTotalPrice();
-      
-      // Criar array de dependentes selecionados com seus preços
+
       const dependentsToReactivate = originalDependents
         .filter(dep => selectedDependents.includes(dep.dependent_student_id))
         .map(dep => ({
@@ -218,15 +229,14 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
           dependent_price: dep.dependent_price
         }));
 
-      // Chamar função de reativação com dependentes
       const success = await onReactivate(
         student.id,
         selectedPlan.id,
         selectedPlan.name,
-        selectedPlan.price, // Preço do titular
+        titularPriceValue,
         selectedPlan.duration,
-        dependentsToReactivate, // Passar dependentes selecionados
-        totalPrice // Passar preço total
+        dependentsToReactivate,
+        totalPrice
       );
 
       if (success) {
@@ -241,6 +251,8 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
         setSelectedPlanId('');
         setSelectedDependents([]);
         setOriginalDependents([]);
+        setCustomTitularPrice('');
+        setPriceManuallyEdited(false);
       }
     } catch (error) {
       toast({
