@@ -258,6 +258,35 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
             </Select>
           </div>
 
+          {/* Valor da Renovação */}
+          {selectedPlanId && (() => {
+            const selectedPlan = activePlans.find(p => p.id === selectedPlanId);
+            return (
+              <div className="space-y-2">
+                <Label htmlFor="custom-price" className="text-base font-bold text-foreground">
+                  Valor da Renovação (R$) *
+                </Label>
+                <Input
+                  id="custom-price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={customPrice}
+                  onChange={(e) => {
+                    setCustomPrice(e.target.value);
+                    setPriceManuallyEdited(true);
+                  }}
+                  placeholder="0.00"
+                />
+                {selectedPlan && (
+                  <p className="text-sm text-muted-foreground">
+                    Valor sugerido pelo plano: R$ {selectedPlan.price.toFixed(2)}. Altere se necessário.
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Preview do Novo Plano */}
           {selectedPlanId && newStartDate && newEndDate && (() => {
             const previewPlan = activePlans.find(p => p.id === selectedPlanId);
@@ -310,7 +339,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
             </Button>
             <Button 
               onClick={handleRenew}
-              disabled={!selectedPlanId || isSubmitting}
+              disabled={!selectedPlanId || isSubmitting || !customPrice || parseFloat(customPrice) <= 0}
               className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 w-full sm:w-auto"
             >
               {isSubmitting ? 'Renovando...' : 'Confirmar Renovação'}
