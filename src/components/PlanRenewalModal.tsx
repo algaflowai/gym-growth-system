@@ -280,9 +280,9 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
                       <p className="font-medium text-foreground">{formatDate(newEndDate)}</p>
                     </div>
                     <div>
-                      <span className="text-foreground font-semibold">Valor do Plano:</span>
+                      <span className="text-foreground font-semibold">Valor da Renovação:</span>
                       <p className="font-bold text-green-700 dark:text-green-400">
-                        R$ {previewPlan.price.toFixed(2)}
+                        R$ {(parseFloat(customPrice) || 0).toFixed(2)}
                       </p>
                     </div>
                     <div>
