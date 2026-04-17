@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CalendarIcon, CreditCardIcon, UserCheck, Users } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Plan } from '@/pages/Index';
 import { Student } from '@/hooks/useStudents';
 import { toast } from '@/hooks/use-toast';
@@ -34,6 +35,8 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
   const [newStartDate, setNewStartDate] = useState<string>('');
   const [newEndDate, setNewEndDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customTitularPrice, setCustomTitularPrice] = useState<string>('');
+  const [priceManuallyEdited, setPriceManuallyEdited] = useState(false);
   const [inactiveEnrollment, setInactiveEnrollment] = useState<any>(null);
   const [originalDependents, setOriginalDependents] = useState<any[]>([]);
   const [selectedDependents, setSelectedDependents] = useState<string[]>([]);
