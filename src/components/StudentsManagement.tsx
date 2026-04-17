@@ -23,11 +23,12 @@ const StudentsManagement = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
+  const term = searchTerm.toLowerCase();
   const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.cpf.includes(searchTerm) ||
-    (student.phone && student.phone.includes(searchTerm))
+    student.name?.toLowerCase().includes(term) ||
+    student.email?.toLowerCase().includes(term) ||
+    student.cpf?.includes(searchTerm) ||
+    student.phone?.includes(searchTerm)
   );
 
   // Mostrar apenas alunos ativos na página de alunos

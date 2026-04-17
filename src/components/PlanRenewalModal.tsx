@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarIcon, CreditCardIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Plan } from '@/pages/Index';
 import { Enrollment } from '@/hooks/useEnrollments';
 import { toast } from '@/hooks/use-toast';
@@ -24,6 +25,8 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const [newStartDate, setNewStartDate] = useState<string>('');
   const [newEndDate, setNewEndDate] = useState<string>('');
+  const [customPrice, setCustomPrice] = useState<string>('');
+  const [priceManuallyEdited, setPriceManuallyEdited] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const activePlans = plans.filter(plan => plan.active);
@@ -87,6 +90,9 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
           const { startDate, endDate } = calculateDates(selectedPlan.duration);
           setNewStartDate(startDate);
           setNewEndDate(endDate);
+          if (!priceManuallyEdited) {
+            setCustomPrice(selectedPlan.price.toString());
+          }
         } catch (error) {
           console.error('Error calculating dates:', error);
           toast({
@@ -119,6 +125,16 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
       return;
     }
 
+    const priceValue = parseFloat(customPrice);
+    if (!customPrice || isNaN(priceValue) || priceValue <= 0) {
+      toast({
+        title: "Erro",
+        description: "Informe um valor válido para a renovação.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -126,7 +142,7 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
         enrollment.id,
         selectedPlan.id,
         selectedPlan.name,
-        selectedPlan.price,
+        priceValue,
         selectedPlan.duration
       );
 
@@ -137,6 +153,8 @@ const PlanRenewalModal = ({ enrollment, plans, isOpen, onClose, onRenew }: PlanR
         });
         onClose();
         setSelectedPlanId('');
+        setCustomPrice('');
+        setPriceManuallyEdited(false);
       }
     } catch (error) {
       toast({
