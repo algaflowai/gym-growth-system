@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CalendarIcon, CreditCardIcon, UserCheck, Users } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Plan } from '@/pages/Index';
 import { Student } from '@/hooks/useStudents';
 import { toast } from '@/hooks/use-toast';
@@ -34,6 +35,8 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
   const [newStartDate, setNewStartDate] = useState<string>('');
   const [newEndDate, setNewEndDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customTitularPrice, setCustomTitularPrice] = useState<string>('');
+  const [priceManuallyEdited, setPriceManuallyEdited] = useState(false);
   const [inactiveEnrollment, setInactiveEnrollment] = useState<any>(null);
   const [originalDependents, setOriginalDependents] = useState<any[]>([]);
   const [selectedDependents, setSelectedDependents] = useState<string[]>([]);
@@ -157,6 +160,9 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
           const { startDate, endDate } = calculateDates(selectedPlan.duration);
           setNewStartDate(startDate);
           setNewEndDate(endDate);
+          if (!priceManuallyEdited) {
+            setCustomTitularPrice(selectedPlan.price.toString());
+          }
         } catch (error) {
           console.error('Error calculating dates:', error);
           toast({
@@ -172,12 +178,12 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
   // Calcular preço total (titular + dependentes selecionados)
   const calculateTotalPrice = () => {
     if (!selectedPlan) return 0;
-    
-    const titularPrice = selectedPlan.price;
+
+    const titularPrice = parseFloat(customTitularPrice) || 0;
     const dependentsPrice = originalDependents
       .filter(dep => selectedDependents.includes(dep.dependent_student_id))
       .reduce((sum, dep) => sum + dep.dependent_price, 0);
-    
+
     return titularPrice + dependentsPrice;
   };
 
@@ -201,13 +207,21 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
       return;
     }
 
+    const titularPriceValue = parseFloat(customTitularPrice);
+    if (!customTitularPrice || isNaN(titularPriceValue) || titularPriceValue <= 0) {
+      toast({
+        title: "Erro",
+        description: "Informe um valor válido para a reativação.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-    
+
     try {
-      // Calcular preço total
       const totalPrice = calculateTotalPrice();
-      
-      // Criar array de dependentes selecionados com seus preços
+
       const dependentsToReactivate = originalDependents
         .filter(dep => selectedDependents.includes(dep.dependent_student_id))
         .map(dep => ({
@@ -215,15 +229,14 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
           dependent_price: dep.dependent_price
         }));
 
-      // Chamar função de reativação com dependentes
       const success = await onReactivate(
         student.id,
         selectedPlan.id,
         selectedPlan.name,
-        selectedPlan.price, // Preço do titular
+        titularPriceValue,
         selectedPlan.duration,
-        dependentsToReactivate, // Passar dependentes selecionados
-        totalPrice // Passar preço total
+        dependentsToReactivate,
+        totalPrice
       );
 
       if (success) {
@@ -238,6 +251,8 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
         setSelectedPlanId('');
         setSelectedDependents([]);
         setOriginalDependents([]);
+        setCustomTitularPrice('');
+        setPriceManuallyEdited(false);
       }
     } catch (error) {
       toast({
@@ -328,6 +343,30 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
             </Select>
           </div>
 
+          {/* Valor da Reativação */}
+          {selectedPlanId && selectedPlan && (
+            <div className="space-y-2">
+              <Label htmlFor="custom-titular-price" className="text-base font-bold text-foreground">
+                Valor da Reativação - Titular (R$) *
+              </Label>
+              <Input
+                id="custom-titular-price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={customTitularPrice}
+                onChange={(e) => {
+                  setCustomTitularPrice(e.target.value);
+                  setPriceManuallyEdited(true);
+                }}
+                placeholder="0.00"
+              />
+              <p className="text-sm text-muted-foreground">
+                Valor sugerido pelo plano: R$ {selectedPlan.price.toFixed(2)}. Altere se necessário.
+              </p>
+            </div>
+          )}
+
           {/* Seleção de Dependentes (se existirem) */}
           {originalDependents.length > 0 && (
             <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950">
@@ -399,13 +438,13 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
                     <span className="text-green-800 dark:text-green-200 font-semibold">Valor do Plano:</span>
                     <div className="space-y-1">
                       <p className="font-medium text-green-900 dark:text-green-100">
-                        Titular: R$ {selectedPlan.price.toFixed(2)}
+                        Titular: R$ {(parseFloat(customTitularPrice) || 0).toFixed(2)}
                       </p>
                       {selectedDependents.length > 0 && (
                         <>
                           <p className="font-medium text-green-900 dark:text-green-100">
                             Dependentes ({selectedDependents.length}): 
-                            R$ {(calculateTotalPrice() - selectedPlan.price).toFixed(2)}
+                            R$ {(calculateTotalPrice() - (parseFloat(customTitularPrice) || 0)).toFixed(2)}
                           </p>
                           <p className="font-bold text-green-700 dark:text-green-300 text-lg">
                             Total: R$ {calculateTotalPrice().toFixed(2)}
@@ -439,7 +478,7 @@ const StudentReactivationModal = ({ student, plans, isOpen, onClose, onReactivat
             <Button 
               type="button"
               onClick={handleReactivate}
-              disabled={!selectedPlanId || isSubmitting}
+              disabled={!selectedPlanId || isSubmitting || !customTitularPrice || parseFloat(customTitularPrice) <= 0}
               className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 w-full sm:w-auto"
             >
               {isSubmitting ? 'Reativando...' : 'Confirmar Reativação'}
