@@ -76,43 +76,39 @@ const StudentEditModal = ({ student, isOpen, onClose, onSave }: StudentEditModal
             <h4 className="text-lg font-semibold">Informações Básicas</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Nome *</Label>
+                <Label htmlFor="name">Nome</Label>
                 <Input
                   id="name"
                   value={formData.name || ''}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  required
                 />
               </div>
               
               <div>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email || ''}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  required
                 />
               </div>
               
               <div>
-                <Label htmlFor="phone">Telefone *</Label>
+                <Label htmlFor="phone">Telefone</Label>
                 <Input
                   id="phone"
                   value={formData.phone || ''}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  required
                 />
               </div>
               
               <div>
-                <Label htmlFor="cpf">CPF *</Label>
+                <Label htmlFor="cpf">CPF</Label>
                 <Input
                   id="cpf"
                   value={formData.cpf || ''}
                   onChange={(e) => handleInputChange('cpf', e.target.value)}
-                  required
                 />
               </div>
               
